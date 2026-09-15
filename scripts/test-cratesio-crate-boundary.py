@@ -365,8 +365,8 @@ def test_catalog_feature_guards_cannot_be_removed() -> None:
         original = module.read_text(encoding="ascii")
         guards = [('#[cfg(any(feature = "blocking", feature = "async"))]\nmod client;',
                    "mod client;", "catalog client guard")]
-        guards.extend((f'#[cfg(feature = "alloc")]\nmod {name};',
-                       f'mod {name};', "catalog allocation guard")
+        guards.extend((f'#[cfg(feature = "alloc")]\n{("pub(crate) " if name == "schema" else "")}mod {name};',
+                       f'{("pub(crate) " if name == "schema" else "")}mod {name};', "catalog allocation guard")
                       for name in ("models", "decode", "pagination", "schema", "schema_table"))
         for guarded, unguarded, message in guards:
             assert guarded in original

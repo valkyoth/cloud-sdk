@@ -20,6 +20,7 @@ pub mod pagination;
 pub mod publishing;
 pub mod query;
 pub mod trusted_publishing;
+pub mod versions;
 pub mod wire;
 
 pub use identity::{CRATES_IO_PROVIDER_ID, CratesIo, REGISTRY_SERVICE_ID, RegistryService};

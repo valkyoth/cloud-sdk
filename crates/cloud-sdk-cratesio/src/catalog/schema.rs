@@ -1,7 +1,7 @@
 use super::schema_table::NODES;
 use crate::discovery::{DiscoveryError as Error, DiscoveryValue as Value, Timestamp};
 
-pub(super) enum Node {
+pub(crate) enum Node {
     Any,
     Null,
     Bool,
@@ -15,11 +15,19 @@ pub(super) enum Node {
     Object(&'static [(&'static str, usize, bool)], Option<usize>),
 }
 pub(super) fn validate(value: &Value, id: usize, depth: usize) -> Result<(), Error> {
+    validate_table(value, id, depth, NODES)
+}
+pub(crate) fn validate_table(
+    value: &Value,
+    id: usize,
+    depth: usize,
+    nodes: &[Node],
+) -> Result<(), Error> {
     if depth > 24 {
         return Err(Error::Limit);
     }
     let next = depth.checked_add(1).ok_or(Error::Limit)?;
-    match NODES.get(id).ok_or(Error::Schema)? {
+    match nodes.get(id).ok_or(Error::Schema)? {
         Node::Any => (),
         Node::Null if value.is_null() => (),
         Node::Null => return Err(Error::Schema),
@@ -42,22 +50,26 @@ pub(super) fn validate(value: &Value, id: usize, depth: usize) -> Result<(), Err
         }
         Node::Array(child) => {
             for entry in value.array()? {
-                validate(entry, *child, next)?;
+                validate_table(entry, *child, next, nodes)?;
             }
         }
         Node::Nullable(child) => {
             if !value.is_null() {
-                validate(value, *child, next)?;
+                validate_table(value, *child, next, nodes)?;
             }
         }
         Node::OneOf(choices) => {
-            one_of(choices.iter().map(|child| validate(value, *child, next)))?;
+            one_of(
+                choices
+                    .iter()
+                    .map(|child| validate_table(value, *child, next, nodes)),
+            )?;
         }
         Node::Object(fields, extra) => {
             value.object()?;
             for (name, child, required) in *fields {
                 match value.get(name)? {
-                    Some(v) => validate(v, *child, next)?,
+                    Some(v) => validate_table(v, *child, next, nodes)?,
                     None if *required => return Err(Error::Schema),
                     None => (),
                 }
@@ -65,7 +77,7 @@ pub(super) fn validate(value: &Value, id: usize, depth: usize) -> Result<(), Err
             if let Some(child) = extra {
                 value.visit_fields(|name, v| {
                     if !fields.iter().any(|(key, _, _)| *key == name) {
-                        validate(v, *child, next)?;
+                        validate_table(v, *child, next, nodes)?;
                     }
                     Ok(())
                 })?;

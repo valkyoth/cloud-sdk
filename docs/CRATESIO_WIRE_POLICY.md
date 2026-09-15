@@ -58,7 +58,9 @@ copies. A visitor stop remains distinct from completion. This foundation does
 not itself implement operation-specific models. The [discovery layer](CRATESIO_DISCOVERY_POLICY.md)
 decodes seven anonymous operations. The [catalog layer](CRATESIO_CATALOG_POLICY.md)
 adds search/list and named/literal-new metadata with the same checked runner;
-token-response models remain later work.
+the [version layer](CRATESIO_VERSION_POLICY.md) adds version, dependency,
+deprecated author and JSON README-location responses. Token-response models
+remain later work. Static HTML is not admitted through the JSON boundary.
 
 ## Parser Continuity
 

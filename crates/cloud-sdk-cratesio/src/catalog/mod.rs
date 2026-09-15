@@ -10,7 +10,7 @@ mod models;
 #[cfg(feature = "alloc")]
 mod pagination;
 #[cfg(feature = "alloc")]
-mod schema;
+pub(crate) mod schema;
 #[cfg(feature = "alloc")]
 mod schema_table;
 #[cfg(feature = "alloc")]

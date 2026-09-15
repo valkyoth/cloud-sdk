@@ -8,7 +8,7 @@ use crate::{
 use alloc::string::String;
 
 /// Complete checked continuation query. Debug never discloses query text.
-pub struct CatalogLink(String);
+pub struct CatalogLink(pub(crate) String);
 impl core::fmt::Debug for CatalogLink {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         f.write_str("CatalogLink([redacted])")

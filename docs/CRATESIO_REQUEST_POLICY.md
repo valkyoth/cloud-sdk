@@ -3,8 +3,10 @@
 Status: unreleased `1.1.0`; Commit 8 is accepted at `71e3f972`.
 [Discovery execution](CRATESIO_DISCOVERY_POLICY.md) remains covered by that
 checkpoint. Commit 9 [catalog execution](CRATESIO_CATALOG_POLICY.md) passed
-incremental pentest and remediation retest; its evidence checkpoint awaits
-GitHub. No tag or publication is authorized.
+incremental pentest and remediation retest; GitHub passed on `38d493a1`.
+Commit 10 [version execution](CRATESIO_VERSION_POLICY.md) requires explicit
+`per_page` and rejects numeric pages per the pinned controller, even though the
+shared low-level query schema advertises page. No tag or publication is authorized.
 
 ## Source Contract
 

@@ -1,11 +1,10 @@
 # crates.io Commit Plan
 
-Status: selected unreleased `1.1.0` implementation train. Commits 1 through 8
-are accepted; the user confirmed GitHub green on the Commit 8 evidence
-checkpoint `71e3f972ee68995be7b0be048dc7a856c5f1a611` and authorized Commit 9.
-Crate search and metadata passed incremental pentest and remediation retest at
-`41fd2611`; the evidence checkpoint awaits GitHub approval.
-Stop before Commit 10; do not tag or publish.
+Status: selected unreleased `1.1.0` implementation train. Commits 1 through 9
+are accepted; the user confirmed GitHub green on the Commit 9 evidence
+checkpoint `38d493a17c6741691e676be16fa6ac341ed28642` and authorized Commit 10.
+Version-detail implementation is pending incremental pentest and GitHub.
+Stop before Commit 11; do not tag or publish.
 
 ## Decision Summary
 
@@ -381,7 +380,8 @@ surface.
 ## Commit 9 - Crate Search And Metadata
 
 Implementation status: incremental pentest and remediation retest passed at
-`41fd2611ebe4468fca56e0ab12891d06eb06b622`; evidence checkpoint awaits GitHub.
+`41fd2611ebe4468fca56e0ab12891d06eb06b622`; GitHub was confirmed green on
+evidence checkpoint `38d493a17c6741691e676be16fa6ac341ed28642`.
 The [permanent report](../security/pentest/cratesio-commit-9.md) records the
 three resolved findings, verification and bounded availability caveat.
 Comparison baseline: `71e3f972ee68995be7b0be048dc7a856c5f1a611`.
@@ -417,11 +417,23 @@ and metadata surface.
 
 ## Commit 10 - Versions, Dependencies, Authors, And Readmes
 
+Implementation status: implemented, pending incremental pentest and GitHub.
+Comparison baseline: `38d493a17c6741691e676be16fa6ac341ed28642`.
+The [version contract](CRATESIO_VERSION_POLICY.md) records all five operations,
+seek-only bounded listing, deprecated authors and the JSON README location
+profile. HTML is separate untrusted static content, not JSON from this API.
+The [source refresh](CRATESIO_SOURCE_LOCK.md#reviewed-drift-2026-09-15) covers
+the owner-schema and deployed policy-byte changes without enabling ownership.
+Maintenance also updates rustls to `0.23.45` for GHSA-2mjx-qc3c-rqvc; its three
+lockfile changes, SBOM refresh and transport checks belong to this pentest range.
+
 Goal: cover the complete version-detail graph with bounded decoding.
 
 Deliverables: version list/detail, dependency, author, and README operations;
 dependency kind, requirement, feature, target, checksum, license, links, and
 publication metadata models; and explicit text-versus-JSON response handling.
+The reviewed README API profile is a JSON URL object; HTML and default redirects
+are rejected by this client rather than implicitly fetched or rendered.
 
 Verification: SemVer and requirement edge cases, duplicate dependencies,
 feature and target bounds, checksum syntax, null/omitted differences, README

@@ -436,7 +436,18 @@ with exact target/origin scope and cleared scratch. No cookie or implicit
 Bearer conversion, retry, crawler or new dependency is admitted. The adapter
 remains trusted to enforce wire policy and apply raw Authorization correctly.
 See [the catalog contract](CRATESIO_CATALOG_POLICY.md). Pentest and remediation
-retest passed at `41fd2611`; GitHub is pending on the evidence checkpoint.
+retest passed at `41fd2611`; GitHub passed on evidence checkpoint `38d493a1`.
 Provider delay is capped at 24 hours without remote gate poisoning; oneOf
 generation and allocation-error classification fail closed. The substantial
 bounded pause remains an intentional availability boundary, not an open finding.
+
+## crates.io Commit 10
+
+The [version surface](CRATESIO_VERSION_POLICY.md) reuses checked JSON admission,
+protected model storage and the single process gate. Explicit seek pagination
+prevents upstream's unpaginated default. Response identity, duplicate IDs,
+checksum syntax and field bounds are checked; requirements, targets, unknown
+kinds, links and HTML locations are inert metadata. README redirects and HTML
+are rejected, not followed or rendered. No new credential or dependency edge
+is admitted. Controller/source refreshes and the shared schema-validator
+refactoring are part of the incremental pentest scope; pentest is pending.

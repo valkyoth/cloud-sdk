@@ -376,3 +376,12 @@ boundary; async authenticated clients remain later work. A separate Cargo
 search profile avoids weakening full web-response validation. Included-version
 schema projection preserves checked fields without implementing the later
 version endpoint graph early. See [the catalog contract](CRATESIO_CATALOG_POLICY.md).
+
+## crates.io Commit 10
+
+Version execution reuses the private checked GET runner and schema engine,
+not a new transport or provider crate. Requirements and target expressions
+remain bounded metadata rather than introducing a resolver or execution
+engine. The README JSON location does not become an automatic HTML fetcher,
+renderer or credential destination. Explicit PerPage avoids exposing the
+upstream legacy unpaginated default; see [the version contract](CRATESIO_VERSION_POLICY.md).

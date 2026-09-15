@@ -7,7 +7,7 @@ on evidence checkpoint `71e3f972ee68995be7b0be048dc7a856c5f1a611`.
 This checkpoint also includes the [Hetzner drift review](SPEC_LOCK.md#reviewed-live-drift-2026-09-10).
 Commit 9 reuses the private checked GET runner for the
 [catalog surface](CRATESIO_CATALOG_POLICY.md); its pentest and remediation
-retest passed, with GitHub approval pending on the evidence checkpoint.
+retest passed, with GitHub approval confirmed on evidence checkpoint `38d493a1`.
 
 ## Executable Scope
 

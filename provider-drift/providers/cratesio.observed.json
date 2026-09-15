@@ -1787,7 +1787,7 @@
           "content_types": [
             "application/json"
           ],
-          "fingerprint": "78123cfc2fc0339803abc68857a18ebfa63582c6fa468ae55c10e5a95e300eb4",
+          "fingerprint": "c2efe2335335da375030efa7f491cc7850c6393ec74ce91e0e9c262816532f9f",
           "statuses": [
             "200",
             "4XX",
@@ -1831,7 +1831,7 @@
           "content_types": [
             "application/json"
           ],
-          "fingerprint": "78123cfc2fc0339803abc68857a18ebfa63582c6fa468ae55c10e5a95e300eb4",
+          "fingerprint": "c2efe2335335da375030efa7f491cc7850c6393ec74ce91e0e9c262816532f9f",
           "statuses": [
             "200",
             "4XX",
@@ -2675,7 +2675,7 @@
       {
         "id": "component/4b1b8aa3608a26da451ae0630d75b60a",
         "values": {
-          "fingerprint": "c55e6aa427543fa1ef4b0a68ad2b117d934a41417ea18b8e997f2a03b05f375b",
+          "fingerprint": "0e28a891d512fa976950f4828ffebfd6704f8f956862da7bee6b4373bb80f1c3",
           "name": "Owner"
         }
       },
@@ -2774,7 +2774,7 @@
     {
       "id": "openapi",
       "max_bytes": 1048576,
-      "sha256": "1d3b2570d91806c20f90ab0c3debfcd1849810d65f61f28aae5374196de82d03",
+      "sha256": "cbb0c5568cf6f4b5f57c258b22db51b51713e34b4b55a86c04272aa6ddac2f60",
       "url": "https://crates.io/api/openapi.json"
     },
     {
@@ -2786,7 +2786,7 @@
     {
       "id": "policy",
       "max_bytes": 131072,
-      "sha256": "44782b069720f3f4055bf070064c5903b7964ff7db2d7684637803ce629222c3",
+      "sha256": "c9293d619541a6214946e00ce3f38ebc482e5dc10d1729471814dfe48e1ab824",
       "url": "https://crates.io/data-access"
     },
     {

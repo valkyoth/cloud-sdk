@@ -1,8 +1,8 @@
 # crates.io Source Lock
 
-Status: Commits 1 through 8 are accepted in the unreleased `1.1.0` train.
-Commit 9 adds three search/metadata operations and passed incremental pentest
-and remediation retest; its evidence checkpoint awaits GitHub approval.
+Status: Commits 1 through 9 are accepted in the unreleased `1.1.0` train.
+Commit 10 adds five [version operations](CRATESIO_VERSION_POLICY.md) and requires
+incremental pentest against `38d493a17c6741691e676be16fa6ac341ed28642`.
 No tag or publication is authorized.
 See the [catalog contract](CRATESIO_CATALOG_POLICY.md),
 [discovery contract](CRATESIO_DISCOVERY_POLICY.md), [request policy](CRATESIO_REQUEST_POLICY.md),
@@ -176,3 +176,27 @@ the exact payloads, report, and candidate, apply all accepted artifacts
 together, run the full checks and pentest, and commit the result.
 Failed, timed-out, oversized, redirected, malformed, incomplete, or internally
 inconsistent observations leave accepted files untouched.
+
+## Reviewed Drift 2026-09-15
+
+The live OpenAPI changed the `Owner` component and the response fingerprints
+for `add_owners` and `remove_owners`. The reviewed schema distinguishes user and
+team owners, including user `github_username_matches` and the tagged kind.
+No operation, request parameter or authentication inventory changed. Ownership
+is not implemented by Commit 10; later ownership checkpoints use this refreshed
+schema. The generated Version projection and existing catalog/discovery
+fixtures are unchanged. The semantic drift tool correctly reported the three
+schema entries plus source digests rather than declaring the API clean.
+
+Deployed policy-page bytes also changed. The typed data-access policy and
+current/pinned Svelte source remain identical: identifying user agent, one
+request per second, and preferred sparse index/static/RSS/dump sources are
+unchanged. All five related lock/observation/inventory artifacts were rebuilt
+in a staged candidate and reviewed together; no admission rule was loosened.
+The reviewed implementation source commit remains `9ae7f769cea32f38ebc2ea9ec2ce455b47641511`.
+
+Version-list, README, author and dependency controller byte digests are now
+also checked by the request-policy fetch gate. This captures seek-only
+pagination, unpaginated omission of `per_page`, and the missing authors success
+schema, which the OpenAPI parameter/response surface alone does not express.
+Hetzner's live Cloud/Storage API specifications showed no drift in this check.

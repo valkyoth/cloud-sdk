@@ -37,6 +37,7 @@ python3 scripts/check_cratesio_request_policy.py
 python3 scripts/test-cratesio-request-policy.py
 python3 scripts/test-cratesio-discovery-fixtures.py
 python3 scripts/test-cratesio-catalog.py
+python3 scripts/test-cratesio-versions.py
 scripts/check_cratesio_endpoints.py
 scripts/test-cratesio-endpoints.py
 scripts/check_http_method_domain.sh

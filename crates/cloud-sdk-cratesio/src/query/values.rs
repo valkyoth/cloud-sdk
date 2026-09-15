@@ -39,6 +39,11 @@ number!(
     "Page size, capped by the source-locked server limit."
 );
 
+impl PerPage {
+    /// Conservative explicit page size, matching the generic query default.
+    pub const DEFAULT: Self = Self(10);
+}
+
 /// Bounded Unicode search text. Reserved URI bytes are encoded, not interpreted.
 #[derive(Clone, Copy, Eq, PartialEq)]
 pub struct SearchQuery<'a>(&'a str);

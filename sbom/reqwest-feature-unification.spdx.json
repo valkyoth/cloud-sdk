@@ -1,21 +1,21 @@
 {
   "SPDXID": "SPDXRef-DOCUMENT",
   "creationInfo": {
-    "created": "2026-09-09T08:54:11Z",
+    "created": "2026-09-15T09:01:35Z",
     "creators": [
       "Tool: cargo-sbom-v0.10.0",
       "Tool: cloud-sdk-complete-spdx-v1"
     ]
   },
   "dataLicense": "CC0-1.0",
-  "documentNamespace": "https://spdx.org/spdxdocs/reqwest-feature-unification-bdfb211f-b669-4794-b813-d6c8dd0b9f5f",
+  "documentNamespace": "https://spdx.org/spdxdocs/reqwest-feature-unification-cd172a82-b95a-4c4f-9707-69bef5955afd",
   "files": [
     {
       "SPDXID": "SPDXRef-File-cloud_sdk_reqwest_feature_unification_test",
       "checksums": [
         {
           "algorithm": "SHA1",
-          "checksumValue": "e1449c8cb1fa49c5ea40bdb9d7337a017dc6e75a"
+          "checksumValue": "0645d00510e563b215a7a3a94bf4f037bc4647d6"
         }
       ],
       "fileName": "./Cargo.lock",
@@ -1859,13 +1859,13 @@
       "versionInfo": "2.1.3"
     },
     {
-      "SPDXID": "SPDXRef-Package-rustls-0.23.44",
+      "SPDXID": "SPDXRef-Package-rustls-0.23.45",
       "description": "Rustls is a modern TLS library written in Rust.",
       "downloadLocation": "registry+https://github.com/rust-lang/crates.io-index",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
-          "referenceLocator": "pkg:cargo/rustls@0.23.44",
+          "referenceLocator": "pkg:cargo/rustls@0.23.45",
           "referenceType": "purl"
         }
       ],
@@ -1873,7 +1873,7 @@
       "licenseConcluded": "Apache-2.0 OR ISC OR MIT",
       "licenseDeclared": "Apache-2.0 OR ISC OR MIT",
       "name": "rustls",
-      "versionInfo": "0.23.44"
+      "versionInfo": "0.23.45"
     },
     {
       "SPDXID": "SPDXRef-Package-rustls-native-certs-0.8.4",
@@ -3543,7 +3543,7 @@
     {
       "spdxElementId": "SPDXRef-Package-cloud-sdk-reqwest-1.1.0",
       "relationshipType": "DEPENDS_ON",
-      "relatedSpdxElement": "SPDXRef-Package-rustls-0.23.44"
+      "relatedSpdxElement": "SPDXRef-Package-rustls-0.23.45"
     },
     {
       "spdxElementId": "SPDXRef-Package-cloud-sdk-reqwest-1.1.0",
@@ -3578,7 +3578,7 @@
     {
       "spdxElementId": "SPDXRef-Package-cloud-sdk-reqwest-feature-unification-test-0.0.0",
       "relationshipType": "DEPENDS_ON",
-      "relatedSpdxElement": "SPDXRef-Package-rustls-0.23.44"
+      "relatedSpdxElement": "SPDXRef-Package-rustls-0.23.45"
     },
     {
       "spdxElementId": "SPDXRef-Package-cloud-sdk-reqwest-feature-unification-test-0.0.0",
@@ -4208,7 +4208,7 @@
     {
       "spdxElementId": "SPDXRef-Package-hyper-rustls-0.27.9",
       "relationshipType": "DEPENDS_ON",
-      "relatedSpdxElement": "SPDXRef-Package-rustls-0.23.44"
+      "relatedSpdxElement": "SPDXRef-Package-rustls-0.23.45"
     },
     {
       "spdxElementId": "SPDXRef-Package-hyper-rustls-0.27.9",
@@ -4813,7 +4813,7 @@
     {
       "spdxElementId": "SPDXRef-Package-quinn-0.11.11",
       "relationshipType": "DEPENDS_ON",
-      "relatedSpdxElement": "SPDXRef-Package-rustls-0.23.44"
+      "relatedSpdxElement": "SPDXRef-Package-rustls-0.23.45"
     },
     {
       "spdxElementId": "SPDXRef-Package-quinn-0.11.11",
@@ -4883,7 +4883,7 @@
     {
       "spdxElementId": "SPDXRef-Package-quinn-proto-0.11.17",
       "relationshipType": "DEPENDS_ON",
-      "relatedSpdxElement": "SPDXRef-Package-rustls-0.23.44"
+      "relatedSpdxElement": "SPDXRef-Package-rustls-0.23.45"
     },
     {
       "spdxElementId": "SPDXRef-Package-quinn-proto-0.11.17",
@@ -5073,7 +5073,7 @@
     {
       "spdxElementId": "SPDXRef-Package-reqwest-0.13.5",
       "relationshipType": "DEPENDS_ON",
-      "relatedSpdxElement": "SPDXRef-Package-rustls-0.23.44"
+      "relatedSpdxElement": "SPDXRef-Package-rustls-0.23.45"
     },
     {
       "spdxElementId": "SPDXRef-Package-reqwest-0.13.5",
@@ -5181,32 +5181,32 @@
       "relatedSpdxElement": "SPDXRef-Package-semver-1.0.28"
     },
     {
-      "spdxElementId": "SPDXRef-Package-rustls-0.23.44",
+      "spdxElementId": "SPDXRef-Package-rustls-0.23.45",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-aws-lc-rs-1.18.1"
     },
     {
-      "spdxElementId": "SPDXRef-Package-rustls-0.23.44",
+      "spdxElementId": "SPDXRef-Package-rustls-0.23.45",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-once--cell-1.21.4"
     },
     {
-      "spdxElementId": "SPDXRef-Package-rustls-0.23.44",
+      "spdxElementId": "SPDXRef-Package-rustls-0.23.45",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-rustls-pki-types-1.15.1"
     },
     {
-      "spdxElementId": "SPDXRef-Package-rustls-0.23.44",
+      "spdxElementId": "SPDXRef-Package-rustls-0.23.45",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-rustls-webpki-0.103.15"
     },
     {
-      "spdxElementId": "SPDXRef-Package-rustls-0.23.44",
+      "spdxElementId": "SPDXRef-Package-rustls-0.23.45",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-subtle-2.6.1"
     },
     {
-      "spdxElementId": "SPDXRef-Package-rustls-0.23.44",
+      "spdxElementId": "SPDXRef-Package-rustls-0.23.45",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-zeroize-1.9.0"
     },
@@ -5268,7 +5268,7 @@
     {
       "spdxElementId": "SPDXRef-Package-rustls-platform-verifier-0.7.0",
       "relationshipType": "DEPENDS_ON",
-      "relatedSpdxElement": "SPDXRef-Package-rustls-0.23.44"
+      "relatedSpdxElement": "SPDXRef-Package-rustls-0.23.45"
     },
     {
       "spdxElementId": "SPDXRef-Package-rustls-platform-verifier-0.7.0",
@@ -5588,7 +5588,7 @@
     {
       "spdxElementId": "SPDXRef-Package-tokio-rustls-0.26.5",
       "relationshipType": "DEPENDS_ON",
-      "relatedSpdxElement": "SPDXRef-Package-rustls-0.23.44"
+      "relatedSpdxElement": "SPDXRef-Package-rustls-0.23.45"
     },
     {
       "spdxElementId": "SPDXRef-Package-tokio-rustls-0.26.5",

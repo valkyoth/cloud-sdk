@@ -22,7 +22,7 @@ Checked: 2026-09-09.
 | `hyper-util` | `0.1.20` | raw client, connector, and Tokio adapters | disabled |
 | `tokio` | `1.53.1` | opt-in reqwest and raw executor runtime | disabled |
 | `url` | `2.5.8` | authority-preserving endpoint parsing | transitive |
-| `rustls` | `0.23.44` | TLS implementation | transitive |
+| `rustls` | `0.23.45` | TLS implementation | transitive |
 | `rustls-platform-verifier` | `0.7.0` | platform trust-store verification | transitive |
 | `webpki-roots` | `1.0.9` | deterministic Mozilla trust-root snapshot | disabled |
 | `aws-lc-rs` | `1.18.1` | rustls cryptographic provider | transitive |

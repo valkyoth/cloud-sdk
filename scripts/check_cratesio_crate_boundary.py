@@ -207,6 +207,7 @@ def validate(root: Path) -> None:
             "checked",
         )),
         *(f"catalog/{name}.rs" for name in ("mod", "request", "models", "decode", "pagination", "schema", "schema_table", "client", "client/token", "client/tests", "tests", "tests/pagination", "tests/metadata")),
+        *(f"versions/{name}.rs" for name in ("mod", "request", "models", "decode", "schema_table", "client", "client/tests", "tests", "tests/pagination")),
         *(f"wire/{name}.rs" for name in (
             "mod", "error", "rate", "shared_rate", "user_agent", "envelope",
             "response", "policy_tests", "response_tests", "boundary_tests",
@@ -233,8 +234,15 @@ def validate(root: Path) -> None:
             raise BoundaryError("discovery allocation guard changed")
     catalog = (crate / "src/catalog/mod.rs").read_text(encoding="ascii")
     for module in ("models", "decode", "pagination", "schema", "schema_table"):
-        if f'#[cfg(feature = "alloc")]\nmod {module};' not in catalog:
+        visibility = "pub(crate) " if module == "schema" else ""
+        if f'#[cfg(feature = "alloc")]\n{visibility}mod {module};' not in catalog:
             raise BoundaryError("catalog allocation guard changed")
+    versions = (crate / "src/versions/mod.rs").read_text(encoding="ascii")
+    for module in ("models", "decode", "schema_table"):
+        if f'#[cfg(feature = "alloc")]\nmod {module};' not in versions:
+            raise BoundaryError("versions allocation guard changed")
+    if '#[cfg(any(feature = "blocking", feature = "async"))]\nmod client;' not in versions:
+        raise BoundaryError("versions client guard changed")
     if '#[cfg(any(feature = "blocking", feature = "async"))]\nmod client;' not in catalog:
         raise BoundaryError("catalog client guard changed")
     if '#[cfg(feature = "std")]\nmod shared_rate;' not in wire:

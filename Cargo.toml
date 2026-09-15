@@ -55,7 +55,7 @@ cloud-sdk-reqwest = { path = "crates/cloud-sdk-reqwest", version = "1.1.0" }
 cloud-sdk-sanitization = { path = "crates/cloud-sdk-sanitization", version = "1.1.0", default-features = false }
 cloud-sdk-testkit = { path = "crates/cloud-sdk-testkit", version = "1.1.0" }
 reqwest = { version = "=0.13.5", default-features = false }
-rustls = { version = "=0.23.44", default-features = false }
+rustls = { version = "=0.23.45", default-features = false }
 rustls-platform-verifier = { version = "=0.7.0", default-features = false }
 rustix = { version = "=1.1.4", default-features = false, features = ["fs", "process", "std"] }
 webpki-roots = { version = "=1.0.9", default-features = false }

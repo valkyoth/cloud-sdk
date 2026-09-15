@@ -337,7 +337,7 @@ and verification commands. No tag or publication is authorized.
 The [catalog contract](../docs/CRATESIO_CATALOG_POLICY.md) records exact scope
 and verification. Incremental pentest and remediation retest passed through
 `41fd2611`, including the shared discovery runner and pagination helper.
-Wait for GitHub on the evidence checkpoint; stop before Commit 10.
+GitHub was confirmed green on evidence checkpoint `38d493a1`; Commit 9 is accepted.
 
 Commit 9 pentest remediation bounds provider-requested delays to 24 hours and
 rejects larger values without poisoning the shared gate, including the token
@@ -349,9 +349,31 @@ The [remediation record](../docs/CRATESIO_CATALOG_POLICY.md#pentest-remediation)
 and [permanent pentest report](../security/pentest/cratesio-commit-9.md) record
 the user-confirmed green retest with no open findings. The intentional bounded
 24-hour process-wide pause remains an availability consideration, not a new
-vulnerability. GitHub approval of the evidence checkpoint is pending; no next
-checkpoint or publication is authorized. Full-service security review and
+vulnerability. GitHub approval of the evidence checkpoint was confirmed.
+No publication is authorized. Full-service security review and
 pentest remain pending until the final planned checkpoint.
+
+### Commit 10 - Version Details
+
+- Add checked version list/detail, dependency, deprecated author and README
+  location operations with blocking, local-async and Send-async parity.
+- Require explicit bounded seek pagination, retain complete version metadata,
+  reject identity/duplicate/checksum inconsistencies, and preserve unknown kinds.
+- Select the JSON README location profile; never follow its redirect or render
+  static HTML. Requirements remain bounded metadata, not a resolver.
+- Share the existing schema validator without changing catalog validation;
+  add source-derived projections, fixtures and controller byte locks.
+- Review the OpenAPI owner-response and policy-page drift without expanding
+  runtime ownership scope or changing the request-rate admission policy.
+
+The [version contract](../docs/CRATESIO_VERSION_POLICY.md) records scope and
+limits. Pentest must cover `38d493a1..HEAD`. Stop before Commit 11; do not tag or
+publish. The version surface adds no dependency. Maintenance also updates the
+exact rustls pin from `0.23.44` to `0.23.45` in all three affected lockfiles and
+regenerates their SBOMs. This fixes TLS 1.3 encryption-level message alignment
+([GHSA-2mjx-qc3c-rqvc](https://github.com/rustls/rustls/security/advisories/GHSA-2mjx-qc3c-rqvc));
+default features, TLS provider and native build policy are unchanged. The
+transport security update is included in this checkpoint's pentest range.
 
 ### Maintenance Evidence
 

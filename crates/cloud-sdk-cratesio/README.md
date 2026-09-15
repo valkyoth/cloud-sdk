@@ -23,10 +23,9 @@ provider identities, API models, request preparation, checked response
 decoding, authentication rules, and high-level workflows while reusing the
 provider-neutral execution contracts from `cloud-sdk`.
 
-The crate is an unreleased `1.1.0` candidate. Seven discovery operations and
-three crate search/metadata operations have checked blocking, local-async and
-Send-async execution. Commit 9 passed incremental pentest and remediation retest;
-its evidence checkpoint awaits GitHub approval.
+The crate is an unreleased `1.1.0` candidate. Seven discovery, three catalog
+and five version operations have checked blocking, local-async and Send-async
+execution. Commit 9 is accepted; Commit 10 requires incremental pentest.
 Authentication preparation, endpoint, query and response foundations
 are available, but authenticated clients and the other API workflows remain
 assigned to later checkpoints. This is not yet a complete crates.io provider.
@@ -50,12 +49,38 @@ assigned to later checkpoints. This is not yet a complete crates.io provider.
 | Pagination | checked meta links, legacy `more`, and explicit traversal limits |
 | Discovery operations | categories, category slugs, keywords, site metadata and complete front-page summary |
 | Catalog operations | web/Cargo search, named and literal-new metadata, includes and checked continuation |
+| Version operations | seek-paged versions, exact detail, dependencies, deprecated empty authors and JSON README location |
 | Other API operations | deferred to their source-locked implementation commits |
 
 The public modules reserve ownership without claiming executable coverage:
 `accounts`, `ownership`, `publishing`, and `trusted_publishing`.
 The complete 51-operation scope is maintained in the
 [crates.io source lock](https://github.com/valkyoth/cloud-sdk/blob/main/docs/CRATESIO_SOURCE_LOCK.md).
+
+## Version Example
+
+List versions with an explicit page size. The source supports seek pagination,
+not numbered pages, and omitting `per_page` would request an unpaginated list.
+
+```rust
+use cloud_sdk_cratesio::{identifiers::CrateName, query::{Parameter, PerPage}, versions::VersionRequest};
+let name = CrateName::new("serde")?;
+let parameters = [Parameter::PerPage(PerPage::DEFAULT)];
+let request = VersionRequest::list(name, &parameters)?;
+let mut target = [0; 256];
+assert_eq!(request.write_target(&mut target)?.as_str(),
+    "/api/v1/crates/serde/versions?per_page=10");
+# Ok::<(), Box<dyn std::error::Error>>(())
+```
+
+`versions::VersionClient` uses the same `production`/`staging` constructors and
+`execute`, `execute_local`, and `execute_async` pattern as `CatalogClient`
+below. Select `detail`, `dependencies`, `authors`, or `readme` with a checked
+crate name and exact `identifiers::Version`. The README result is an inert URL,
+never rendered HTML or permission to forward credentials. Authors is a
+deprecated empty compatibility response. Requirement and target strings are
+bounded metadata, not a dependency resolver or executable configuration.
+See the [version contract](https://github.com/valkyoth/cloud-sdk/blob/main/docs/CRATESIO_VERSION_POLICY.md).
 
 ## Catalog Example
 

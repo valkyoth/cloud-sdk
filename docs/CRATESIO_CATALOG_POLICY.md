@@ -4,7 +4,8 @@ Status: unreleased `1.1.0`, logical Commit 9 passed incremental pentest and
 remediation retest at `41fd2611ebe4468fca56e0ab12891d06eb06b622` against
 accepted checkpoint `71e3f972ee68995be7b0be048dc7a856c5f1a611`. The
 [permanent report](../security/pentest/cratesio-commit-9.md) records the evidence.
-Wait for GitHub on the evidence checkpoint; do not tag, publish or start Commit 10.
+GitHub was confirmed green on evidence checkpoint `38d493a1`; Commit 9 is accepted.
+Commit 10 [version operations](CRATESIO_VERSION_POLICY.md) require a new pentest.
 
 ## Executable Scope
 

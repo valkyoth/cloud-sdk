@@ -1,0 +1,18 @@
+{
+  "dependencies": [
+    {
+      "crate_id": "serde",
+      "default_features": true,
+      "downloads": 123456,
+      "features": [
+        "fixture"
+      ],
+      "id": 169,
+      "kind": "normal",
+      "optional": false,
+      "req": "^1",
+      "target": null,
+      "version_id": 42
+    }
+  ]
+}
