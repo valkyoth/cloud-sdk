@@ -79,9 +79,7 @@ please report it so it can be fixed.
 
 | Provider or role | Target | Crate or status |
 | --- | --- | --- |
-| [`Hetzner Cloud`](https://www.hetzner.com/) | `1.0.0` | stable in [`cloud-sdk-hetzner`](https://crates.io/crates/cloud-sdk-hetzner) |
-| [`Hetzner Robot`](https://robot.hetzner.com/doc/webservice/en.html) | `1.0.0` | stable in `cloud-sdk-hetzner` |
-| [`OVHcloud API v2`](https://docs.ovhcloud.com/en/guides/manage-and-operate/api/apiv2/) architecture probe | `0.57.0 - 0.61.0` | unpublished conformance fixture; neutral freeze follows in `0.62.0` |
+| [`Hetzner Cloud & Robot`](https://www.hetzner.com/) | `1.0.0` | stable in [`cloud-sdk-hetzner`](https://crates.io/crates/cloud-sdk-hetzner) |
 | [`crates.io`](https://crates.io/) | `1.1.0` | in development; complete public API and Cargo Registry Web API compatibility through `cloud-sdk-cratesio` |
 | [`Scaleway`](https://www.scaleway.com/en/developers/api/) | candidate assessment | commit plan available; stable GA APIs first |
 | [`DigitalOcean`](https://docs.digitalocean.com/reference/api/reference/public-apis/) | candidate assessment | commit plan available |
@@ -111,13 +109,17 @@ Portable and native platform evidence is documented in
 
 ## Install
 
+Use `cargo add` in your application to select published dependencies and write
+version requirements to its manifest. These examples need no wildcard or
+manually maintained version pin. Review the resulting manifest and lockfile;
+unpublished candidate APIs still require this checkout.
+
 The crates.io-installable release remains `1.0.0` while the `1.1.0` candidate
 is developed on `main`:
 
-```toml
-[dependencies]
-cloud-sdk = "=1.0.0"
-cloud-sdk-hetzner = "=1.0.0"
+```sh
+cargo add cloud-sdk
+cargo add cloud-sdk-hetzner
 ```
 
 ## cloud-sdk Features
@@ -502,10 +504,9 @@ without changing the default allocation-free graph.
 
 ## Optional Blocking Transport
 
-```toml
-[dependencies]
-cloud-sdk = "=1.0.0"
-cloud-sdk-reqwest = { version = "=1.0.0", features = ["blocking-rustls"] }
+```sh
+cargo add cloud-sdk
+cargo add cloud-sdk-reqwest --features blocking-rustls
 ```
 
 The production builder is HTTPS-only, requires explicit bounded timeouts and a
@@ -529,10 +530,9 @@ for client construction and request execution.
 Use a source-pinned Mozilla root snapshot instead of host trust-store contents
 when deterministic public WebPKI roots are required:
 
-```toml
-[dependencies]
-cloud-sdk = "=1.0.0"
-cloud-sdk-reqwest = { version = "=1.0.0", features = ["blocking-rustls-webpki-roots"] }
+```sh
+cargo add cloud-sdk
+cargo add cloud-sdk-reqwest --features blocking-rustls-webpki-roots
 ```
 
 The blocking API is unchanged. This feature excludes host-added enterprise
@@ -552,10 +552,9 @@ See the [FIPS deferment policy](https://github.com/valkyoth/cloud-sdk/blob/main/
 
 ## Optional Async Transport
 
-```toml
-[dependencies]
-cloud-sdk = "=1.0.0"
-cloud-sdk-reqwest = { version = "=1.0.0", features = ["async-rustls"] }
+```sh
+cargo add cloud-sdk
+cargo add cloud-sdk-reqwest --features async-rustls
 ```
 
 The async adapter requires an active Tokio executor because reqwest uses Tokio

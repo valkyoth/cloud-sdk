@@ -24,8 +24,9 @@ decoding, authentication rules, and high-level workflows while reusing the
 provider-neutral execution contracts from `cloud-sdk`.
 
 The crate is an unreleased `1.1.0` candidate. Seven discovery, three catalog
-and five version operations have checked blocking, local-async and Send-async
-execution. Commit 10 passed incremental pentest; GitHub approval is pending.
+and five version operations plus four download/statistics operations have checked
+blocking, local-async and Send-async execution. Commit 10 is accepted;
+Commit 11 requires incremental pentest and GitHub approval.
 Authentication preparation, endpoint, query and response foundations
 are available, but authenticated clients and the other API workflows remain
 assigned to later checkpoints. This is not yet a complete crates.io provider.
@@ -50,12 +51,54 @@ assigned to later checkpoints. This is not yet a complete crates.io provider.
 | Discovery operations | categories, category slugs, keywords, site metadata and complete front-page summary |
 | Catalog operations | web/Cargo search, named and literal-new metadata, includes and checked continuation |
 | Version operations | seek-paged versions, exact detail, dependencies, deprecated empty authors and JSON README location |
+| Download operations | JSON archive location, crate/version count windows and bounded reverse dependencies |
+| Artifact streaming | static-origin transport and SHA-256 hooks, transactional sink, bounded scratch and cancellation cleanup; caller-supplied streaming adapter required |
 | Other API operations | deferred to their source-locked implementation commits |
 
 The public modules reserve ownership without claiming executable coverage:
 `accounts`, `ownership`, `publishing`, and `trusted_publishing`.
 The complete 51-operation scope is maintained in the
 [crates.io source lock](https://github.com/valkyoth/cloud-sdk/blob/main/docs/CRATESIO_SOURCE_LOCK.md).
+
+## Install
+
+This provider remains unpublished. For the candidate examples, use a checkout
+with its complete workspace, as opposed to selecting a published package:
+
+```sh
+cargo add cloud-sdk --path /path/to/cloud-sdk/crates/cloud-sdk
+cargo add cloud-sdk-cratesio --path /path/to/cloud-sdk/crates/cloud-sdk-cratesio --features blocking
+```
+
+For published SDK crates, `cargo add` without a path selects registry metadata
+and writes version requirements to your application's manifest. Workspace
+security pins and lockfile review remain separate from these install examples.
+
+## Download Counts Example
+
+```rust
+use cloud_sdk_cratesio::{
+    downloads::DownloadRequest,
+    identifiers::{CrateName, Date, Version},
+    query::Parameter,
+};
+
+let parameters = [Parameter::BeforeDate(Date::new("2026-09-01")?)];
+let request = DownloadRequest::version_counts(
+    CrateName::new("serde")?, Version::new("1.0.0")?, &parameters,
+)?;
+let mut storage = [0; 256];
+assert_eq!(request.write_target(&mut storage)?.as_str(),
+    "/api/v1/crates/serde/1.0.0/downloads?before_date=2026-09-01");
+# Ok::<(), Box<dyn core::error::Error>>(())
+```
+
+Use `DownloadClient::production` with the same checked executor, identifying
+user-agent and caller response buffers shown for the version client below.
+Artifact streaming is separate from JSON response execution and requires an
+anonymous streaming adapter plus a reviewed SHA-256 hook; see the
+[download contract](https://github.com/valkyoth/cloud-sdk/blob/main/docs/CRATESIO_DOWNLOAD_POLICY.md).
+Prefer static CDN downloads and database dumps for bulk work.
 
 ## Version Example
 

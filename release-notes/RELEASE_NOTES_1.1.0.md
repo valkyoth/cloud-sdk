@@ -386,6 +386,27 @@ Local qualification passed at implementation checkpoint `6db21a77`; the
 lists repository, compiler/platform, packaging, fuzz and supply-chain evidence.
 This is the implementation stop, not an independent pentest result.
 
+### Commit 11 - Downloads And Usage
+
+- Add four checked JSON operations for archive locations, crate/version count
+  windows and numbered reverse dependencies, with blocking/local/Send parity.
+- Add allocation-free static artifact streaming contracts, mandatory SHA-256
+  hooks, explicit bounds, transactional sink commit and cancellation cleanup.
+  A caller streaming adapter is required; the bundled raw reqwest executor is
+  still a buffered adapter. No hashing/transport dependency was added.
+- Retain protected metadata with exact date, count, ID and include correlations;
+  distinguish numbered continuation exhaustion from end-of-results.
+- Refresh crates.io documentation-only source hashes and byte-lock three more
+  controller implementations. Hetzner's newly detected network-members endpoint
+  remains unaccepted pending separate SDK coverage; live drift stays visible.
+- Replace consumer README version pins with feature-correct `cargo add`
+  instructions; preserve exact workspace dependency pins. Combine the Hetzner
+  provider row and remove the internal OVHcloud probe from the provider table.
+
+The [download contract](../docs/CRATESIO_DOWNLOAD_POLICY.md) records complete
+boundaries and pending drift. Incremental pentest range: `51a7d946..HEAD`.
+Stop before Commit 12; no tag or publication is authorized.
+
 ### Maintenance Evidence
 
 - Advanced the complete development and compatibility gate to stable Rust

@@ -3,7 +3,8 @@
 Status: selected unreleased `1.1.0` implementation train. Commits 1 through 9
 are accepted; the user confirmed GitHub green on the Commit 9 evidence
 checkpoint `38d493a17c6741691e676be16fa6ac341ed28642` and authorized Commit 10.
-Version-detail pentest/retest passed at `94c004b2`; GitHub approval is pending.
+Version-detail pentest/retest passed at `94c004b2`; the user confirmed GitHub
+green on evidence checkpoint `51a7d946` and authorized Commit 11.
 Stop before Commit 11; do not tag or publish.
 
 ## Decision Summary
@@ -417,9 +418,9 @@ and metadata surface.
 
 ## Commit 10 - Versions, Dependencies, Authors, And Readmes
 
-Implementation status: pentest/retest passed, pending GitHub.
+Implementation status: accepted after green pentest/retest and GitHub.
 The [checkpoint report](../security/pentest/cratesio-commit-10.md) closes F1
-at `94c004b2`. Do not start Commit 11 until GitHub is green.
+at `94c004b2`. Accepted evidence checkpoint `51a7d946` is the Commit 11 baseline.
 Comparison baseline: `38d493a17c6741691e676be16fa6ac341ed28642`.
 The [version contract](CRATESIO_VERSION_POLICY.md) records all five operations,
 seek-only bounded listing, deprecated authors and the JSON README location
@@ -449,6 +450,15 @@ Pentest stop: run an incremental pentest for the exact Commit 10 version-detail
 surface.
 
 ## Commit 11 - Downloads, Statistics, And Reverse Dependencies
+
+Implementation status: implemented, pending incremental pentest and GitHub.
+Comparison baseline: `51a7d946`.
+The [download contract](CRATESIO_DOWNLOAD_POLICY.md) records the four JSON
+operations, static streaming adapter/checksum hooks, limits and source choices.
+Consumer installation examples use `cargo add`; audited workspace pins stay exact.
+The crates.io lock refresh is documentation-only. A new Hetzner network-members
+endpoint is detected but not accepted into the Hetzner coverage lock; see the
+same contract's drift record. Stop before Commit 12.
 
 Goal: implement artifact and usage reads without credential forwarding or bulk
 API misuse.
@@ -640,6 +650,13 @@ request bindings for all 51 rows; automatic method, target, headers, body,
 response bound, and decoder selection; sync, local-async, async, raw, and
 streaming execution parity; and higher-level Cargo-compatible publish, owner,
 yank, unyank, and search workflows.
+
+Close the Commit 11 adapter boundary: integrate a provider-neutral bundled
+streaming transport and reviewed SHA-256 implementation with ArtifactDownload,
+without a new provider helper crate. Contract-only or buffered-download
+substitutes do not satisfy this unified-client exit gate. Include actual
+loopback HTTP streaming, redirect rejection, truncated bodies, deadlines and
+cancellation in the adapter conformance tests before claiming bundled support.
 
 Verification: generated coverage assertions against the operation matrix;
 compile-checked examples; credential and permit routing; shared concurrent rate

@@ -1,6 +1,6 @@
 # crates.io Version Contract
 
-Status: unreleased `1.1.0`, logical Commit 10 pentest passed; GitHub pending.
+Status: unreleased `1.1.0`, logical Commit 10 accepted after pentest and GitHub.
 Compare against accepted checkpoint `38d493a17c6741691e676be16fa6ac341ed28642`.
 Stop before Commit 11. No tag or publication is authorized.
 

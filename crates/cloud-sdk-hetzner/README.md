@@ -40,10 +40,14 @@ request models, typed clients, and reviewed response and workflow boundaries.
 
 ## Install
 
-```toml
-[dependencies]
-cloud-sdk = "=1.0.0"
-cloud-sdk-hetzner = "=1.0.0"
+Use `cargo add` in your application to select published dependencies and write
+version requirements to its manifest. These examples need no wildcard or
+manually maintained version pin. Review the resulting manifest and lockfile;
+unpublished candidate APIs still require this checkout.
+
+```sh
+cargo add cloud-sdk
+cargo add cloud-sdk-hetzner
 ```
 
 ## Features
@@ -948,9 +952,8 @@ and the
 
 Enable Serde explicitly; it is never part of the default graph:
 
-```toml
-[dependencies]
-cloud-sdk-hetzner = { version = "=1.0.0", features = ["serde"] }
+```sh
+cargo add cloud-sdk-hetzner --features serde
 ```
 
 The feature admits serde_json with `default-features = false` and `alloc` only

@@ -2835,7 +2835,7 @@
     {
       "id": "openapi",
       "max_bytes": 1048576,
-      "sha256": "cbb0c5568cf6f4b5f57c258b22db51b51713e34b4b55a86c04272aa6ddac2f60",
+      "sha256": "8ba08d1569778bcfd6ed81adb1ba32120e2109960bd7e24db9bf48ffd82d6a64",
       "url": "https://crates.io/api/openapi.json"
     },
     {
@@ -2847,7 +2847,7 @@
     {
       "id": "policy",
       "max_bytes": 131072,
-      "sha256": "c9293d619541a6214946e00ce3f38ebc482e5dc10d1729471814dfe48e1ab824",
+      "sha256": "5e6bee736ee545d63f31315f0c4e162186a5aa9b41e86f57dc12314df6651c4f",
       "url": "https://crates.io/data-access"
     },
     {

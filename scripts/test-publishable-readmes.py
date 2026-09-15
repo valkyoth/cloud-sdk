@@ -6,6 +6,8 @@ from __future__ import annotations
 from pathlib import Path
 import subprocess
 import tempfile
+import shlex
+import tomllib
 
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -223,6 +225,40 @@ def test_unterminated_toml_variants_fail_closed() -> None:
         assert "unterminated TOML fence" in result.stderr
 
 
+def test_cargo_add_examples_match_workspace_features() -> None:
+    manifests = {
+        tomllib.loads(path.read_text())["package"]["name"]: tomllib.loads(path.read_text())
+        for path in (ROOT / "crates").glob("*/Cargo.toml")
+    }
+    paths = [ROOT / "README.md", *(ROOT / "crates").glob("*/README.md")]
+    for path in paths:
+        text = path.read_text()
+        commands = [shlex.split(line) for line in text.splitlines() if line.startswith("cargo add ")]
+        assert commands, path
+        for command in commands:
+            crates, features = [], []
+            tokens = iter(command[2:])
+            for token in tokens:
+                if token == "--features":
+                    features.extend(next(tokens).split(","))
+                elif token == "--path":
+                    assert next(tokens).startswith("/path/to/cloud-sdk/crates/")
+                elif token in {"--dev", "--no-default-features"}:
+                    continue
+                else:
+                    assert token in manifests, (path, token)
+                    crates.append(token)
+            assert crates, path
+            if features:
+                assert len(crates) == 1, command
+                assert set(features) <= set(manifests[crates[0]].get("features", {})), command
+        assert not any(line.startswith("cloud-sdk") and '"=' in line for line in text.splitlines()), path
+    assert (ROOT / "README.md").read_bytes() == (ROOT / "crates/cloud-sdk/README.md").read_bytes()
+    table = (ROOT / "README.md").read_text().split("## Provider Roadmap", 1)[-1]
+    assert "architecture probe |" not in table
+    assert "Hetzner Cloud & Robot" in table
+
+
 def main() -> None:
     test_repository_readmes()
     test_stable_wording()
@@ -236,7 +272,8 @@ def main() -> None:
     test_malformed_dotted_dependency_fails_closed()
     test_non_toml_blocks_without_dependencies_are_ignored()
     test_unterminated_toml_variants_fail_closed()
-    print("12 publishable README regression groups passed.")
+    test_cargo_add_examples_match_workspace_features()
+    print("13 publishable README regression groups passed.")
 
 
 if __name__ == "__main__":

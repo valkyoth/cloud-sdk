@@ -45,10 +45,14 @@ The default and `std`-only graphs remain portable and transport-free.
 
 ## Install
 
-```toml
-[dependencies]
-cloud-sdk = "=1.0.0"
-cloud-sdk-reqwest = { version = "=1.0.0", features = ["blocking-rustls"] }
+Use `cargo add` in your application to select published dependencies and write
+version requirements to its manifest. These examples need no wildcard or
+manually maintained version pin. Review the resulting manifest and lockfile;
+unpublished candidate APIs still require this checkout.
+
+```sh
+cargo add cloud-sdk
+cargo add cloud-sdk-reqwest --features blocking-rustls
 ```
 
 The examples use Hetzner as a concrete endpoint, but the adapter contains no
@@ -397,10 +401,9 @@ The standard blocking feature follows the host trust store. Select the
 separate deterministic feature to use only the reviewed Mozilla root snapshot
 compiled into `webpki-roots`:
 
-```toml
-[dependencies]
-cloud-sdk = "=1.0.0"
-cloud-sdk-reqwest = { version = "=1.0.0", features = ["blocking-rustls-webpki-roots"] }
+```sh
+cargo add cloud-sdk
+cargo add cloud-sdk-reqwest --features blocking-rustls-webpki-roots
 ```
 
 The blocking API is identical to the example above. The custom rustls client

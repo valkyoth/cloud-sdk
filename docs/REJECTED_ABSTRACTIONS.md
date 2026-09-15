@@ -1,5 +1,15 @@
 # Rejected Abstractions Digest
 
+## crates.io Commit 11
+
+No new provider helper crate, mandatory HTTP dependency, archive extractor or
+hash implementation is added. Existing checked JSON execution and stream
+accounting are reused. Static streaming requires an explicit trusted adapter
+and SHA-256 hook; a buffered raw executor is not relabeled as streaming.
+Arbitrary location text never becomes an executable credential-bearing URL.
+Statistics remain bounded provider metadata rather than a dependency resolver,
+bulk crawler or clock-derived freshness guarantee.
+
 This document consolidates rejected release designs. Earlier complete snapshots remain available from their signed Git tags and repository history.
 
 Add future release sections here instead of creating another version-named file. Current policies live in the focused documents linked from each release note and in the release roadmap.

@@ -1,5 +1,17 @@
 # Threat Model Delta Digest
 
+## crates.io Commit 11
+
+The static archive path cannot inherit API credentials or an arbitrary response
+URL. Streaming adapters remain trusted network/framing/deadline implementations;
+the SDK validates bound origin/user-agent, normalized head, actual byte limits
+and checksum-hook result before transactional sink commit. Cancellation and
+errors abort tentative output. Caller checksum implementations and expected
+metadata need independent trust; no new cryptography is implemented. Statistics
+and reverse dependency graphs are bounded inert data, not freshness proofs or
+resolver instructions. Hetzner's new network-members operation remains pending
+coverage rather than silently accepted into the live drift baseline.
+
 This document consolidates release threat-model changes. Earlier complete snapshots remain available from their signed Git tags and repository history.
 
 Add future release sections here instead of creating another version-named file. Current policies live in the focused documents linked from each release note and in the release roadmap.

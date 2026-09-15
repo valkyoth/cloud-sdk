@@ -12,6 +12,7 @@ pub mod catalog;
 #[cfg(feature = "alloc")]
 pub mod credentials;
 pub mod discovery;
+pub mod downloads;
 pub mod endpoint;
 pub mod identifiers;
 pub mod identity;

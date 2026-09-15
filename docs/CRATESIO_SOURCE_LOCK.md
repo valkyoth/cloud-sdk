@@ -1,8 +1,8 @@
 # crates.io Source Lock
 
-Status: Commits 1 through 9 are accepted in the unreleased `1.1.0` train.
-Commit 10 adds five [version operations](CRATESIO_VERSION_POLICY.md) and requires
-incremental pentest against `38d493a17c6741691e676be16fa6ac341ed28642`.
+Status: Commits 1 through 10 are accepted in the unreleased `1.1.0` train.
+Commit 11 adds [downloads/statistics](CRATESIO_DOWNLOAD_POLICY.md) and requires
+incremental pentest against accepted evidence checkpoint `51a7d946`.
 No tag or publication is authorized.
 See the [catalog contract](CRATESIO_CATALOG_POLICY.md),
 [discovery contract](CRATESIO_DISCOVERY_POLICY.md), [request policy](CRATESIO_REQUEST_POLICY.md),
@@ -200,3 +200,15 @@ also checked by the request-policy fetch gate. This captures seek-only
 pagination, unpaginated omission of `per_page`, and the missing authors success
 schema, which the OpenAPI parameter/response surface alone does not express.
 Hetzner's live Cloud/Storage API specifications showed no drift in this check.
+
+### Commit 11 Follow-up
+
+A later observation on 2026-09-15 changed only the OpenAPI `add_owners`
+description (supported owner-name prefixes) and deployed policy-page bytes.
+Normalized operation/schema/parameter/auth contracts and typed policy remain
+unchanged. The staged source-only refresh was reviewed and accepted. Three
+additional download/reverse-dependency controller byte locks now preserve
+inclusive count-window and numbered-page behavior not fully described by OpenAPI.
+The subsequent Hetzner check detected a newly added network-members endpoint;
+unlike documentation-only crates.io drift, it remains unaccepted until SDK
+coverage is added. Details are in the [download checkpoint drift record](CRATESIO_DOWNLOAD_POLICY.md#source-and-drift-review).

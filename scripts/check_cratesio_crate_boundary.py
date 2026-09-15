@@ -211,6 +211,7 @@ def validate(root: Path) -> None:
         )),
         *(f"catalog/{name}.rs" for name in ("mod", "request", "models", "decode", "pagination", "schema", "schema_table", "client", "client/token", "client/tests", "tests", "tests/pagination", "tests/metadata")),
         *(f"versions/{name}.rs" for name in ("mod", "request", "models", "decode", "schema_table", "client", "client/tests", "tests", "tests/pagination")),
+        *(f"downloads/{name}.rs" for name in ("mod", "request", "models", "decode", "schema_table", "client", "client/tests", "tests", "artifact", "artifact/asynchronous", "artifact/tests")),
         *(f"wire/{name}.rs" for name in (
             "mod", "error", "rate", "shared_rate", "user_agent", "envelope",
             "response", "policy_tests", "response_tests", "boundary_tests",
@@ -241,6 +242,12 @@ def validate(root: Path) -> None:
         if f'#[cfg(feature = "alloc")]\n{visibility}mod {module};' not in catalog:
             raise BoundaryError("catalog allocation guard changed")
     versions = (crate / "src/versions/mod.rs").read_text(encoding="ascii")
+    downloads = (crate / "src/downloads/mod.rs").read_text(encoding="ascii")
+    for module in ("models", "decode", "schema_table"):
+        if f'#[cfg(feature = "alloc")]\nmod {module};' not in downloads:
+            raise BoundaryError("downloads allocation guard changed")
+    if '#[cfg(any(feature = "blocking", feature = "async"))]\nmod client;' not in downloads:
+        raise BoundaryError("downloads client guard changed")
     for module in ("models", "decode", "schema_table"):
         if f'#[cfg(feature = "alloc")]\nmod {module};' not in versions:
             raise BoundaryError("versions allocation guard changed")

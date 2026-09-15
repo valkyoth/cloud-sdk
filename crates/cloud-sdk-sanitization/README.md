@@ -41,10 +41,14 @@ features disabled.
 
 ## Install
 
-```toml
-[dependencies]
-cloud-sdk = "=1.0.0"
-cloud-sdk-sanitization = "=1.0.0"
+Use `cargo add` in your application to select published dependencies and write
+version requirements to its manifest. These examples need no wildcard or
+manually maintained version pin. Review the resulting manifest and lockfile;
+unpublished candidate APIs still require this checkout.
+
+```sh
+cargo add cloud-sdk
+cargo add cloud-sdk-sanitization
 ```
 
 ## Example

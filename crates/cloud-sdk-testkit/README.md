@@ -40,10 +40,13 @@ failures need deterministic multi-request coverage.
 
 ## Install
 
-```toml
-[dev-dependencies]
-cloud-sdk = "=1.0.0"
-cloud-sdk-testkit = "=1.0.0"
+Use `cargo add` in your application to select published dependencies and write
+version requirements to its manifest. These examples need no wildcard or
+manually maintained version pin. Review the resulting manifest and lockfile;
+unpublished candidate APIs still require this checkout.
+
+```sh
+cargo add --dev cloud-sdk cloud-sdk-testkit
 ```
 
 ## Mock Transport
