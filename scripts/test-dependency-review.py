@@ -32,17 +32,17 @@ def lock(packages: list[tuple[str, str]]) -> str:
 
 
 def test_change_inventory() -> None:
-    previous = MODULE.package_versions(
+    previous = MODULE.package_identities(
         lock([("changed", "1.0.0"), ("removed", "1.0.0"), ("multi", "1.0.0")])
     )
-    current = MODULE.package_versions(
+    current = MODULE.package_identities(
         lock([("changed", "1.1.0"), ("added", "1.0.0"), ("multi", "2.0.0")])
     )
-    assert MODULE.version_changes(previous, current) == [
-        ("added", "-", "1.0.0"),
-        ("changed", "1.0.0", "1.1.0"),
-        ("multi", "1.0.0", "2.0.0"),
-        ("removed", "1.0.0", "-"),
+    assert MODULE.identity_changes(previous, current) == [
+        ("added", "-", current["added"]),
+        ("changed", previous["changed"], current["changed"]),
+        ("multi", previous["multi"], current["multi"]),
+        ("removed", previous["removed"], "-"),
     ]
 
 
@@ -100,7 +100,9 @@ def test_all_graphs_fail_closed() -> None:
                 path.parent.mkdir(parents=True, exist_ok=True)
                 path.write_text(lock([("transitive", "2.0.0" if name == graph else "1.0.0")]))
             document = root / "docs/review.md"
-            row = f"| `{graph}` | `transitive` | `1.0.0` | `2.0.0` | reviewed |"
+            old = MODULE.package_identities(lock([("transitive", "1.0.0")]))["transitive"]
+            new = MODULE.package_identities(lock([("transitive", "2.0.0")]))["transitive"]
+            row = f"| `{graph}` | `transitive` | `{old}` | `{new}` | reviewed |"
             def run():
                 with contextlib.redirect_stdout(io.StringIO()), contextlib.redirect_stderr(io.StringIO()):
                     return MODULE.main(["baseline", "1.1.0", "docs/review.md"])
@@ -112,6 +114,12 @@ def test_all_graphs_fail_closed() -> None:
                 assert previous.call_args_list[-4:] == [
                     (("baseline", name),) for name in MODULE.LOCKFILES
                 ]
+                original = (root / graph).read_text()
+                for field in ('checksum = "changed"', 'source = "registry+changed"',
+                              'dependencies = ["new-edge"]'):
+                    (root / graph).write_text(original + field + "\n")
+                    assert run() == 1
+                (root / graph).write_text(original)
                 for invalid in ("", row.replace(graph, "wrong/Cargo.lock"), row.replace(f"`{graph}` | ", "")):
                     document.write_text("## v1.1.0\n" + invalid)
                     assert run() == 1
@@ -125,13 +133,48 @@ def test_all_graphs_fail_closed() -> None:
                 assert run() == 1
 
 
+def test_complete_identity():
+    original = lock([("package", "1.0.0")]) + 'source = "registry+trusted"\nchecksum = "aaa"\ndependencies = ["one"]\n'
+    previous = MODULE.package_identities(original)
+    for changed in (
+        original.replace('"aaa"', '"bbb"'),
+        original.replace('registry+trusted', 'registry+other'),
+        original.replace('["one"]', '["two"]'),
+        original.replace('["one"]', '["one", "two"]'),
+        original.replace('dependencies = ["one"]\n', ''),
+        original + 'additional = "unreviewed"\n',
+    ):
+        changes = MODULE.identity_changes(previous, MODULE.package_identities(changed))
+        assert len(changes) == 1
+        for graph in MODULE.LOCKFILES:
+            assert MODULE.missing_rows(changes, "", graph) == changes
+            name, old, new = changes[0]
+            row = f"| `{graph}` | `{name}` | `{old}` | `{new}` | reviewed |"
+            assert MODULE.missing_rows(changes, row, graph) == []
+            assert MODULE.missing_rows(changes, row.replace(new, old), graph) == changes
+    reordered = original.replace('source = "registry+trusted"\n', '') + 'source = "registry+trusted"\n'
+    assert MODULE.package_identities(reordered) == previous
+    records = lock([("package", "1.0.0"), ("package", "2.0.0")])
+    assert MODULE.package_identities(records) == MODULE.package_identities(
+        lock([("package", "2.0.0"), ("package", "1.0.0")]))
+    for invalid in ('version = 4', 'package = "invalid"',
+                    lock([("package", "1.0.0"), ("package", "1.0.0")])):
+        try:
+            MODULE.package_identities(invalid)
+        except MODULE.ReviewError:
+            pass
+        else:
+            raise AssertionError("invalid identity inventory accepted")
+
+
 def main() -> None:
     test_change_inventory()
     test_exact_review_rows()
     test_review_evidence_is_scoped_to_the_requested_release()
     test_missing_or_invalid_release_sections_fail_closed()
     test_all_graphs_fail_closed()
-    print("5 dependency-review regression groups passed.")
+    test_complete_identity()
+    print("6 dependency-review regression groups passed.")
 
 
 if __name__ == "__main__":

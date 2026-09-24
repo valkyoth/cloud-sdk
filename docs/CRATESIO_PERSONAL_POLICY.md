@@ -77,9 +77,13 @@ committed table fails without rewriting it. Offline regression fixtures also
 exercise stale/weakened tables and verify both gate entry points.
 
 Dependency review requires separate rows for each change in all four lockfiles;
-evidence from another graph cannot satisfy a row. Rustix and policy-checker
+evidence from another graph cannot satisfy a row. Rows bind complete package
+records using SHA-256, including source, checksum and dependency edges even
+when the package version is unchanged. Duplicate identities fail closed.
+Rustix and policy-checker
 admission versions/checksums are checked against exact manifest pins and locks.
-These controls address the three Commit 13 pentest findings; independent retest
+These controls address the Commit 13 pentest findings and the follow-up
+same-version dependency-identity finding; independent retest
 is still required before advancing.
 Remediation verification on 2026-09-24 passed the complete `scripts/checks.sh`
 suite and all four SBOM freshness checks. No runtime Rust, dependency manifest,

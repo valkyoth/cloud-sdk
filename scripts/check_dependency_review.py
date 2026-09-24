@@ -4,6 +4,8 @@
 from __future__ import annotations
 
 import re
+import hashlib
+import json
 import subprocess
 import sys
 import tomllib
@@ -22,36 +24,47 @@ class ReviewError(Exception):
     """A dependency-review input or inventory is incomplete."""
 
 
-def package_versions(lock_text: str) -> dict[str, set[str]]:
-    """Return all locked versions grouped by package name."""
+def package_identities(lock_text: str) -> dict[str, str]:
+    """Hash complete records per name, including every version and source."""
     try:
         document = tomllib.loads(lock_text)
     except tomllib.TOMLDecodeError as error:
         raise ReviewError("dependency review: Cargo.lock is invalid TOML") from error
-    result: dict[str, set[str]] = {}
-    for package in document.get("package", []):
+    packages = document.get("package")
+    if not isinstance(packages, list) or not packages:
+        raise ReviewError("dependency review: missing package inventory")
+    result = {}
+    seen = set()
+    for package in packages:
+        if not isinstance(package, dict):
+            raise ReviewError("dependency review: invalid package record")
         name = package.get("name")
         version = package.get("version")
-        if not isinstance(name, str) or not isinstance(version, str):
+        source = package.get("source", "path")
+        if not all(isinstance(value, str) and value for value in (name, version, source)):
             raise ReviewError("dependency review: Cargo.lock package is incomplete")
-        result.setdefault(name, set()).add(version)
-    return result
+        key = (name, version, source)
+        if key in seen:
+            raise ReviewError("dependency review: duplicate package identity")
+        seen.add(key)
+        try:
+            canonical = json.dumps(package, sort_keys=True, separators=(",", ":"))
+        except (TypeError, ValueError) as error:
+            raise ReviewError("dependency review: unsupported package value") from error
+        result.setdefault(name, []).append(canonical)
+    return {
+        name: hashlib.sha256(json.dumps(sorted(records), separators=(",", ":")).encode()).hexdigest()
+        for name, records in result.items()
+    }
 
 
-def version_changes(
-    previous: dict[str, set[str]], current: dict[str, set[str]]
+def identity_changes(
+    previous: dict[str, str], current: dict[str, str]
 ) -> list[tuple[str, str, str]]:
-    """Pair removed and added versions into deterministic review rows."""
-    changes: list[tuple[str, str, str]] = []
-    for name in sorted(previous.keys() | current.keys()):
-        removed = sorted(previous.get(name, set()) - current.get(name, set()))
-        added = sorted(current.get(name, set()) - previous.get(name, set()))
-        width = max(len(removed), len(added))
-        for index in range(width):
-            old = removed[index] if index < len(removed) else "-"
-            new = added[index] if index < len(added) else "-"
-            changes.append((name, old, new))
-    return changes
+    """Require fresh evidence for any complete package-record change."""
+    return [(name, previous.get(name, "-"), current.get(name, "-"))
+            for name in sorted(previous.keys() | current.keys())
+            if previous.get(name) != current.get(name)]
 
 
 def missing_rows(
@@ -114,8 +127,8 @@ def main(arguments: list[str]) -> int:
         count = 0
         for lock_name in LOCKFILES:
             current_text = (ROOT / lock_name).read_text(encoding="utf-8")
-            changes = version_changes(
-                package_versions(previous_lock(base, lock_name)), package_versions(current_text)
+            changes = identity_changes(
+                package_identities(previous_lock(base, lock_name)), package_identities(current_text)
             )
             count += len(changes)
             missing.extend((lock_name, *row) for row in missing_rows(changes, review_text, lock_name))
