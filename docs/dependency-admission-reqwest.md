@@ -18,8 +18,8 @@ Checked: 2026-09-09.
 | `http` | `1.5.0` | raw request and response-head representation | disabled |
 | `http-body-util` | `0.1.5` | raw body ownership and response-frame access | disabled |
 | `hyper` | `1.11.1` | bounded raw HTTP/1 implementation | disabled |
-| `hyper-rustls` | `0.27.9` | raw rustls HTTPS connector | disabled |
-| `hyper-util` | `0.1.20` | raw client, connector, and Tokio adapters | disabled |
+| `hyper-rustls` | `0.27.10` | raw rustls HTTPS connector | disabled |
+| `hyper-util` | `0.1.21` | raw client, connector, and Tokio adapters | disabled |
 | `tokio` | `1.53.1` | opt-in reqwest and raw executor runtime | disabled |
 | `url` | `2.5.8` | authority-preserving endpoint parsing | transitive |
 | `rustls` | `0.23.45` | TLS implementation | transitive |
@@ -36,8 +36,8 @@ resolution and must retain a reviewed lockfile or vendored source set; a
 library lockfile is not published as a consumer constraint. All admitted
 licenses satisfy `deny.toml`. The rustls trust-root data requires
 `CDLA-Permissive-2.0`, which is explicitly admitted. The ordinary transport
-graph has a narrowly scoped `base64 0.22.1` duplicate-version exception:
-hyper-util requires 0.22 while reqwest now requires 0.23. The boundary rejects legacy
+graph now uses one `base64 0.23.1` line after hyper-util 0.1.21 converged
+with reqwest; the former duplicate-version exception is removed. The boundary rejects legacy
 `windows-sys` `0.52.0` if it becomes reachable again.
 
 Aws-lc-sys introduces the workspace's first native dependency build script. It
@@ -70,8 +70,8 @@ upstream unsafe SIMD code; reqwest's `util::basic_auth` still selects the scalar
 `BASE64_STANDARD` engine, not those engines. SDK credential formatting continues
 to use `base64-ng` and does not call reqwest's Basic-auth helper. This is an
 explicit third-party transport admission, not a relaxation of the first-party
-unsafe or default no_std policies. The duplicate exception must be removed when
-hyper-util and reqwest converge on one Base64 line. Checksums and the complete
+unsafe or default no_std policies. The duplicate exception was removed during
+Commit 13 after convergence on one Base64 line. Checksums and the complete
 lockfile delta are in the dependency review digest.
 
 The 2026-09-04 freshness review accepted `base64-ng 2.0.3`, `hyper 1.11.1`,

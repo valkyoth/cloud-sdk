@@ -423,9 +423,33 @@ No tag or publication is authorized.
 
 The [account contract](../docs/CRATESIO_ACCOUNT_POLICY.md) records the scope and
 limits. The [incremental pentest report](../security/pentest/cratesio-commit-12.md)
-records no confirmed findings for `5c925018..7d98a087`. GitHub approval remains
-pending. Stop before Commit 13;
-no tag or publication is authorized.
+records no confirmed findings for `5c925018..7d98a087`. The user confirmed GitHub
+green on `7d4c147b` and authorized Commit 13. No tag or publication is authorized.
+
+### Commit 13 - Authenticated Personal Workflows
+
+- Add eight personal mutation operations with immutable action-specific intent,
+  consumed permits, protected path tokens and a trusted blocking credential
+  adapter boundary. No automatic retries or custom credential destinations.
+- Bound invitation path/body/response IDs and acceptance state; require explicit
+  true acknowledgements; preserve provider errors, response bounds and the
+  process-wide admission gate. Clear all scratch on failure and unwinding.
+- Separate email from publish-notification updates because the upstream combined
+  operation can partially apply. Support the deprecated notification batch using
+  its pinned controller, which supplies the body missing from OpenAPI.
+- Add source projections, pinned controllers, adversarial response tests and
+  scoped-serialization tests. See [the workflow policy](../docs/CRATESIO_PERSONAL_POLICY.md).
+- Refresh reviewed direct and transitive dependencies across all four lockfiles
+  and the fuzz nightly. Stable Rust remains 1.98.1 and checkout remains 7.0.1.
+- Extend freshness checks to isolated tooling/fuzz manifests, which previously
+  escaped root pin checks; update Saphyr and syn and remove the obsolete Base64
+  duplicate exception without changing the default provider graph.
+- Refresh crates.io source evidence after reviewing owner-description/example
+  and rendered-policy changes; the operation inventory and request-rate rules
+  remain unchanged. The Hetzner network-members coverage gap remains tracked.
+
+Pentest is required against the accepted Commit 12 checkpoint `7d4c147b`.
+Stop before Commit 14; no tag or publication is authorized.
 
 ### Maintenance Evidence (Earlier Checkpoints)
 

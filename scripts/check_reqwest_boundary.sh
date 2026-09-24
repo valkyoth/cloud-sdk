@@ -46,8 +46,8 @@ for dependency in \
     'base64-ng v2.0.4' \
     'http-body-util v0.1.5' \
     'hyper v1.11.1' \
-    'hyper-rustls v0.27.9' \
-    'hyper-util v0.1.20' \
+    'hyper-rustls v0.27.10' \
+    'hyper-util v0.1.21' \
     'reqwest v0.13.5' \
     'cloud-sdk-sanitization v1.1.0' \
     'sanitization v2.1.0' \
@@ -71,8 +71,8 @@ for dependency in \
     'base64-ng v2.0.4' \
     'http-body-util v0.1.5' \
     'hyper v1.11.1' \
-    'hyper-rustls v0.27.9' \
-    'hyper-util v0.1.20' \
+    'hyper-rustls v0.27.10' \
+    'hyper-util v0.1.21' \
     'reqwest v0.13.5' \
     'tokio v1.53.1' \
     'cloud-sdk-sanitization v1.1.0' \

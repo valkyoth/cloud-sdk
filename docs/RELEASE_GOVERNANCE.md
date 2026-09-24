@@ -54,9 +54,9 @@ matches.
 | Secret scanning | Disabled in the reviewed repository settings | Repository checks prohibit release credentials in workflows, but GitHub secret scanning and push protection are not claimed. |
 
 The source checker inventories both `.yml` and `.yaml` workflow files. A
-lockfile-pinned `saphyr-parser 0.0.12` event pass rejects anchors and aliases
+lockfile-pinned `saphyr-parser 0.1.0` event pass rejects anchors and aliases
 before DOM construction and bounds input bytes, parser events, and nesting
-depth. The unpublished tool then uses `saphyr 0.0.12` to check top-level and job
+depth. The unpublished tool then uses `saphyr 0.1.0` to check top-level and job
 mappings, flow mappings, action references, steps, and commands semantically.
 YAML merge keys, custom tags, job permission overrides, write or OIDC
 permissions, release triggers, GitHub environments, job containers or services,

@@ -26,9 +26,11 @@ provider-neutral execution contracts from `cloud-sdk`.
 The crate is an unreleased `1.1.0` candidate. Seven discovery, three catalog
 and five version operations, four download/statistics operations and six public
 account/ownership operations have checked blocking, local-async and Send-async
-execution. Commit 11 is accepted; Commit 12 passed pentest and awaits GitHub approval.
+execution. Commit 12 is accepted; Commit 13 requires pentest. Eight personal
+mutation operations now have single-attempt execution through an explicitly
+trusted blocking credential-adapter callback, not a bundled token transport.
 Authentication preparation, endpoint, query and response foundations
-are available, but authenticated clients and the other API workflows remain
+are available, but bundled authenticated adapters and other API workflows remain
 assigned to later checkpoints. This is not yet a complete crates.io provider.
 
 ## Current Boundary
@@ -53,14 +55,39 @@ assigned to later checkpoints. This is not yet a complete crates.io provider.
 | Version operations | seek-paged versions, exact detail, dependencies, deprecated empty authors and JSON README location |
 | Download operations | JSON archive location, crate/version count windows and bounded reverse dependencies |
 | Public accounts and owners | user lookup with linked accounts, user statistics, team lookup and combined/user/team owner lists |
+| Personal workflows | follow/unfollow, invitation accept/decline, token acceptance, email confirmation/resend, single-setting user updates and legacy notifications; explicit permits and trusted blocking adapter |
 | Artifact streaming | static-origin transport and SHA-256 hooks, transactional sink, bounded scratch and cancellation cleanup; caller-supplied streaming adapter required |
 | Other API operations | deferred to their source-locked implementation commits |
 
 The public modules reserve ownership without claiming executable coverage:
-`publishing` and `trusted_publishing`. Authenticated account/ownership mutations
-remain later work; public ownership reads do not grant mutation authority.
+`publishing` and `trusted_publishing`. Crate ownership-list mutations remain
+later work; public ownership reads do not grant mutation authority.
 The complete 51-operation scope is maintained in the
 [crates.io source lock](https://github.com/valkyoth/cloud-sdk/blob/main/docs/CRATESIO_SOURCE_LOCK.md).
+
+## Personal Workflow Intent
+
+```rust
+# #[cfg(feature = "alloc")] {
+use cloud_sdk_cratesio::{accounts::personal::PersonalRequest,
+    credentials::ApiToken, identifiers::CrateName};
+fn follow_intent(token: &ApiToken) -> Result<(), Box<dyn std::error::Error>> {
+    let permit = PersonalRequest::follow(CrateName::new("serde")?).confirm(token);
+    // Pass this consumed permit to PersonalClient::execute with a trusted adapter.
+    assert_eq!(permit.operation().operation_name(), "follow_crate");
+    Ok(())
+}
+# }
+```
+
+`PersonalClient` requires `blocking`. Its adapter must use the exact fixed
+origin, method, target, body and response policy, apply authorization as
+sensitive, and disable cookies, redirects and retries. It is not interchangeable
+with the anonymous raw executor. Email/invitation path tokens are consumed;
+their targets and scratch must never be logged. Provider identity and expiry
+checks remain server-side. See the
+[personal workflow contract](https://github.com/valkyoth/cloud-sdk/blob/main/docs/CRATESIO_PERSONAL_POLICY.md)
+for partial-update, ambiguity and deprecated-endpoint limitations.
 
 ## Public Ownership Example
 

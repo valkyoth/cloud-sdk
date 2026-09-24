@@ -7,8 +7,10 @@ Version-detail pentest/retest passed at `94c004b2`; the user confirmed GitHub
 green on evidence checkpoint `51a7d946` and authorized Commit 11.
 Commit 11 passed its incremental pentest at `03301ac5`; the user confirmed
 GitHub green on evidence checkpoint `5c925018` and authorized Commit 12.
-Commit 12 passed its incremental pentest at `7d98a087`; GitHub approval is pending.
-Stop before Commit 13; do not tag or publish.
+Commit 12 passed its incremental pentest at `7d98a087`; the user confirmed
+GitHub green on evidence checkpoint `7d4c147b` and authorized Commit 13.
+Commit 13 implements personal workflows and maintenance; pentest is required.
+Stop before Commit 14; do not tag or publish.
 
 ## Decision Summary
 
@@ -530,6 +532,16 @@ remain redacted.
 
 Pentest stop: run an incremental pentest for the exact Commit 13 authenticated
 personal workflow surface.
+
+Implementation checkpoint: [personal workflow contract](CRATESIO_PERSONAL_POLICY.md).
+Eight operations now use exact consumed permits and a trusted blocking adapter
+callback; bundled authenticated and async adapter integration remains part of
+Commit 20's no-manual-HTTP exit gate. The deprecated notification body's source
+exception and non-atomic upstream user-update behavior are documented explicitly.
+Maintenance includes all four lockfiles, isolated parser tooling, the fuzz
+nightly and auxiliary-manifest freshness regressions. Pentest the whole diff
+from accepted checkpoint `7d4c147b`, not only the personal-workflow directory.
+Stop before Commit 14 until the incremental pentest and GitHub are green.
 
 ## Commit 14 - API Token Inspection And Revocation
 

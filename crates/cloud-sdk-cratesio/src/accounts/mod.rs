@@ -1,5 +1,7 @@
 //! Anonymous public users, teams, statistics and ownership inspection.
 //! Returned identities are metadata, never mutation authority.
+#[cfg(feature = "alloc")]
+pub mod personal;
 mod request;
 pub use crate::discovery::DiscoveryError as AccountError;
 pub use request::{AccountOperation, AccountRequest};

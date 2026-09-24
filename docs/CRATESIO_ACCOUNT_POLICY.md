@@ -1,6 +1,6 @@
 # crates.io Public Accounts And Owners
 
-Status: unreleased `1.1.0`, logical Commit 12 pentest passed; GitHub pending.
+Status: unreleased `1.1.0`, logical Commit 12 pentest and GitHub passed.
 Baseline: `5c925018` (accepted Commit 11 evidence).
 
 ## Executable Scope

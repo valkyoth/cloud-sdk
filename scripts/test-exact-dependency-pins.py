@@ -4,6 +4,8 @@
 from __future__ import annotations
 
 import json
+import tempfile
+from pathlib import Path
 
 import check_exact_dependency_pins as pins
 
@@ -53,7 +55,28 @@ def main() -> None:
         assert "mismatched metadata" in str(error)
     else:
         raise AssertionError("mismatched crates.io identity was accepted")
-    print("10 exact dependency pin and freshness regression groups passed.")
+    with tempfile.TemporaryDirectory() as directory:
+        root = Path(directory)
+        (root / "Cargo.toml").write_text('[workspace.dependencies]\nsyn="=3.0.6"\n')
+        for name in pins.AUXILIARY_MANIFESTS:
+            path = root / name
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.write_text('[dependencies]\nsyn="=3.0.4"\n[target.test.build-dependencies]\nserde="=1.0.228"\n')
+        tables = pins.dependency_tables(root)
+        assert len(tables) == 7
+        current = {"syn": "3.0.6", "serde": "1.0.229"}
+        stale = [(label, problem) for label, deps in tables
+                 for problem in pins.freshness_problems(deps, current.__getitem__)]
+        assert len(stale) == 6
+        assert all(label != "workspace" for label, _ in stale)
+        (root / pins.AUXILIARY_MANIFESTS[0]).unlink()
+        try:
+            pins.dependency_tables(root)
+        except FileNotFoundError:
+            pass
+        else:
+            raise AssertionError("missing auxiliary workspace silently skipped")
+    print("11 exact dependency pin and freshness regression groups passed.")
 
 
 if __name__ == "__main__":

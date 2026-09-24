@@ -117,6 +117,15 @@ impl<'a, T: BoundTransport + BoundUserAgent + ?Sized> DiscoveryClient<'a, T> {
         response: ResponseBuffer<'_>,
         attempt: &mut OfficialApiAttempt,
     ) -> Result<R::Response, DiscoveryExecutionError<E>> {
+        request
+            .decode(self.endpoint, self.admit(response, attempt)?)
+            .map_err(DiscoveryExecutionError::Model)
+    }
+    pub(crate) fn admit<'b, E>(
+        &self,
+        response: ResponseBuffer<'b>,
+        attempt: &mut OfficialApiAttempt,
+    ) -> Result<crate::wire::JsonSuccess<'b>, DiscoveryExecutionError<E>> {
         let now = std::time::SystemTime::now()
             .duration_since(std::time::UNIX_EPOCH)
             .map_err(|_| DiscoveryExecutionError::Model(DiscoveryError::Value))?;
@@ -139,12 +148,7 @@ impl<'a, T: BoundTransport + BoundUserAgent + ?Sized> DiscoveryClient<'a, T> {
                 .defer(core::time::Duration::from_secs(seconds))
                 .map_err(DiscoveryExecutionError::Schedule)?;
         }
-        request
-            .decode(
-                self.endpoint,
-                result.map_err(DiscoveryExecutionError::Wire)?,
-            )
-            .map_err(DiscoveryExecutionError::Model)
+        result.map_err(DiscoveryExecutionError::Wire)
     }
 }
 

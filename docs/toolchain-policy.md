@@ -40,7 +40,7 @@ Pinned release tools, checked against crates.io on 2026-09-04:
 | `cargo-fuzz` | `0.13.2` |
 
 The non-published fuzz harness separately pins
-`nightly-2026-09-04` and `libfuzzer-sys 0.4.13`. Nightly is never used to
+`nightly-2026-09-24` and `libfuzzer-sys 0.4.13`. Nightly is never used to
 compile or test the supported published-crate matrix.
 
 SBOM freshness checks also require `jq` `1.6` or newer. CI uses the runner's

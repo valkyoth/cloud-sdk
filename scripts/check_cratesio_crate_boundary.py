@@ -212,6 +212,7 @@ def validate(root: Path) -> None:
         *(f"versions/{name}.rs" for name in ("mod", "request", "models", "decode", "schema_table", "client", "client/tests", "tests", "tests/pagination")),
         *(f"downloads/{name}.rs" for name in ("mod", "request", "models", "decode", "schema_table", "client", "client/tests", "tests", "artifact", "artifact/asynchronous", "artifact/tests")),
         *(f"accounts/{name}.rs" for name in ("mod", "request", "models", "decode", "schema_table", "client", "client/tests", "tests")),
+        *(f"accounts/personal/{name}.rs" for name in ("mod", "request", "permit", "decode", "schema_table", "client", "tests", "tests/execution", "tests/admission")),
         *(f"wire/{name}.rs" for name in (
             "mod", "error", "rate", "shared_rate", "user_agent", "envelope",
             "response", "policy_tests", "response_tests", "boundary_tests",
@@ -243,6 +244,11 @@ def validate(root: Path) -> None:
             raise BoundaryError("catalog allocation guard changed")
     versions = (crate / "src/versions/mod.rs").read_text(encoding="ascii")
     accounts = (crate / "src/accounts/mod.rs").read_text(encoding="ascii")
+    if '#[cfg(feature = "alloc")]\npub mod personal;' not in accounts:
+        raise BoundaryError("personal allocation guard changed")
+    personal = (crate / "src/accounts/personal/mod.rs").read_text(encoding="ascii")
+    if '#[cfg(feature = "blocking")]\nmod client;' not in personal:
+        raise BoundaryError("personal client guard changed")
     if "pub mod accounts;" not in library or "pub mod ownership;" not in library:
         raise BoundaryError("account/ownership exports missing")
     for module in ("models", "decode", "schema_table"):

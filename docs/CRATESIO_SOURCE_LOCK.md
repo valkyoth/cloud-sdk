@@ -1,8 +1,8 @@
 # crates.io Source Lock
 
-Status: Commits 1 through 11 are accepted in the unreleased `1.1.0` train.
-Commit 12 adds [public accounts and owners](CRATESIO_ACCOUNT_POLICY.md);
-incremental pentest passed for `5c925018..7d98a087`; GitHub approval is pending.
+Status: Commits 1 through 12 are accepted in the unreleased `1.1.0` train.
+Commit 13 adds [personal workflows](CRATESIO_PERSONAL_POLICY.md) and requires
+incremental pentest against accepted checkpoint `7d4c147b`.
 No tag or publication is authorized.
 See the [catalog contract](CRATESIO_CATALOG_POLICY.md),
 [discovery contract](CRATESIO_DISCOVERY_POLICY.md), [request policy](CRATESIO_REQUEST_POLICY.md),
@@ -22,7 +22,7 @@ reviewed Cargo overlap is
 
 ## Reviewed Sources
 
-The 2026-09-04 observation binds six official HTTPS representations:
+The observation, refreshed on 2026-09-24, binds six official HTTPS representations:
 
 | Evidence | Exact source | Bound |
 | --- | --- | --- |

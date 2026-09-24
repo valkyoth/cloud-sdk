@@ -2,7 +2,7 @@
 
 ## Decision
 
-Admit exact `rustix 1.1.4` only as a Unix-target development dependency of
+Admit exact `rustix 1.1.5` only as a Unix-target development dependency of
 `cloud-sdk-hetzner`, with default features disabled and only `fs`, `process`,
 and `std` enabled.
 

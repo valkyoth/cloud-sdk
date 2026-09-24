@@ -15,6 +15,11 @@ ROOT = Path(__file__).resolve().parents[1]
 COMMIT = "9ae7f769cea32f38ebc2ea9ec2ce455b47641511"
 BASE = f"https://raw.githubusercontent.com/rust-lang/crates.io/{COMMIT}/"
 SOURCES = {
+    "src/controllers/user/update.rs": (4853, "7a15cf721fd7b403da57fcf6033d4db8a6402d24e56aa441c242f88d62d3d53e"),
+    "src/controllers/user/email_verification.rs": (3524, "ea1edff60d9b7ceac1d60db31f8858d26a6439c281360afe6e34c890af9a1e66"),
+    "src/controllers/user/email_notifications.rs": (3217, "042421c58901842bd391f7cf8aeb56e7a29225a8057b40e5fa89cafb927bdd9b"),
+    "src/controllers/krate/follow.rs": (4144, "32abacd91d16da1215761a26e8c1ec4914b856cb1090b4a51fb9c5c1aea2e202"),
+    "src/controllers/crate_owner_invitation.rs": (16298, "b72d39867300739ffa98af4171fc7ce9d68f7267d8e26c160be0dc59d35c12b2"),
     "crates/crates_io_database/tests/canon_username.rs": (1097, "b8b793aa0eb28dd2ab6bd0b767a0805a641019bae1a4cc668c0c36566a8ddd39"),
     "src/controllers/user/other.rs": (5429, "bf1554948af0d26afa1c1c61f1a018456c709ce85609a49a0a34c45fa7817bf9"),
     "src/controllers/team.rs": (1348, "d2606bb65fc398be6eb4d5ae74bdf1ab5aaa86a03fd1dd40c52e9b53a38fa8bb"),

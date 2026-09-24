@@ -1,7 +1,7 @@
 {
   "artifacts": {
     "cargo_compatibility_sha256": "f9d81284ebe8c0102c2987e98ab031f747b57a9bf250700a6e7666a1e8ecebd4",
-    "operations_sha256": "1efab29570d56571d7ad9781afddbf8a7283f1a6b05eb195fdfccad6bb70c9b5"
+    "operations_sha256": "301c6a6980cf9920f42cde9a4ae51c7b08c3691f2aaa2d4fe03bc6971e274a3a"
   },
   "cargo": {
     "instruction_targets": 1,
@@ -30,7 +30,7 @@
       "database-dumps"
     ]
   },
-  "reviewed_at": "2026-09-15",
+  "reviewed_at": "2026-09-24",
   "source_commit": "9ae7f769cea32f38ebc2ea9ec2ce455b47641511",
   "sources": [
     {
@@ -51,8 +51,8 @@
       "max_bytes": 1048576,
       "media_type": "application/json",
       "redirects": [],
-      "sha256": "8ba08d1569778bcfd6ed81adb1ba32120e2109960bd7e24db9bf48ffd82d6a64",
-      "size_bytes": 91787,
+      "sha256": "3a4f3db90d4c43a3983fb26294216cc30ae5a5e4492838abe3bd3ab2b268b35e",
+      "size_bytes": 92311,
       "url": "https://crates.io/api/openapi.json"
     },
     {
@@ -73,8 +73,8 @@
       "max_bytes": 131072,
       "media_type": "text/html",
       "redirects": [],
-      "sha256": "5e6bee736ee545d63f31315f0c4e162186a5aa9b41e86f57dc12314df6651c4f",
-      "size_bytes": 5049,
+      "sha256": "970a124f5d7978c62e0cf74bd85f9d15d6ef8a40b01648e25b8ca96a884d57ec",
+      "size_bytes": 5050,
       "url": "https://crates.io/data-access"
     },
     {

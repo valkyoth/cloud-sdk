@@ -16,6 +16,11 @@ from collections.abc import Callable
 
 
 ROOT = Path(__file__).resolve().parent.parent
+AUXILIARY_MANIFESTS = (
+    "fuzz/Cargo.toml",
+    "tests/reqwest-feature-unification/Cargo.toml",
+    "tools/prepared-coverage-check/Cargo.toml",
+)
 EXACT_VERSION = re.compile(r"^=[0-9]+\.[0-9]+\.[0-9]+(?:[-+][0-9A-Za-z.-]+)?$")
 CRATE_NAME = re.compile(r"^[0-9A-Za-z_-]+$")
 MAX_REGISTRY_RESPONSE_BYTES = 1_048_576
@@ -124,19 +129,25 @@ def main() -> int:
     parser.add_argument("--fetch", action="store_true")
     args = parser.parse_args()
     try:
-        manifest = tomllib.loads((ROOT / "Cargo.toml").read_text("ascii"))
-        dependencies = manifest["workspace"]["dependencies"]
+        tables = dependency_tables(ROOT)
     except (OSError, UnicodeError, KeyError, tomllib.TOMLDecodeError) as error:
         print(f"dependency pins: {error}", file=sys.stderr)
         return 1
-    problems = pin_problems(dependencies)
+    problems = [f"{label}: {problem}" for label, dependencies in tables
+                for problem in pin_problems(dependencies)]
     if problems:
         for problem in problems:
             print(f"dependency pins: {problem}", file=sys.stderr)
         return 1
     if args.fetch:
         try:
-            problems = freshness_problems(dependencies, registry_version)
+            cache = {}
+            def latest(name):
+                if name not in cache:
+                    cache[name] = registry_version(name)
+                return cache[name]
+            problems = [f"{label}: {problem}" for label, dependencies in tables
+                        for problem in freshness_problems(dependencies, latest)]
         except (OSError, urllib.error.URLError, ValueError) as error:
             print(f"dependency freshness: {error}", file=sys.stderr)
             return 1
@@ -144,9 +155,24 @@ def main() -> int:
             for problem in problems:
                 print(f"dependency freshness: {problem}", file=sys.stderr)
             return 1
-        print("Every direct third-party workspace pin is current on crates.io.")
-    print("Every direct third-party workspace dependency has an exact reviewed pin.")
+        print("Every direct third-party workspace and auxiliary pin is current on crates.io.")
+    print("Every direct third-party workspace and auxiliary dependency has an exact reviewed pin.")
     return 0
+
+
+def dependency_tables(root: Path) -> list[tuple[str, dict]]:
+    manifest = tomllib.loads((root / "Cargo.toml").read_text("ascii"))
+    result = [("workspace", manifest["workspace"]["dependencies"])]
+    for name in AUXILIARY_MANIFESTS:
+        document = tomllib.loads((root / name).read_text("ascii"))
+        tables = [(name, document)]
+        tables.extend((f"{name}:{target}", table)
+                      for target, table in document.get("target", {}).items())
+        for label, table in tables:
+            for section in ("dependencies", "dev-dependencies", "build-dependencies"):
+                if section in table:
+                    result.append((f"{label}:{section}", table[section]))
+    return result
 
 
 if __name__ == "__main__":
