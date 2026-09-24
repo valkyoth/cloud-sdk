@@ -25,17 +25,20 @@ policy. `rustix` provides the required operations through a maintained safe API.
 
 ## Reviewed Boundary
 
-- Version: `1.1.4`
+- Version: `1.1.5`
 - Registry checksum:
-  `b6fe4565b9518b83ef4f91bb47ce29620ca828bd32cb7e408f0062e9930ba190`
+  `891efababe418670775f199f0d233d84843c227a0949a883ce15b37c78d6629d`
 - License: `Apache-2.0 WITH LLVM-exception OR Apache-2.0 OR MIT`
-- Declared MSRV: Rust `1.63`
+- Declared MSRV: Rust `1.65`
 - Direct features: `fs`, `process`, `std`
-- New locked transitives: `errno 0.3.14` and `linux-raw-sys 0.12.1`
+- Locked syscall support: `errno 0.3.14` and `linux-raw-sys 0.12.1`
 
 Cargo registry metadata and the resulting exact locked graph were reviewed on
-2026-08-18. Cargo Deny, RustSec, complete-SBOM, platform, MSRV, package, and
+2026-09-24. Cargo Deny, RustSec, complete-SBOM, platform, MSRV, package, and
 dependency-freshness gates remain mandatory.
+
+`python3 scripts/check_admission_evidence.py` binds this version and checksum
+to the exact workspace manifest pin and root lockfile.
 
 ## Residual Risk
 

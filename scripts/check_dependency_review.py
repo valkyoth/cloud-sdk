@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Require a versioned review row for every root Cargo.lock version change."""
+"""Require lockfile-scoped review rows for every repository dependency graph."""
 
 from __future__ import annotations
 
@@ -10,6 +10,12 @@ import tomllib
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
+LOCKFILES = (
+    "Cargo.lock",
+    "fuzz/Cargo.lock",
+    "tests/reqwest-feature-unification/Cargo.lock",
+    "tools/prepared-coverage-check/Cargo.lock",
+)
 
 
 class ReviewError(Exception):
@@ -49,13 +55,15 @@ def version_changes(
 
 
 def missing_rows(
-    changes: list[tuple[str, str, str]], review_text: str
+    changes: list[tuple[str, str, str]], review_text: str, lock_name: str = "Cargo.lock"
 ) -> list[tuple[str, str, str]]:
     """Return lockfile changes absent from the review's exact table rows."""
     return [
         change
         for change in changes
-        if f"| `{change[0]}` | `{change[1]}` | `{change[2]}` |" not in review_text
+        if not any(line.startswith(
+            f"| `{lock_name}` | `{change[0]}` | `{change[1]}` | `{change[2]}` |"
+        ) for line in review_text.splitlines())
     ]
 
 
@@ -70,17 +78,17 @@ def review_section(review_text: str, version: str) -> str:
     return remainder.split("\n## ", 1)[0]
 
 
-def previous_lock(base: str) -> str:
+def previous_lock(base: str, lock_name: str) -> str:
     """Read Cargo.lock from one local reviewed Git ref without invoking a shell."""
     result = subprocess.run(
-        ["git", "show", f"{base}:Cargo.lock"],
+        ["git", "show", f"{base}:{lock_name}"],
         cwd=ROOT,
         check=False,
         capture_output=True,
         text=True,
     )
     if result.returncode != 0:
-        raise ReviewError(f"dependency review: cannot read Cargo.lock from {base}")
+        raise ReviewError(f"dependency review: cannot read {lock_name} from {base}")
     return result.stdout
 
 
@@ -99,25 +107,29 @@ def main(arguments: list[str]) -> int:
         print("dependency review: review document must be under docs/", file=sys.stderr)
         return 2
     try:
-        current_text = (ROOT / "Cargo.lock").read_text(encoding="utf-8")
         review_text = review_section(
             review_path.read_text(encoding="utf-8"), release_version
         )
-        changes = version_changes(
-            package_versions(previous_lock(base)), package_versions(current_text)
-        )
-        missing = missing_rows(changes, review_text)
+        missing = []
+        count = 0
+        for lock_name in LOCKFILES:
+            current_text = (ROOT / lock_name).read_text(encoding="utf-8")
+            changes = version_changes(
+                package_versions(previous_lock(base, lock_name)), package_versions(current_text)
+            )
+            count += len(changes)
+            missing.extend((lock_name, *row) for row in missing_rows(changes, review_text, lock_name))
     except (OSError, UnicodeError, ReviewError) as error:
         print(str(error), file=sys.stderr)
         return 1
     if missing:
-        for name, old, new in missing:
+        for lock_name, name, old, new in missing:
             print(
-                f"dependency review: missing Cargo.lock row {name} {old} -> {new}",
+                f"dependency review: missing {lock_name} row {name} {old} -> {new}",
                 file=sys.stderr,
             )
         return 1
-    print(f"Dependency review inventories {len(changes)} root lockfile changes.")
+    print(f"Dependency review inventories {count} changes across {len(LOCKFILES)} lockfiles.")
     return 0
 
 

@@ -3,21 +3,33 @@
 Status: admitted only in the excluded, non-published
 `tools/prepared-coverage-check` package.
 
-Checked: 2026-07-26.
+Checked: 2026-09-24.
 
 ## Packages
 
 | Component | Version | Role | License | Rust |
 | --- | --- | --- | --- | --- |
-| `syn` | `3.0.4` | Rust source and macro-input parser | MIT OR Apache-2.0 | 1.71 |
+| `syn` | `3.0.6` | Rust source and macro-input parser | MIT OR Apache-2.0 | 1.71 |
+| `saphyr` | `0.1.0` | bounded YAML document parser | MIT OR Apache-2.0 | 1.85.0 |
+| `saphyr-parser` | `0.1.0` | pre-DOM YAML event validation | MIT OR Apache-2.0 | 1.85.0 |
 | `proc-macro2` | `1.0.107` | transitive token representation | MIT OR Apache-2.0 | 1.68 |
-| `unicode-ident` | `1.0.24` | transitive identifier tables | Unicode-3.0 | 1.71 |
+| `unicode-ident` | `1.0.26` | transitive identifier tables | Unicode-3.0 | 1.71 |
 
-`cargo search syn --limit 1` and `cargo info syn@3.0.4` confirmed the
-current release, license, and compiler floor on 2026-07-26. The checker pins
-the exact `syn` version and disables default features, enabling only `full`
-and `parsing`. It does not admit `quote`, a procedural macro, network access,
-or native code.
+The direct pins disable default features. `syn` explicitly enables `full`,
+`parsing`, and `visit`; the YAML dependencies enable no direct features.
+The resolved tool graph also includes `thiserror`/`thiserror-impl`, `quote`,
+and additional unified Syn derive/printing features. These execute as build
+tooling, never as a published SDK dependency. No network or native-code
+capability is intentionally provided by this tool.
+
+| Direct package | Version | Registry checksum |
+| --- | --- | --- |
+| `syn` | `3.0.6` | `8593e8e72159ed2257d083c7a454a85cbf854f37a0966d8d483aff8c8a3ebcee` |
+| `saphyr` | `0.1.0` | `79830a82cc4eeea33aa46346f910d7cc1e576249a6fbe2fefab6ba89eba8a203` |
+| `saphyr-parser` | `0.1.0` | `7429158804c36e705d9423b7848018e535b3e92d439a763e364ee12670ef473b` |
+
+`python3 scripts/check_admission_evidence.py` verifies these exact direct
+pins, feature selections and checksums against the manifest and isolated lock.
 
 ## Isolation
 
@@ -26,10 +38,11 @@ workspace. The root workspace explicitly excludes it. No published crate,
 default feature, provider, transport, example, or build script depends on the
 checker or its dependencies.
 
-The release script invokes it only through
-`scripts/check_prepared_operation_coverage.py`. It parses bounded local Rust
-sources and emits operation identifiers; it does not read credentials,
-environment configuration, sockets, or provider responses.
+Repository gates invoke its prepared-operation, fail-closed test, and workflow
+policy checkers. They parse bounded local Rust and YAML sources, not credentials
+or provider responses. YAML event validation rejects anchors and aliases before
+building a document and enforces resource limits; workflow policy regressions
+remain mandatory. No published SDK runtime uses this parser.
 
 ## Security Decision
 

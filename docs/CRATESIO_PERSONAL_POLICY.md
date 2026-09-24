@@ -71,6 +71,20 @@ failure, scratch exhaustion, unwinding and response cleanup. No live mutation is
 run. Independent incremental pentest and green GitHub are required before
 Commit 14. This is not a release or whole-service production qualification.
 
+Both `scripts/checks.sh` (including CI) and the final release gate run the real
+personal-schema generator against the digest-locked OpenAPI source. A stale
+committed table fails without rewriting it. Offline regression fixtures also
+exercise stale/weakened tables and verify both gate entry points.
+
+Dependency review requires separate rows for each change in all four lockfiles;
+evidence from another graph cannot satisfy a row. Rustix and policy-checker
+admission versions/checksums are checked against exact manifest pins and locks.
+These controls address the three Commit 13 pentest findings; independent retest
+is still required before advancing.
+Remediation verification on 2026-09-24 passed the complete `scripts/checks.sh`
+suite and all four SBOM freshness checks. No runtime Rust, dependency manifest,
+or lockfile changed during this remediation.
+
 ### Local Checkpoint Evidence
 
 On 2026-09-24 the full `scripts/checks.sh` suite passed, including workspace

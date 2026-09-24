@@ -4,6 +4,10 @@
 from __future__ import annotations
 
 import importlib.util
+import contextlib
+import io
+import tempfile
+from unittest.mock import patch
 from pathlib import Path
 
 SCRIPT = Path(__file__).with_name("check_dependency_review.py")
@@ -48,16 +52,16 @@ def test_exact_review_rows() -> None:
         [
             "| Package | Previous | Current | Review |",
             "| --- | --- | --- | --- |",
-            "| `one` | `1.0.0` | `2.0.0` | reviewed |",
+            "| `Cargo.lock` | `one` | `1.0.0` | `2.0.0` | reviewed |",
         ]
     )
     assert MODULE.missing_rows(changes, review) == [("two", "-", "1.0.0")]
-    review += "\n| `two` | `-` | `1.0.0` | reviewed |"
+    review += "\n| `Cargo.lock` | `two` | `-` | `1.0.0` | reviewed |"
     assert MODULE.missing_rows(changes, review) == []
 
 
 def test_review_evidence_is_scoped_to_the_requested_release() -> None:
-    historical_row = "| `changed` | `1.0.0` | `2.0.0` | reviewed |"
+    historical_row = "| `Cargo.lock` | `changed` | `1.0.0` | `2.0.0` | reviewed |"
     review = "\n".join(
         [
             "## v0.95.0",
@@ -86,12 +90,48 @@ def test_missing_or_invalid_release_sections_fail_closed() -> None:
             raise AssertionError("invalid dependency-review section was accepted")
 
 
+def test_all_graphs_fail_closed() -> None:
+    for graph in MODULE.LOCKFILES:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            (root / "docs").mkdir()
+            for name in MODULE.LOCKFILES:
+                path = root / name
+                path.parent.mkdir(parents=True, exist_ok=True)
+                path.write_text(lock([("transitive", "2.0.0" if name == graph else "1.0.0")]))
+            document = root / "docs/review.md"
+            row = f"| `{graph}` | `transitive` | `1.0.0` | `2.0.0` | reviewed |"
+            def run():
+                with contextlib.redirect_stdout(io.StringIO()), contextlib.redirect_stderr(io.StringIO()):
+                    return MODULE.main(["baseline", "1.1.0", "docs/review.md"])
+            with patch.object(MODULE, "ROOT", root), patch.object(
+                MODULE, "previous_lock", return_value=lock([("transitive", "1.0.0")])
+            ) as previous:
+                document.write_text("## v1.1.0\n" + row)
+                assert run() == 0
+                assert previous.call_args_list[-4:] == [
+                    (("baseline", name),) for name in MODULE.LOCKFILES
+                ]
+                for invalid in ("", row.replace(graph, "wrong/Cargo.lock"), row.replace(f"`{graph}` | ", "")):
+                    document.write_text("## v1.1.0\n" + invalid)
+                    assert run() == 1
+                document.write_text("## v1.1.0\n" + row)
+                (root / graph).unlink()
+                assert run() == 1
+                (root / graph).write_text("invalid TOML [")
+                assert run() == 1
+                (root / graph).write_text(lock([("transitive", "2.0.0")]))
+                previous.side_effect = MODULE.ReviewError("missing baseline lock")
+                assert run() == 1
+
+
 def main() -> None:
     test_change_inventory()
     test_exact_review_rows()
     test_review_evidence_is_scoped_to_the_requested_release()
     test_missing_or_invalid_release_sections_fail_closed()
-    print("4 dependency-review regression groups passed.")
+    test_all_graphs_fail_closed()
+    print("5 dependency-review regression groups passed.")
 
 
 if __name__ == "__main__":

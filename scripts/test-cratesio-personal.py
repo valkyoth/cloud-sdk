@@ -1,6 +1,11 @@
 #!/usr/bin/env python3
 """Offline regressions for the complete personal projection inventory."""
 import copy
+import json
+import tempfile
+from pathlib import Path
+from unittest.mock import patch
+import generate_cratesio_personal as generator
 from generate_cratesio_personal import PATHS, render
 
 
@@ -16,6 +21,25 @@ def main():
     table = render(document)
     assert original == document
     assert render(document) == table
+    with tempfile.TemporaryDirectory() as directory:
+        output = Path(directory) / "schema_table.rs"
+        with patch.object(generator, "OUTPUT", output), patch.object(
+            generator, "fetch_source", return_value=json.dumps(document).encode()
+        ), patch("sys.argv", ["generate_cratesio_personal.py"]):
+            output.write_text(table, encoding="ascii")
+            generator.main()
+            for stale in ("", table.replace("Node::Bool", "Node::Any"), table + "// stale\n"):
+                assert stale != table
+                output.write_text(stale, encoding="ascii")
+                try:
+                    generator.main()
+                except ValueError:
+                    pass
+                else:
+                    raise AssertionError("stale personal schema passed verification")
+                assert output.read_text() == stale
+    for gate in ("scripts/checks.sh", "scripts/release_1_1_gate.sh"):
+        assert "python3 scripts/generate_cratesio_personal.py" in (generator.ROOT / gate).read_text().splitlines()
     for name, (method, path) in PATHS.items():
         assert name.upper() in table
         for mutation in ("identity", "schema", "body"):

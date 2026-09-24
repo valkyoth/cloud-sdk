@@ -41,6 +41,9 @@ python3 scripts/test-cratesio-versions.py
 python3 scripts/test-cratesio-downloads.py
 python3 scripts/test-cratesio-accounts.py
 python3 scripts/test-cratesio-personal.py
+python3 scripts/generate_cratesio_personal.py
+python3 scripts/check_admission_evidence.py
+python3 scripts/test-admission-evidence.py
 scripts/check_cratesio_endpoints.py
 scripts/test-cratesio-endpoints.py
 scripts/check_http_method_domain.sh
