@@ -54,6 +54,58 @@ fn fixed_credential_contexts_match_independent_source_contracts() {
 }
 
 #[test]
+fn version_authorization_accepts_canonical_build_metadata_only() {
+    for (method, suffix) in [
+        (Method::Patch, ""),
+        (Method::Delete, "/yank"),
+        (Method::Put, "/unyank"),
+    ] {
+        for version in ["1.0.0", "1.2.3%2Bbuild.2", "1.2.3-alpha.1%2Bbuild.2"] {
+            let path = alloc::format!("/api/v1/crates/example/{version}{suffix}");
+            let target =
+                ApiRequestTarget::new(&path).unwrap_or_else(|_| unreachable!("target fixture"));
+            assert!(CredentialContext::api(CredentialOrigin::Production, method, target).is_ok());
+        }
+        for version in [
+            "1.0",
+            "01.0.0",
+            "1.0.0%2bbuild",
+            "1.0.0%252Bbuild",
+            "1.0.0%2Fother",
+            "1.0.0%5Cother",
+            "%2E%2E",
+            "1.0.0%00",
+            "1.0.0%2B",
+            "1.0.0%2Ba%2Bb",
+            "1.0.0%41",
+        ] {
+            let path = alloc::format!("/api/v1/crates/example/{version}{suffix}");
+            match ApiRequestTarget::new(&path) {
+                Ok(target) => assert!(
+                    CredentialContext::api(CredentialOrigin::Production, method, target).is_err()
+                ),
+                Err(_) => assert!(version.contains('%'), "unexpected fixture rejection"),
+            }
+        }
+        for (length, accepted) in [(144, true), (145, false)] {
+            let path = alloc::format!(
+                "/api/v1/crates/example/1.0.0%2B{}{suffix}",
+                "a".repeat(length)
+            );
+            let target =
+                ApiRequestTarget::new(&path).unwrap_or_else(|_| unreachable!("bound fixture"));
+            assert_eq!(
+                CredentialContext::api(CredentialOrigin::Production, method, target).is_ok(),
+                accepted
+            );
+        }
+    }
+    let target = ApiRequestTarget::new("/api/v1/crates/example%2Bother/1.0.0/yank")
+        .unwrap_or_else(|_| unreachable!("target fixture"));
+    assert!(CredentialContext::api(CredentialOrigin::Production, Method::Delete, target).is_err());
+}
+
+#[test]
 fn every_admitted_api_route_has_an_accepted_context() {
     for (method, template) in super::policy::API_ROUTES {
         let path = template

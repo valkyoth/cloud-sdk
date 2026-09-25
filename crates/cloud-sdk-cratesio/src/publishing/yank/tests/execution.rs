@@ -33,14 +33,27 @@ fn cargo_exchanges_are_bodyless_single_attempt_and_clear_every_exit() {
     let token = token(CredentialOrigin::Production);
     let client = client();
     for yanked in [true, false] {
-        for scenario in 0..11 {
+        for case in 0..22 {
+            let scenario = case % 11;
+            let (version, encoded) = if case < 11 {
+                ("1.0.0", "1.0.0")
+            } else {
+                ("1.2.3-alpha.1+build.2", "1.2.3-alpha.1%2Bbuild.2")
+            };
+            let name = CrateName::new("serde").fixture("name");
+            let version = Version::new(version).fixture("version");
+            let intent = if yanked {
+                YankRequest::yank(name, version)
+            } else {
+                YankRequest::unyank(name, version)
+            };
             reset_test_gate();
             let mut secret = [0xa5; 1024];
             let mut response = [0xa5; 4096];
             let mut headers = [0xa5; 512];
             let mut calls = 0;
             let result = client.execute(
-                request(yanked).confirm(&token),
+                intent.confirm(&token),
                 YankBuffers {
                     credential: &mut secret,
                     response: &mut response,
@@ -60,11 +73,10 @@ fn cargo_exchanges_are_bodyless_single_attempt_and_clear_every_exit() {
                     assert_eq!(material.target(), request.target());
                     assert_eq!(
                         request.target().as_str(),
-                        if yanked {
-                            "/api/v1/crates/serde/1.0.0/yank"
-                        } else {
-                            "/api/v1/crates/serde/1.0.0/unyank"
-                        }
+                        format!(
+                            "/api/v1/crates/serde/{encoded}/{}",
+                            if yanked { "yank" } else { "unyank" }
+                        )
                     );
                     assert!(request.body().is_empty());
                     assert!(request.headers().get("content-type").is_none());

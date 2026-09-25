@@ -509,9 +509,6 @@ see [the report](../security/pentest/cratesio-commit-15.md).
 - See [the yank contract](../docs/CRATESIO_YANK_POLICY.md). Incremental pentest
   baseline is `9fabe832`; stop before Commit 18, without tagging or publishing.
 
-Pentest is required from accepted checkpoint `42e534bd`.
-Stop before Commit 17; no tag or publication is authorized.
-
 ### Maintenance Evidence (Earlier Checkpoints)
 
 - Advanced the complete development and compatibility gate to stable Rust

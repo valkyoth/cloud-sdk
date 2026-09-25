@@ -2,8 +2,17 @@
 """Offline regressions for yank wire contracts and verification gate coverage."""
 import copy
 import json
+import re
 from unittest.mock import patch
 import check_cratesio_yank as checker
+
+
+def validate_checkpoint_notes(text):
+    section = text.split("### Commit 17 - Cargo Yank And Unyank\n", 1)[1].split("\n### ", 1)[0]
+    if set(re.findall(r"stop before Commit (\d+)", section, re.IGNORECASE)) != {"18"}:
+        raise ValueError("contradictory yank pentest stop")
+    if set(re.findall(r"`([0-9a-f]{8})`", section)) != {"9fabe832"}:
+        raise ValueError("contradictory yank pentest baseline")
 
 
 def fixture():
@@ -19,6 +28,15 @@ def fixture():
 
 
 def main():
+    notes = (checker.ROOT / "release-notes/RELEASE_NOTES_1.1.0.md").read_text()
+    validate_checkpoint_notes(notes)
+    stale = notes.replace("### Maintenance Evidence", "Pentest from `42e534bd`.\nStop before Commit 17.\n\n### Maintenance Evidence")
+    try:
+        validate_checkpoint_notes(stale)
+    except ValueError:
+        pass
+    else:
+        raise AssertionError("contradictory pentest boundaries accepted")
     document = fixture()
     checker.validate(document)
     for verb, action in (("delete", "yank"), ("put", "unyank")):

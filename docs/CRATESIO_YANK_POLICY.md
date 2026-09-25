@@ -92,3 +92,27 @@ pinned request-policy implementation sources verified, and the dedicated yank
 Cargo/OpenAPI/controller checker passed. Offline schema, feature-boundary,
 documentation-link and formatting checks passed. These are implementation-agent
 results, not independent pentest acceptance. No live mutation was performed.
+
+## Commit 17 Remediation
+
+The incremental review found a credential-path mismatch for percent-encoded
+build metadata and contradictory release-note stop boundaries. Both the policy
+regression and full authenticated execution regression failed on `97bf914e`
+before remediation. Version segments now decode only canonical `%2B` into a
+bounded buffer and pass the existing SemVer validator. Other percent escapes,
+double encoding, invalid versions and decoded lengths above 150 bytes fail;
+non-version segment authorization is unchanged.
+
+Tests cover PATCH settings authorization as well as DELETE yank and PUT unyank,
+maximum/oversized versions, and build-metadata execution through every existing
+success/failure scenario with exactly one callback and scratch cleanup. Release
+notes now have only the `9fabe832` baseline and Commit 18 stop for this increment;
+the yank regression script rejects the contradictory historical text.
+Independent remediation retest is required before Commit 18.
+
+Remediation verification passed: full `scripts/checks.sh`, warning-denied
+provider Clippy, all-feature provider tests (181 unit tests, two integration
+tests and 41 doctests), alloc-only tests (138 unit tests, two integration tests
+and 33 doctests), and Rust 1.92.0 all-feature compilation. The full gate also
+confirmed isolated feature checks and package verification after replacing the
+new helper's cursor increment with checked arithmetic.
