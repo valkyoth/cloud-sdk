@@ -1,6 +1,38 @@
 # Dependency Review Digest
 This document consolidates release dependency reviews. Earlier complete snapshots remain available from their signed Git tags and repository history.
 Add future release sections here instead of creating another version-named file. Current policies live in the focused documents linked from each release note and in the release roadmap.
+
+## crates.io Commit 18 Parser Admission
+
+Reviewed 2026-09-25. Publish metadata promotes existing exact `semver 1.0.28`
+from dev-only oracle to optional runtime parser and adds exact `spdx 0.13.5`
+with default features disabled. Both edges belong only to the crates.io
+provider's opt-in `alloc` feature. Its default graph remains empty of these
+parsers, networking, TLS and OS dependencies. SemVer remains MIT/Apache-2.0;
+SPDX is Apache-2.0, MSRV 1.85, and supports no_std allocation without its
+`std`, `text` or `detection` features. Its sole selected dependency is the
+already locked `smallvec 1.16.1`; no new build script or native code is selected.
+
+SPDX registry archive checksum:
+`081670c233dfbed55690cc0cd38424e0e24ac1b2673d0b408b3f7b684738dfa9`.
+Inputs are public license expressions/requirements bounded to 1024 bytes,
+inside the separately bounded metadata parser. Dependency parsing does not
+handle credentials. Library parser allocations may abort on OOM; external
+resource limits and supervision remain necessary. This avoids inventing an
+SPDX expression grammar or replacing the established SemVer parser. The
+std-only Cargo platform parser was not admitted; the bounded conservative cfg
+profile and its limitations are documented in [the publish policy](CRATESIO_PUBLISH_POLICY.md).
+Lockfile/SBOM, license/advisory, isolated alloc/default, MSRV and adversarial
+parser checks are required for this checkpoint.
+
+The live direct-pin query also detected `rustls-platform-verifier 0.7.1`.
+The existing reviewed `0.7.0` remains pinned in this publication-only checkpoint:
+the new patch changes platform hostname normalization and advances the Android
+helper to `0.2.0`. Admission/target qualification is explicitly pending in
+Commit 20, not silently approved by the new parser admission or represented as
+a passing freshness result. The other exact direct pins were current in this
+query, including the newly admitted parser.
+
 ## v0.24.0
 **Full snapshot:** [signed-tag source](https://github.com/valkyoth/cloud-sdk/blob/v0.24.0/docs/DEPENDENCY_REVIEW_0.24.0.md)
 ## v0.32.0
@@ -265,7 +297,8 @@ The nine additional same-version rows record macro dependencies moving from
 | `Cargo.lock` | `cfg-if` | `7edd0c296b0151d16294a4c57cc739d6b78f975542abadea569aa792fcf8e0da` | `436e75fbcf83f7f848114cad6f7fb5528738542b4c8bea7c4a183db25578f7b9` | Transitive compile-time configuration macro patch. |
 | `Cargo.lock` | `chacha20` | `2f9b94a68a291d63e22ada7fa4bbe0f9047fffab482f080644fef15f39d41fcb` | `4ce58df346aa18fd4198dcc368768c22ae4902064f14ba135612984fc361cae1` | Compatible transitive patch in the existing rustls platform graph. |
 | `Cargo.lock` | `cloud-sdk` | `99bde992b3044533cd754c81d1c51856de4a8c9bbb2bc7a91b898be136d76d4d` | `7441c5963af8bc2d86e4b322b10e51c9fa85e94da557e119872860d7bf87d8ea` | Advance the unreleased facade candidate. |
-| `Cargo.lock` | `cloud-sdk-cratesio` | `-` | `ad09c4f3e0156efc864c6301064ee3b173cd6dc9cb2dda0c437b6e5e502872de` | Add the first-party provider boundary with only `cloud-sdk` and optional Serde dependencies; no new third-party package enters the lockfile. |
+| `Cargo.lock` | `cloud-sdk-cratesio` | `-` | `95c122f674b0d58cea5a3ba1d4ecb4fc6e7a7638f47ea6f1f0daedeb845a9473` | First-party provider with optional Serde/sanitization, fixture oracles and opt-in publish metadata parsers; see Commit 18 parser admission above. Defaults remain transport-free. |
+| `Cargo.lock` | `spdx` | `-` | `e0700d2c26cd1af408d92ed97a3510339d488536f77143a982e36edb444e8fb3` | Exact 0.13.5 no_std license-expression parser with default features disabled; bounded public inputs, existing smallvec dependency, no native code or build script; see Commit 18 admission above. |
 | `Cargo.lock` | `cloud-sdk-hetzner` | `b2f69f76469a98e21ae5e0313473480bf35e226a79722f2f5858dd8b6e116f7f` | `6122bad0afc7f54a085c63752a2c5f5656813849b0fbf48ef5af2a4dbc69e732` | Align the provider with the candidate train. |
 | `Cargo.lock` | `cloud-sdk-reqwest` | `2cab423ab02c5e03c855c958ae9c6ef74e31be02124d29946d917d6657f4a648` | `bd0c6d54c0825894a5c6b02544e6c084188a888307b857e6371e958dcfdeb205` | Align the transport adapter with the candidate train. |
 | `Cargo.lock` | `cloud-sdk-sanitization` | `45ad713ce301a009c52d2f86036d7afb50360903de9642751d62fe9f25813bf7` | `8bad444337eea2ea904886aa754e3ad7aca65dad6518d444e644689a5fa218d2` | Align the cleanup boundary with the candidate train. |

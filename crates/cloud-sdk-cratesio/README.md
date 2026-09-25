@@ -26,7 +26,7 @@ provider-neutral execution contracts from `cloud-sdk`.
 The crate is an unreleased `1.1.0` candidate. Seven discovery, three catalog
 and five version operations, four download/statistics operations and six public
 account/ownership operations have checked blocking, local-async and Send-async
-execution. Commit 16 is accepted; Commit 17 requires pentest. Eight personal
+execution. Commit 17 is accepted; Commit 18 requires pentest. Eight personal
 mutation operations now have single-attempt execution through an explicitly
 trusted blocking credential-adapter callback, not a bundled token transport.
 Three token-management operations now share that explicit adapter boundary.
@@ -35,6 +35,8 @@ Owner additions/removals use consumed consent, conservative acknowledgements
 and an optional local removal preflight.
 Cargo yank/unyank uses bodyless single-attempt mutations, checked acknowledgements
 and explicit version-state read-back.
+Publishing adds validated metadata, exact binary framing, single-use authority
+and bounded streaming through an explicitly trusted blocking adapter.
 Authentication preparation, endpoint, query and response foundations
 are available, but bundled authenticated adapters and other API workflows remain
 assigned to later checkpoints. This is not yet a complete crates.io provider.
@@ -66,13 +68,40 @@ assigned to later checkpoints. This is not yet a complete crates.io provider.
 | Crate/version settings | trusted-publishing-only policy, yank state and explicit message replacement/clearing; trusted blocking adapter |
 | Ownership mutations | Cargo-compatible additions/removals, explicit namespaces, destructive confirmation and optional self/last-owner preflight; trusted blocking adapter |
 | Cargo yank/unyank | exact bodyless DELETE/PUT, consumed consent, checked acknowledgements and explicit state observation; trusted blocking adapter |
+| Cargo publish | bounded metadata, exact little-endian framing, borrowed/streaming archives, API or temporary token consent and checked warnings; trusted blocking streaming adapter |
 | Artifact streaming | static-origin transport and SHA-256 hooks, transactional sink, bounded scratch and cancellation cleanup; caller-supplied streaming adapter required |
 | Other API operations | deferred to their source-locked implementation commits |
 
-Archive publishing and `trusted_publishing` remain later checkpoints.
+Trusted-publishing configuration/exchange and bundled authenticated transports
+remain later checkpoints.
 Public ownership reads do not grant mutation authority.
 The complete 51-operation scope is maintained in the
 [crates.io source lock](https://github.com/valkyoth/cloud-sdk/blob/main/docs/CRATESIO_SOURCE_LOCK.md).
+
+## Publish Intent
+
+```rust
+# #[cfg(feature = "alloc")] {
+use cloud_sdk::transport::StreamLimits;
+use cloud_sdk_cratesio::publishing::{PublishMetadata, PublishRequest};
+let json = br#"{"name":"example","vers":"1.0.0","deps":[],"features":{},"authors":[],"keywords":[],"categories":[],"license":"MIT"}"#;
+let metadata = PublishMetadata::from_json(json)?;
+let limits = StreamLimits::new(1_048_576, 4096, 4096, 8192, 2)?;
+let request = PublishRequest::new(metadata, 1024, limits)?;
+assert_eq!(request.archive_length(), 1024);
+assert!(!request.permits_automatic_retry());
+// Supply an actual 1024-byte .crate archive, then explicitly confirm_api(&token)
+// or confirm_trusted(&temporary_token) for PublishClient's trusted adapter.
+# }
+# Ok::<(), Box<dyn std::error::Error>>(())
+```
+
+Metadata parsing and intents need `alloc`; `PublishClient` needs `blocking`.
+The adapter must stream exactly one authenticated exchange with the declared
+length. No archive is built or inspected, and a successful acknowledgement does
+not prove index propagation. The immutable source bytes remain caller-owned.
+See the [publish contract](https://github.com/valkyoth/cloud-sdk/blob/main/docs/CRATESIO_PUBLISH_POLICY.md)
+for validation limits, adapter obligations and cleanup boundaries.
 
 ## Cargo Yank Intent
 

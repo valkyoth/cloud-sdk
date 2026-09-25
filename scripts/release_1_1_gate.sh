@@ -21,6 +21,8 @@ python3 scripts/test-cratesio-ownership.py
 python3 scripts/check_cratesio_ownership.py
 python3 scripts/test-cratesio-yank.py
 python3 scripts/check_cratesio_yank.py
+python3 scripts/test-cratesio-publish.py
+python3 scripts/generate_cratesio_publish.py
 scripts/checks.sh
 
 if [ "$(git rev-parse HEAD)" != "$reviewed_head" ]; then

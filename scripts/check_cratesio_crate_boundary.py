@@ -17,7 +17,7 @@ DOMAIN_MODULES = (
 )
 EXPECTED_FEATURES = {
     "default": [],
-    "alloc": ["cloud-sdk/alloc", "dep:cloud-sdk-sanitization", "cloud-sdk-sanitization/alloc"],
+    "alloc": ["cloud-sdk/alloc", "dep:cloud-sdk-sanitization", "cloud-sdk-sanitization/alloc", "dep:semver", "dep:spdx"],
     "serde": ["alloc", "dep:serde"],
     "std": ["alloc", "cloud-sdk/std"],
     "blocking": ["serde", "std"],
@@ -35,6 +35,8 @@ EXPECTED_DEPENDENCIES = {
     "cloud-sdk": {"workspace": True},
     "cloud-sdk-sanitization": {"workspace": True, "optional": True},
     "serde": {"workspace": True, "optional": True},
+    "semver": {"workspace": True, "optional": True},
+    "spdx": {"workspace": True, "optional": True},
 }
 EXPECTED_LIBRARY = {"path": "src/lib.rs"}
 EXPECTED_TESTS = [
@@ -56,6 +58,7 @@ CREDENTIAL_SOURCES = {
     for name in ("mod", "context", "context_tests", "kind", "material", "policy", "secret", "tests")
 }
 EXPECTED_WORKSPACE_DEPENDENCIES = {
+    "spdx": {"version": "=0.13.5", "default-features": False},
     "cloud-sdk-sanitization": {
         "path": "crates/cloud-sdk-sanitization",
         "version": "1.1.0",
@@ -198,6 +201,8 @@ def validate(root: Path) -> None:
         "ownership.rs",
         "publishing.rs",
         "publishing/yank.rs",
+        "publishing/publish.rs",
+        *(f"publishing/publish/{name}.rs" for name in ("metadata", "validation", "target", "request", "stream", "response", "schema_table", "client", "tests", "tests/metadata", "tests/execution")),
         *(f"publishing/yank/{name}.rs" for name in ("request", "response", "client", "tests", "tests/execution")),
         "ownership/changes.rs",
         *(f"ownership/changes/{name}.rs" for name in ("identity", "request", "preflight", "decode", "client", "tests", "tests/execution")),
@@ -237,6 +242,11 @@ def validate(root: Path) -> None:
     library = (crate / "src/lib.rs").read_text(encoding="ascii")
     ownership = (crate / "src/ownership.rs").read_text(encoding="ascii")
     publishing = (crate / "src/publishing.rs").read_text(encoding="ascii")
+    if '#[cfg(feature = "alloc")]\nmod publish;' not in publishing:
+        raise BoundaryError("publish allocation guard changed")
+    publish = (crate / "src/publishing/publish.rs").read_text(encoding="ascii")
+    if '#[cfg(feature = "blocking")]\nmod client;' not in publish:
+        raise BoundaryError("publish client guard changed")
     if '#[cfg(feature = "alloc")]\nmod yank;' not in publishing:
         raise BoundaryError("yank allocation guard changed")
     yank = (crate / "src/publishing/yank.rs").read_text(encoding="ascii")

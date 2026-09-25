@@ -43,7 +43,8 @@ def fixture() -> Path:
         "serde = { version = \"=1.0.229\", default-features = false, "
         "features = [\"alloc\", \"derive\"] }\n"
         "serde_json = { version = \"=1.0.151\", default-features = false, features = [\"alloc\"] }\n"
-        "semver = { version = \"=1.0.28\", default-features = false }\n",
+        "semver = { version = \"=1.0.28\", default-features = false }\n"
+        "spdx = { version = \"=0.13.5\", default-features = false }\n",
         encoding="ascii",
     )
     source = ROOT / checker.CRATE
@@ -393,6 +394,10 @@ def test_settings_feature_guards_cannot_be_removed() -> None:
          "mod yank;", "yank allocation guard"),
         ("publishing/yank.rs", '#[cfg(feature = "blocking")]\nmod client;',
          "mod client;", "yank client guard"),
+        ("publishing.rs", '#[cfg(feature = "alloc")]\nmod publish;',
+         "mod publish;", "publish allocation guard"),
+        ("publishing/publish.rs", '#[cfg(feature = "blocking")]\nmod client;',
+         "mod client;", "publish client guard"),
     ):
         root = fixture()
         try:

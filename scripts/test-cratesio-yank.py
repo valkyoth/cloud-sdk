@@ -30,7 +30,8 @@ def fixture():
 def main():
     notes = (checker.ROOT / "release-notes/RELEASE_NOTES_1.1.0.md").read_text()
     validate_checkpoint_notes(notes)
-    stale = notes.replace("### Maintenance Evidence", "Pentest from `42e534bd`.\nStop before Commit 17.\n\n### Maintenance Evidence")
+    marker = "### Commit 17 - Cargo Yank And Unyank\n"
+    stale = notes.replace(marker, marker + "Pentest from `42e534bd`.\nStop before Commit 17.\n", 1)
     try:
         validate_checkpoint_notes(stale)
     except ValueError:

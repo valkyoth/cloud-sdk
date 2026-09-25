@@ -3,3 +3,7 @@
 mod yank;
 #[cfg(feature = "alloc")]
 pub use yank::*;
+#[cfg(feature = "alloc")]
+mod publish;
+#[cfg(feature = "alloc")]
+pub use publish::*;

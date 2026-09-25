@@ -509,6 +509,23 @@ see [the report](../security/pentest/cratesio-commit-15.md).
 - See [the yank contract](../docs/CRATESIO_YANK_POLICY.md). Incremental pentest
   baseline is `9fabe832`; stop before Commit 18, without tagging or publishing.
 
+### Commit 18 - Publish Metadata And Binary Framing
+
+- Validate the stable Cargo JSON metadata fields, dependencies, renamed
+  identities, feature syntax, cfg target syntax, SPDX expressions and Rust
+  versions within explicit local bounds. Do not inspect or build archives.
+- Stream exact little-endian metadata/archive length framing without a second
+  archive allocation, using caller-provided source, sink and bounded scratch.
+- Consume explicit API-token or temporary-token consent for one official-origin
+  PUT; retain shared admission, redaction, bounded responses and no retries.
+- Reject skipped, incomplete and contradictory upload/response paths. Decode
+  source-locked crate identity and all warning arrays; no index-success claim.
+- Admit no_std `spdx 0.13.5` and promote the existing `semver 1.0.28` parser to
+  optional runtime use behind `alloc`; default dependency boundaries are unchanged.
+- See [the publish contract](../docs/CRATESIO_PUBLISH_POLICY.md). Incremental
+  pentest baseline is `04f24c38`; stop before Commit 19, without tagging or
+  publishing. Bundled/async authenticated streaming remains Commit 20.
+
 ### Maintenance Evidence (Earlier Checkpoints)
 
 - Advanced the complete development and compatibility gate to stable Rust

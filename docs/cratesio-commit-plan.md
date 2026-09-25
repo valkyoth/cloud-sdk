@@ -13,8 +13,9 @@ Commit 13 passed incremental pentest and GitHub at `9a1f2020`.
 Commit 14 passed incremental pentest and GitHub at `fae5b5a1`.
 Commit 15 passed incremental pentest and GitHub at `42e534bd`.
 Commit 16 passed incremental pentest and GitHub at `9fabe832`.
-Commit 17 implements Cargo yank/unyank; pentest is required.
-Stop before Commit 18; do not tag or publish.
+Commit 17 passed incremental pentest and GitHub at `04f24c38`.
+Commit 18 implements publish metadata and binary framing; pentest is required.
+Stop before Commit 19; do not tag or publish.
 
 ## Decision Summary
 
@@ -654,6 +655,12 @@ unyank surface.
 
 ## Commit 18 - Publish Metadata And Binary Framing
 
+Implementation checkpoint: [publish contract](CRATESIO_PUBLISH_POLICY.md).
+Incremental pentest baseline: `04f24c38`. Stop before Commit 19. Execution
+requires an explicitly trusted blocking streaming callback; bundled and async
+transport integration remains Commit 20. Metadata validation is a bounded
+conservative profile, not Cargo packaging or archive-manifest verification.
+
 Goal: implement the stable Cargo publish protocol without reimplementing Cargo
 packaging or making publish retryable.
 
@@ -700,6 +707,12 @@ publishing surface.
 ## Commit 20 - Unified Client And Cargo Compatibility
 
 Goal: make the checked path the easiest path for every admitted operation.
+
+Dependency follow-up detected during Commit 18 on 2026-09-25:
+`rustls-platform-verifier 0.7.1` supersedes the reviewed `0.7.0` pin and changes
+the Android helper from `0.1.0` to `0.2.0`. Review/admit it with the transport
+work, including target-specific verification and refreshed lock/SBOM evidence;
+do not treat the current live freshness check as green until this is resolved.
 
 Deliverables: official crates.io client constructors; operation-to-prepared
 request bindings for all 51 rows; automatic method, target, headers, body,

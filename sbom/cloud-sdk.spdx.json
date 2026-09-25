@@ -1,21 +1,21 @@
 {
   "SPDXID": "SPDXRef-DOCUMENT",
   "creationInfo": {
-    "created": "2026-09-24T18:14:08Z",
+    "created": "2026-09-25T16:32:29Z",
     "creators": [
       "Tool: cargo-sbom-v0.10.0",
       "Tool: cloud-sdk-complete-spdx-v1"
     ]
   },
   "dataLicense": "CC0-1.0",
-  "documentNamespace": "https://spdx.org/spdxdocs/cloud-sdk-badf5a78-ca87-48f3-b441-635ae9f5af58",
+  "documentNamespace": "https://spdx.org/spdxdocs/cloud-sdk-9f7acd59-fa7d-4836-b980-0f89b0140bb8",
   "files": [
     {
       "SPDXID": "SPDXRef-File-cloud_sdk",
       "checksums": [
         {
           "algorithm": "SHA1",
-          "checksumValue": "53b7405a66b191f241c397281d14c4a8d5b6c2d0"
+          "checksumValue": "f01bd7f9164db94a7fe97d06c63fa7b19dfd3513"
         }
       ],
       "fileName": "./Cargo.lock",
@@ -29,7 +29,7 @@
       "checksums": [
         {
           "algorithm": "SHA1",
-          "checksumValue": "53b7405a66b191f241c397281d14c4a8d5b6c2d0"
+          "checksumValue": "f01bd7f9164db94a7fe97d06c63fa7b19dfd3513"
         }
       ],
       "fileName": "./Cargo.lock",
@@ -43,7 +43,7 @@
       "checksums": [
         {
           "algorithm": "SHA1",
-          "checksumValue": "53b7405a66b191f241c397281d14c4a8d5b6c2d0"
+          "checksumValue": "f01bd7f9164db94a7fe97d06c63fa7b19dfd3513"
         }
       ],
       "fileName": "./Cargo.lock",
@@ -57,7 +57,7 @@
       "checksums": [
         {
           "algorithm": "SHA1",
-          "checksumValue": "53b7405a66b191f241c397281d14c4a8d5b6c2d0"
+          "checksumValue": "f01bd7f9164db94a7fe97d06c63fa7b19dfd3513"
         }
       ],
       "fileName": "./Cargo.lock",
@@ -71,7 +71,7 @@
       "checksums": [
         {
           "algorithm": "SHA1",
-          "checksumValue": "53b7405a66b191f241c397281d14c4a8d5b6c2d0"
+          "checksumValue": "f01bd7f9164db94a7fe97d06c63fa7b19dfd3513"
         }
       ],
       "fileName": "./Cargo.lock",
@@ -85,7 +85,7 @@
       "checksums": [
         {
           "algorithm": "SHA1",
-          "checksumValue": "53b7405a66b191f241c397281d14c4a8d5b6c2d0"
+          "checksumValue": "f01bd7f9164db94a7fe97d06c63fa7b19dfd3513"
         }
       ],
       "fileName": "./Cargo.lock",
@@ -99,7 +99,7 @@
       "checksums": [
         {
           "algorithm": "SHA1",
-          "checksumValue": "53b7405a66b191f241c397281d14c4a8d5b6c2d0"
+          "checksumValue": "f01bd7f9164db94a7fe97d06c63fa7b19dfd3513"
         }
       ],
       "fileName": "./Cargo.lock",
@@ -1811,19 +1811,19 @@
     },
     {
       "SPDXID": "SPDXRef-Package-semver-1.0.28",
-      "downloadLocation": "registry+https://github.com/rust-lang/crates.io-index",
-      "licenseConcluded": "MIT OR Apache-2.0",
-      "name": "semver",
-      "versionInfo": "1.0.28",
-      "licenseDeclared": "MIT OR Apache-2.0",
       "description": "Parser and evaluator for Cargo's flavor of Semantic Versioning",
+      "downloadLocation": "registry+https://github.com/rust-lang/crates.io-index",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
           "referenceLocator": "pkg:cargo/semver@1.0.28",
           "referenceType": "purl"
         }
-      ]
+      ],
+      "licenseConcluded": "MIT OR Apache-2.0",
+      "licenseDeclared": "MIT OR Apache-2.0",
+      "name": "semver",
+      "versionInfo": "1.0.28"
     },
     {
       "SPDXID": "SPDXRef-Package-serde--core-1.0.229",
@@ -2006,6 +2006,23 @@
       "licenseDeclared": "MIT OR Apache-2.0",
       "name": "socket2",
       "versionInfo": "0.6.5"
+    },
+    {
+      "SPDXID": "SPDXRef-Package-spdx-0.13.5",
+      "description": "Helper crate for SPDX expressions",
+      "downloadLocation": "registry+https://github.com/rust-lang/crates.io-index",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceLocator": "pkg:cargo/spdx@0.13.5",
+          "referenceType": "purl"
+        }
+      ],
+      "homepage": "https://github.com/EmbarkStudios/spdx",
+      "licenseConcluded": "Apache-2.0",
+      "licenseDeclared": "Apache-2.0",
+      "name": "spdx",
+      "versionInfo": "0.13.5"
     },
     {
       "SPDXID": "SPDXRef-Package-stable--deref--trait-1.2.1",
@@ -3180,6 +3197,11 @@
       "spdxElementId": "SPDXRef-Package-cloud-sdk-cratesio-1.1.0",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-serde-1.0.229"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-cloud-sdk-cratesio-1.1.0",
+      "relationshipType": "DEPENDS_ON",
+      "relatedSpdxElement": "SPDXRef-Package-spdx-0.13.5"
     },
     {
       "spdxElementId": "SPDXRef-Package-cloud-sdk-hetzner-1.1.0",
@@ -4780,6 +4802,11 @@
       "spdxElementId": "SPDXRef-Package-socket2-0.6.5",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-windows-sys-0.61.2"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-spdx-0.13.5",
+      "relationshipType": "DEPENDS_ON",
+      "relatedSpdxElement": "SPDXRef-Package-smallvec-1.16.1"
     },
     {
       "spdxElementId": "SPDXRef-Package-syn-2.0.119",
