@@ -308,14 +308,17 @@ fn policy_honoring_adapter_retains_encoding_for_all_token_operations() {
         TokenOperation::Revoke,
         TokenOperation::RevokeCurrent,
     ] {
-        for encoding in [
+        for (encoding, provider_error) in [
             None,
             Some(b"identity".as_slice()),
             Some(b"Identity"),
             Some(b"gzip"),
             Some(b"br"),
             Some(b""),
-        ] {
+        ]
+        .into_iter()
+        .flat_map(|encoding| [false, true].map(|error| (encoding, error)))
+        {
             reset_test_gate();
             let permit = match operation {
                 TokenOperation::Inspect => TokenPermit::inspect(id(42), &token),
@@ -326,6 +329,11 @@ fn policy_honoring_adapter_retains_encoding_for_all_token_operations() {
                 TokenOperation::Inspect => (200, RECORD.as_bytes()),
                 TokenOperation::Revoke => (200, b"{}".as_slice()),
                 TokenOperation::RevokeCurrent => (204, b"".as_slice()),
+            };
+            let (status, body) = if provider_error {
+                (403, br#"{"errors":[{"detail":"denied"}]}"#.as_slice())
+            } else {
+                (status, body)
             };
             let mut secret = [0xa5; 1024];
             let mut bytes = [0xa5; 4096];
@@ -342,6 +350,8 @@ fn policy_honoring_adapter_retains_encoding_for_all_token_operations() {
                     calls += 1;
                     assert!(policy.admits_header("content-encoding"));
                     assert!(policy.admits_header("Content-Encoding"));
+                    assert!(policy.admits_header("content-type"));
+                    assert!(policy.admits_header("Content-Type"));
                     let mut attempt = writer.begin_attempt().fixture("attempt");
                     attempt
                         .body_mut()
@@ -349,7 +359,7 @@ fn policy_honoring_adapter_retains_encoding_for_all_token_operations() {
                         .get_mut(..body.len())
                         .fixture("range")
                         .copy_from_slice(body);
-                    if status == 200 {
+                    if status != 204 && policy.admits_header("content-type") {
                         attempt
                             .headers_mut()
                             .fixture("headers")
@@ -383,8 +393,15 @@ fn policy_honoring_adapter_retains_encoding_for_all_token_operations() {
                 },
             );
             let accepted = encoding.is_none()
-                || (status == 200 && encoding.is_some_and(|v| v.eq_ignore_ascii_case(b"identity")));
-            if accepted {
+                || (status != 204 && encoding.is_some_and(|v| v.eq_ignore_ascii_case(b"identity")));
+            if accepted && provider_error {
+                assert!(matches!(
+                    result,
+                    Err(crate::discovery::DiscoveryExecutionError::Wire(
+                        crate::wire::CratesIoWireError::Provider(_)
+                    ))
+                ));
+            } else if accepted {
                 assert!(result.is_ok());
             } else {
                 assert!(matches!(

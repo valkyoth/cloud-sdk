@@ -114,6 +114,7 @@ impl<'a, T: BoundTransport + BoundUserAgent + ?Sized> TokenClient<'a, T> {
                 ResponseMediaPolicy::Forbidden,
                 ResponseMediaPolicy::Required(&[MediaType::JSON]),
                 &[
+                    HeaderName::new("content-type").map_err(|_| Failure::Model(Error::Value))?,
                     HeaderName::new("retry-after").map_err(|_| Failure::Model(Error::Value))?,
                     HeaderName::new("content-encoding")
                         .map_err(|_| Failure::Model(Error::Value))?,

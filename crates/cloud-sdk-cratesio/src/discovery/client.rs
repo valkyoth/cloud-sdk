@@ -93,6 +93,7 @@ impl<'a, T: BoundTransport + BoundUserAgent + ?Sized> DiscoveryClient<'a, T> {
             ResponseMediaPolicy::Required(&[MediaType::JSON]),
             ResponseMediaPolicy::Required(&[MediaType::JSON]),
             &[
+                HeaderName::new("content-type").map_err(|_| DiscoveryError::Value)?,
                 HeaderName::new("retry-after").map_err(|_| DiscoveryError::Value)?,
                 HeaderName::new("content-encoding").map_err(|_| DiscoveryError::Value)?,
             ],

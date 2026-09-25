@@ -42,8 +42,8 @@ Retry-After metadata use the existing bounded policy. Self-revocation checks
 its exact empty success contract separately; other statuses cannot become
 successful revocation. The lower-level JSON decoder cannot accept self-revocation.
 Both the shared JSON policy and the empty-204 policy explicitly retain
-`Content-Encoding`, so a policy-honoring adapter cannot discard metadata needed
-by the validators. JSON accepts only absent or identity encoding; self-revocation
+`Content-Type` and `Content-Encoding`, so a policy-honoring adapter cannot discard
+metadata needed by the validators. JSON accepts only absent or identity encoding; self-revocation
 rejects any encoding header, including identity.
 
 The callback is trusted to add sensitive Authorization exactly once, enforce
@@ -120,3 +120,16 @@ failed before the fix; independent remediation retest is required.
 Remediation verification passed: `scripts/checks.sh`, all-feature provider tests
 (162 unit tests, two integration tests and 27 doctests), Rust 1.92.0 all-feature
 compilation, documentation links and all four SBOM freshness checks.
+
+A follow-up review found that `Content-Type` also needed explicit retention:
+transport media validation does not imply retaining the header for provider
+validation. Both policies now retain it, including JSON error responses to
+self-revocation; the forbidden media policy for successful 204 responses is
+unchanged. The regression adapter now filters both media headers and covers
+provider-error classification for every token operation, as well as success,
+encoding rejection and cleanup. This regression failed before the fix.
+Independent remediation retest is required.
+
+Follow-up verification passed: the complete `scripts/checks.sh` suite,
+all-feature provider tests, Rust 1.92.0 all-feature compilation and all four
+SBOM freshness checks. No dependencies or public API changed.
