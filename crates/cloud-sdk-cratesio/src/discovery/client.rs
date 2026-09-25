@@ -126,29 +126,43 @@ impl<'a, T: BoundTransport + BoundUserAgent + ?Sized> DiscoveryClient<'a, T> {
         response: ResponseBuffer<'b>,
         attempt: &mut OfficialApiAttempt,
     ) -> Result<crate::wire::JsonSuccess<'b>, DiscoveryExecutionError<E>> {
-        let now = std::time::SystemTime::now()
-            .duration_since(std::time::UNIX_EPOCH)
-            .map_err(|_| DiscoveryExecutionError::Model(DiscoveryError::Value))?;
+        let now = self
+            .response_time_seconds()
+            .map_err(DiscoveryExecutionError::Model)?;
         let policy = JsonResponsePolicy::new(StatusCode::OK, self.maximum)
             .map_err(DiscoveryExecutionError::Wire)?;
-        let result = policy.admit(response, WallClockTimestamp::new(now.as_secs()));
+        let result = policy.admit(response, WallClockTimestamp::new(now));
         let delay = match &result {
             Ok(success) => success.retry_after(),
             Err(CratesIoWireError::Provider(provider)) => provider.retry_after(),
             _ => None,
         };
+        self.defer_response_delay(attempt, delay, now)
+            .map_err(DiscoveryExecutionError::Schedule)?;
+        result.map_err(DiscoveryExecutionError::Wire)
+    }
+    pub(crate) fn response_time_seconds(&self) -> Result<u64, DiscoveryError> {
+        std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .map(|duration| duration.as_secs())
+            .map_err(|_| DiscoveryError::Value)
+    }
+    pub(crate) fn defer_response_delay(
+        &self,
+        attempt: &mut OfficialApiAttempt,
+        delay: Option<RetryAfter>,
+        now: u64,
+    ) -> Result<(), ScheduleError> {
         if let Some(delay) = delay {
             let seconds = match delay {
                 RetryAfter::Delay(value) => value.get(),
                 RetryAfter::HttpDate(date) => u64::try_from(date.epoch_seconds())
                     .unwrap_or(0)
-                    .saturating_sub(now.as_secs()),
+                    .saturating_sub(now),
             };
-            attempt
-                .defer(core::time::Duration::from_secs(seconds))
-                .map_err(DiscoveryExecutionError::Schedule)?;
+            attempt.defer(core::time::Duration::from_secs(seconds))?;
         }
-        result.map_err(DiscoveryExecutionError::Wire)
+        Ok(())
     }
 }
 

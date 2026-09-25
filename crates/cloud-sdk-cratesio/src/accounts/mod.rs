@@ -3,6 +3,8 @@
 #[cfg(feature = "alloc")]
 pub mod personal;
 mod request;
+#[cfg(feature = "alloc")]
+pub mod tokens;
 pub use crate::discovery::DiscoveryError as AccountError;
 pub use request::{AccountOperation, AccountRequest};
 #[cfg(feature = "alloc")]

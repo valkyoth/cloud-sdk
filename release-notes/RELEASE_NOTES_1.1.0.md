@@ -448,8 +448,25 @@ green on `7d4c147b` and authorized Commit 13. No tag or publication is authorize
   and rendered-policy changes; the operation inventory and request-rate rules
   remain unchanged. The Hetzner network-members coverage gap remains tracked.
 
-Pentest is required against the accepted Commit 12 checkpoint `7d4c147b`.
-Stop before Commit 14; no tag or publication is authorized.
+Incremental pentest and GitHub passed at `9a1f2020` after verification-control
+remediation; see [the report](../security/pentest/cratesio-commit-13.md).
+
+### Commit 14 - API Token Inspection And Revocation
+
+- Implement all three public token-management operations with consumed exact
+  permits, fixed origins and single-attempt trusted blocking adapter execution.
+- Validate ID-bound protected metadata, required nullable scope/expiry fields,
+  known endpoint scopes, timestamps and local limits without granting authority.
+- Distinguish revoke-by-ID's JSON acknowledgement from empty 204 self-revocation;
+  no implicit retry, rotation, token creation or cookie-based listing.
+- Add source-locked schema/status checks in CI and release gates, pinned upstream
+  controller evidence, adversarial tests, cleanup and compile-fail authorization
+  tests. No manifest, dependency, feature or lockfile changes.
+- Document out-of-band replacement provisioning and ambiguous mutation outcomes
+  in [the token contract](../docs/CRATESIO_TOKEN_POLICY.md).
+
+Pentest is required from accepted checkpoint `9a1f2020`.
+Stop before Commit 15; no tag or publication is authorized.
 
 ### Maintenance Evidence (Earlier Checkpoints)
 

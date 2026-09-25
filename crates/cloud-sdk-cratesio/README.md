@@ -26,9 +26,10 @@ provider-neutral execution contracts from `cloud-sdk`.
 The crate is an unreleased `1.1.0` candidate. Seven discovery, three catalog
 and five version operations, four download/statistics operations and six public
 account/ownership operations have checked blocking, local-async and Send-async
-execution. Commit 12 is accepted; Commit 13 requires pentest. Eight personal
+execution. Commit 13 is accepted; Commit 14 requires pentest. Eight personal
 mutation operations now have single-attempt execution through an explicitly
 trusted blocking credential-adapter callback, not a bundled token transport.
+Three token-management operations now share that explicit adapter boundary.
 Authentication preparation, endpoint, query and response foundations
 are available, but bundled authenticated adapters and other API workflows remain
 assigned to later checkpoints. This is not yet a complete crates.io provider.
@@ -56,6 +57,7 @@ assigned to later checkpoints. This is not yet a complete crates.io provider.
 | Download operations | JSON archive location, crate/version count windows and bounded reverse dependencies |
 | Public accounts and owners | user lookup with linked accounts, user statistics, team lookup and combined/user/team owner lists |
 | Personal workflows | follow/unfollow, invitation accept/decline, token acceptance, email confirmation/resend, single-setting user updates and legacy notifications; explicit permits and trusted blocking adapter |
+| Token management | lookup by ID, explicit revoke-by-ID and self-revocation; protected scope/expiry metadata and single-use permits |
 | Artifact streaming | static-origin transport and SHA-256 hooks, transactional sink, bounded scratch and cancellation cleanup; caller-supplied streaming adapter required |
 | Other API operations | deferred to their source-locked implementation commits |
 
@@ -64,6 +66,32 @@ The public modules reserve ownership without claiming executable coverage:
 later work; public ownership reads do not grant mutation authority.
 The complete 51-operation scope is maintained in the
 [crates.io source lock](https://github.com/valkyoth/cloud-sdk/blob/main/docs/CRATESIO_SOURCE_LOCK.md).
+
+## Token Management Intent
+
+```rust
+# #[cfg(feature = "alloc")] {
+use cloud_sdk_cratesio::{accounts::tokens::TokenPermit,
+    credentials::ApiToken, identifiers::NumericId};
+
+fn inspect(credential: &ApiToken, id: NumericId) {
+    let permit = TokenPermit::inspect(id, credential);
+    assert!(!permit.operation().is_destructive());
+}
+fn confirm_retirement(old_credential: &ApiToken) {
+    let permit = TokenPermit::confirm_revoke_current(old_credential);
+    assert!(permit.operation().is_destructive());
+    // TokenClient::execute consumes this permit with the trusted adapter.
+}
+# }
+```
+
+Provision and validate a replacement out of band before revoking the old token.
+Revocation is never automatic; an execution error may follow a successful
+upstream mutation. Scope metadata is not authority, and lookup does not prove
+that a token remains usable. See the
+[token contract](https://github.com/valkyoth/cloud-sdk/blob/main/docs/CRATESIO_TOKEN_POLICY.md)
+for exact response semantics, limits, cleanup and adapter requirements.
 
 ## Personal Workflow Intent
 

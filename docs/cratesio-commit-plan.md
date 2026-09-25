@@ -9,8 +9,9 @@ Commit 11 passed its incremental pentest at `03301ac5`; the user confirmed
 GitHub green on evidence checkpoint `5c925018` and authorized Commit 12.
 Commit 12 passed its incremental pentest at `7d98a087`; the user confirmed
 GitHub green on evidence checkpoint `7d4c147b` and authorized Commit 13.
-Commit 13 implements personal workflows and maintenance; pentest is required.
-Stop before Commit 14; do not tag or publish.
+Commit 13 passed incremental pentest and GitHub at `9a1f2020`.
+Commit 14 implements token inspection and revocation; pentest is required.
+Stop before Commit 15; do not tag or publish.
 
 ## Decision Summary
 
@@ -541,9 +542,16 @@ exception and non-atomic upstream user-update behavior are documented explicitly
 Maintenance includes all four lockfiles, isolated parser tooling, the fuzz
 nightly and auxiliary-manifest freshness regressions. Pentest the whole diff
 from accepted checkpoint `7d4c147b`, not only the personal-workflow directory.
-Stop before Commit 14 until the incremental pentest and GitHub are green.
+Accepted after remediation, clean pentest and GitHub at `9a1f2020`; see the
+[checkpoint report](../security/pentest/cratesio-commit-13.md).
 
 ## Commit 14 - API Token Inspection And Revocation
+
+Implementation checkpoint: [token contract](CRATESIO_TOKEN_POLICY.md).
+All three public operations use consumed permits and a trusted blocking
+credential-adapter callback. Exact empty 204 self-revocation is separate from
+the JSON response boundary. Bundled authenticated/async integration remains
+Commit 20 work. Incremental pentest baseline: `9a1f2020`. Stop before Commit 15.
 
 Goal: support the complete public token-management surface without inventing an
 undocumented token-creation API.
