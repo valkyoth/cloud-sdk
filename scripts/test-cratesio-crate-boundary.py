@@ -204,7 +204,7 @@ def test_workspace_dependency_substitution_is_rejected() -> None:
 
 def test_endpoint_code_and_extra_modules_are_rejected() -> None:
     root = fixture()
-    accounts = root / checker.CRATE / "src/publishing.rs"
+    accounts = root / checker.CRATE / "src/trusted_publishing.rs"
     accounts.write_text("pub const ENDPOINT: &str = \"/api/v1/crates\";\n", encoding="ascii")
     assert_rejected(root, "endpoint implementation")
     shutil.rmtree(root)
@@ -389,6 +389,10 @@ def test_settings_feature_guards_cannot_be_removed() -> None:
          "mod changes;", "ownership allocation guard"),
         ("ownership/changes.rs", '#[cfg(feature = "blocking")]\nmod client;',
          "mod client;", "ownership client guard"),
+        ("publishing.rs", '#[cfg(feature = "alloc")]\nmod yank;',
+         "mod yank;", "yank allocation guard"),
+        ("publishing/yank.rs", '#[cfg(feature = "blocking")]\nmod client;',
+         "mod client;", "yank client guard"),
     ):
         root = fixture()
         try:

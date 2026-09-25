@@ -495,6 +495,20 @@ see [the report](../security/pentest/cratesio-commit-15.md).
   lock, check OpenAPI/Cargo compatibility and add adversarial/gate regressions.
 - See [the ownership contract](../docs/CRATESIO_OWNERSHIP_POLICY.md).
 
+### Commit 17 - Cargo Yank And Unyank
+
+- Add bodyless DELETE/PUT intents for exact crate/version identities with
+  consumed, token-bound consent and no automatic retries.
+- Check exact-200 Cargo acknowledgements, retaining the distinction between
+  intended state and a separately fetched, identity-checked version snapshot.
+- Reuse official-origin authentication, shared admission and bounded response
+  cleanup through the trusted blocking adapter. Bundled integration remains
+  Commit 20; no hidden polling or live mutation tests are introduced.
+- Source-lock the controller's message-clearing side effect and asynchronous
+  index propagation; add wire/schema, replay, stale-state and failure regressions.
+- See [the yank contract](../docs/CRATESIO_YANK_POLICY.md). Incremental pentest
+  baseline is `9fabe832`; stop before Commit 18, without tagging or publishing.
+
 Pentest is required from accepted checkpoint `42e534bd`.
 Stop before Commit 17; no tag or publication is authorized.
 

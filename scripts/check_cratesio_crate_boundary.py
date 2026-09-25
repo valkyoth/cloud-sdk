@@ -13,7 +13,6 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 CRATE = Path("crates/cloud-sdk-cratesio")
 DOMAIN_MODULES = (
-    "publishing",
     "trusted_publishing",
 )
 EXPECTED_FEATURES = {
@@ -197,6 +196,9 @@ def validate(root: Path) -> None:
         "lib.rs",
         "identity.rs",
         "ownership.rs",
+        "publishing.rs",
+        "publishing/yank.rs",
+        *(f"publishing/yank/{name}.rs" for name in ("request", "response", "client", "tests", "tests/execution")),
         "ownership/changes.rs",
         *(f"ownership/changes/{name}.rs" for name in ("identity", "request", "preflight", "decode", "client", "tests", "tests/execution")),
         *ENDPOINT_SOURCES,
@@ -234,6 +236,14 @@ def validate(root: Path) -> None:
             raise BoundaryError(f"forbidden build-script source: {forbidden}")
     library = (crate / "src/lib.rs").read_text(encoding="ascii")
     ownership = (crate / "src/ownership.rs").read_text(encoding="ascii")
+    publishing = (crate / "src/publishing.rs").read_text(encoding="ascii")
+    if '#[cfg(feature = "alloc")]\nmod yank;' not in publishing:
+        raise BoundaryError("yank allocation guard changed")
+    yank = (crate / "src/publishing/yank.rs").read_text(encoding="ascii")
+    if '#[cfg(feature = "blocking")]\nmod client;' not in yank:
+        raise BoundaryError("yank client guard changed")
+    if "pub mod publishing;" not in library:
+        raise BoundaryError("publishing export missing")
     if '#[cfg(feature = "alloc")]\nmod changes;' not in ownership:
         raise BoundaryError("ownership allocation guard changed")
     changes = (crate / "src/ownership/changes.rs").read_text(encoding="ascii")

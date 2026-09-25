@@ -129,4 +129,6 @@ alloc, serde, std, blocking and async configurations. All six passed, along with
 134 alloc-only unit tests, two integration tests, 30 doctests and Rust 1.92.0
 alloc-only compilation. The full `scripts/checks.sh` suite also passed, including
 package verification, workspace tests/doctests and all-feature Clippy.
-Independent remediation retest remains required before Commit 17.
+The user subsequently confirmed remediation retest PASS for
+`ec6009b3..9fabe832` with no new security findings and GitHub green, authorizing
+Commit 17. See [the accepted checkpoint](../security/pentest/cratesio-commit-16.md).

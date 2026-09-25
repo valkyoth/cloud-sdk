@@ -26,13 +26,15 @@ provider-neutral execution contracts from `cloud-sdk`.
 The crate is an unreleased `1.1.0` candidate. Seven discovery, three catalog
 and five version operations, four download/statistics operations and six public
 account/ownership operations have checked blocking, local-async and Send-async
-execution. Commit 15 is accepted; Commit 16 requires pentest. Eight personal
+execution. Commit 16 is accepted; Commit 17 requires pentest. Eight personal
 mutation operations now have single-attempt execution through an explicitly
 trusted blocking credential-adapter callback, not a bundled token transport.
 Three token-management operations now share that explicit adapter boundary.
 Two settings PATCH operations also use explicit permits and checked postconditions.
 Owner additions/removals use consumed consent, conservative acknowledgements
 and an optional local removal preflight.
+Cargo yank/unyank uses bodyless single-attempt mutations, checked acknowledgements
+and explicit version-state read-back.
 Authentication preparation, endpoint, query and response foundations
 are available, but bundled authenticated adapters and other API workflows remain
 assigned to later checkpoints. This is not yet a complete crates.io provider.
@@ -63,14 +65,36 @@ assigned to later checkpoints. This is not yet a complete crates.io provider.
 | Token management | lookup by ID, explicit revoke-by-ID and self-revocation; protected scope/expiry metadata and single-use permits |
 | Crate/version settings | trusted-publishing-only policy, yank state and explicit message replacement/clearing; trusted blocking adapter |
 | Ownership mutations | Cargo-compatible additions/removals, explicit namespaces, destructive confirmation and optional self/last-owner preflight; trusted blocking adapter |
+| Cargo yank/unyank | exact bodyless DELETE/PUT, consumed consent, checked acknowledgements and explicit state observation; trusted blocking adapter |
 | Artifact streaming | static-origin transport and SHA-256 hooks, transactional sink, bounded scratch and cancellation cleanup; caller-supplied streaming adapter required |
 | Other API operations | deferred to their source-locked implementation commits |
 
-The public modules reserve ownership without claiming executable coverage:
-`publishing` and `trusted_publishing`. Public ownership reads do not grant
-mutation authority.
+Archive publishing and `trusted_publishing` remain later checkpoints.
+Public ownership reads do not grant mutation authority.
 The complete 51-operation scope is maintained in the
 [crates.io source lock](https://github.com/valkyoth/cloud-sdk/blob/main/docs/CRATESIO_SOURCE_LOCK.md).
+
+## Cargo Yank Intent
+
+```rust
+# #[cfg(feature = "alloc")] {
+use cloud_sdk_cratesio::{identifiers::{CrateName, Version}, publishing::YankRequest};
+let intent = YankRequest::yank(CrateName::new("example")?, Version::new("1.2.3")?);
+let mut path = [0; 256];
+assert_eq!(intent.write_target(&mut path)?.as_str(), "/api/v1/crates/example/1.2.3/yank");
+assert!(!intent.operation().permits_automatic_retry());
+// Execution requires intent.confirm(&token) and a trusted credential adapter.
+# }
+# Ok::<(), Box<dyn std::error::Error>>(())
+```
+
+An `ok: true` response is only an acknowledgement. `YankAcknowledgement` provides
+an anonymous `verification_request()` for the same exact crate/version and a
+`decode_observed_state()` decoder; inspect `matches_requested_state()` rather
+than assuming index propagation or replaying after an ambiguous error. The
+read-back must use `verification_endpoint()`. Cargo yank/unyank clears an existing
+yank message; use the separate settings API for explicit message edits. See the
+[yank contract](https://github.com/valkyoth/cloud-sdk/blob/main/docs/CRATESIO_YANK_POLICY.md).
 
 ## Ownership Intent
 

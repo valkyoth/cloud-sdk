@@ -12,8 +12,9 @@ GitHub green on evidence checkpoint `7d4c147b` and authorized Commit 13.
 Commit 13 passed incremental pentest and GitHub at `9a1f2020`.
 Commit 14 passed incremental pentest and GitHub at `fae5b5a1`.
 Commit 15 passed incremental pentest and GitHub at `42e534bd`.
-Commit 16 implements ownership mutations; pentest is required.
-Stop before Commit 17; do not tag or publish.
+Commit 16 passed incremental pentest and GitHub at `9fabe832`.
+Commit 17 implements Cargo yank/unyank; pentest is required.
+Stop before Commit 18; do not tag or publish.
 
 ## Decision Summary
 
@@ -602,7 +603,8 @@ version settings surface.
 ## Commit 16 - Ownership Mutations
 
 Implementation checkpoint: [ownership contract](CRATESIO_OWNERSHIP_POLICY.md).
-Incremental pentest baseline: `42e534bd`. Stop before Commit 17. The current
+Accepted checkpoint: `9fabe832`; the user confirmed remediation retest and
+GitHub green before authorizing Commit 17. The current
 OpenAPI describes qualified user namespaces missing in the older controller
 pin; a supplemental controller pin records their semantics without changing
 unrelated source locks. Human-readable acknowledgements do not expose per-user
@@ -627,6 +629,11 @@ Pentest stop: run an incremental pentest for the exact Commit 16 ownership
 mutation surface.
 
 ## Commit 17 - Yank And Unyank
+
+Implementation checkpoint: [yank contract](CRATESIO_YANK_POLICY.md).
+Incremental pentest baseline: `9fabe832`. Stop before Commit 18. Cargo
+acknowledgements are separate from explicitly requested, identity-checked
+version snapshots. Neither proves index propagation or prevents concurrent edits.
 
 Goal: implement reversible publication visibility changes with exact Cargo
 compatibility.

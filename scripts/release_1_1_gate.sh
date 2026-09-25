@@ -19,6 +19,8 @@ python3 scripts/test-cratesio-settings.py
 python3 scripts/generate_cratesio_settings.py
 python3 scripts/test-cratesio-ownership.py
 python3 scripts/check_cratesio_ownership.py
+python3 scripts/test-cratesio-yank.py
+python3 scripts/check_cratesio_yank.py
 scripts/checks.sh
 
 if [ "$(git rev-parse HEAD)" != "$reviewed_head" ]; then
