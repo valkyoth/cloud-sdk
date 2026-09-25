@@ -58,6 +58,7 @@ impl Fixture {
                 .as_str()
         );
         assert!(policy.admits_header("retry-after"));
+        assert!(policy.admits_header("content-encoding"));
         assert_eq!(policy.max_body_bytes(), 65_536);
     }
     fn stage(

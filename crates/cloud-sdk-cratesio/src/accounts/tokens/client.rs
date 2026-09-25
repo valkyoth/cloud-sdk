@@ -113,7 +113,11 @@ impl<'a, T: BoundTransport + BoundUserAgent + ?Sized> TokenClient<'a, T> {
                 self.0.maximum,
                 ResponseMediaPolicy::Forbidden,
                 ResponseMediaPolicy::Required(&[MediaType::JSON]),
-                &[HeaderName::new("retry-after").map_err(|_| Failure::Model(Error::Value))?],
+                &[
+                    HeaderName::new("retry-after").map_err(|_| Failure::Model(Error::Value))?,
+                    HeaderName::new("content-encoding")
+                        .map_err(|_| Failure::Model(Error::Value))?,
+                ],
                 8,
             )
             .map_err(|_| Failure::Model(Error::Value))?

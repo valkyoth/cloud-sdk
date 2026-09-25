@@ -92,7 +92,10 @@ impl<'a, T: BoundTransport + BoundUserAgent + ?Sized> DiscoveryClient<'a, T> {
             self.maximum,
             ResponseMediaPolicy::Required(&[MediaType::JSON]),
             ResponseMediaPolicy::Required(&[MediaType::JSON]),
-            &[HeaderName::new("retry-after").map_err(|_| DiscoveryError::Value)?],
+            &[
+                HeaderName::new("retry-after").map_err(|_| DiscoveryError::Value)?,
+                HeaderName::new("content-encoding").map_err(|_| DiscoveryError::Value)?,
+            ],
             8,
         )
         .map_err(|_| DiscoveryError::Value)

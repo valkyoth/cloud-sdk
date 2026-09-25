@@ -41,6 +41,10 @@ never sleeps, retries, rotates or revokes implicitly. Provider errors and
 Retry-After metadata use the existing bounded policy. Self-revocation checks
 its exact empty success contract separately; other statuses cannot become
 successful revocation. The lower-level JSON decoder cannot accept self-revocation.
+Both the shared JSON policy and the empty-204 policy explicitly retain
+`Content-Encoding`, so a policy-honoring adapter cannot discard metadata needed
+by the validators. JSON accepts only absent or identity encoding; self-revocation
+rejects any encoding header, including identity.
 
 The callback is trusted to add sensitive Authorization exactly once, enforce
 raw framing/body limits, send only to the bound executor, and disable redirects,
@@ -105,3 +109,14 @@ Live crates.io drift was clean; all 25 pinned implementation sources and the
 token schema/status generator verified. All four SBOMs remain fresh. No
 dependency manifest or lockfile changed. These are implementation-agent checks,
 not independent pentest acceptance or release authorization.
+
+The incremental pentest found a missing header-retention instruction. The
+remediation retains encoding metadata in both policies and adds a policy-honoring
+adapter regression for all three token operations, case-insensitive header names,
+valid controls, rejection paths and scratch cleanup. Shared discovery executor
+tests also assert retention across blocking and async execution. The regression
+failed before the fix; independent remediation retest is required.
+
+Remediation verification passed: `scripts/checks.sh`, all-feature provider tests
+(162 unit tests, two integration tests and 27 doctests), Rust 1.92.0 all-feature
+compilation, documentation links and all four SBOM freshness checks.
