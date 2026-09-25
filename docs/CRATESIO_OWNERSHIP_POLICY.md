@@ -114,3 +114,19 @@ contract check passed. Offline schema/gate and feature-boundary regressions
 passed. No dependency manifest, lockfile, feature or neutral transport API
 changed. These are implementation-agent results, not independent pentest
 acceptance or release authorization.
+
+## Feature-Matrix Remediation
+
+The independent review of `42e534bd..ec6009b3` reported one Low build-hardening
+finding: alloc-only warning-denied Clippy rejected the permit's credential field,
+which is consumed only by blocking execution. The failure was reproduced before
+the fix. A conditional, reasoned `expect(dead_code)` now retains the credential
+borrow for alloc-only preparation without suppressing diagnostics when blocking
+execution is enabled. No public API or runtime behavior changed.
+
+The repository gate now runs warning-denied library Clippy separately for default,
+alloc, serde, std, blocking and async configurations. All six passed, along with
+134 alloc-only unit tests, two integration tests, 30 doctests and Rust 1.92.0
+alloc-only compilation. The full `scripts/checks.sh` suite also passed, including
+package verification, workspace tests/doctests and all-feature Clippy.
+Independent remediation retest remains required before Commit 17.

@@ -202,6 +202,12 @@ cargo package -p cloud-sdk-sanitization --allow-dirty
 cargo package -p cloud-sdk-testkit --allow-dirty \
     --config 'patch.crates-io.cloud-sdk.path="crates/cloud-sdk"'
 cargo clippy --workspace --all-targets --all-features -- -D warnings
+# Check isolated provider features: all-features can hide unused gated fields.
+cargo clippy -p cloud-sdk-cratesio --locked --no-default-features --lib -- -D warnings
+for features in alloc serde std blocking async; do
+    cargo clippy -p cloud-sdk-cratesio --locked --no-default-features \
+        --features "$features" --lib -- -D warnings
+done
 cargo test --workspace
 cargo test --workspace --doc --all-features
 cargo test --workspace --all-features
