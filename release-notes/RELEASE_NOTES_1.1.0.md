@@ -465,8 +465,23 @@ remediation; see [the report](../security/pentest/cratesio-commit-13.md).
 - Document out-of-band replacement provisioning and ambiguous mutation outcomes
   in [the token contract](../docs/CRATESIO_TOKEN_POLICY.md).
 
-Pentest is required from accepted checkpoint `9a1f2020`.
-Stop before Commit 15; no tag or publication is authorized.
+Pentest and GitHub passed after header-retention remediation at `fae5b5a1`;
+see [the report](../security/pentest/cratesio-commit-14.md).
+
+### Commit 15 - Crate And Version Settings
+
+- Add both public settings PATCH operations with exact target-bound consumed
+  permits, bounded JSON and single-attempt trusted blocking adapter execution.
+- Make yank-message clearing explicit; reject conflicting unyank/message intent
+  and check returned crate/version identity, yank state and message.
+- Reuse full bounded metadata validation and document concurrency, no-op and
+  ambiguous upstream mutation outcomes without promising CAS or automatic retry.
+- Add source-locked request/response drift checks, controller hashes, adversarial
+  tests and compile-fail authorization coverage. No dependency/feature changes.
+- See [the settings contract](../docs/CRATESIO_SETTINGS_POLICY.md).
+
+Pentest is required from accepted checkpoint `fae5b5a1`.
+Stop before Commit 16; no tag or publication is authorized.
 
 ### Maintenance Evidence (Earlier Checkpoints)
 

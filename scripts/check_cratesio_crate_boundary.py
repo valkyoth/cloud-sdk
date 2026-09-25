@@ -214,6 +214,7 @@ def validate(root: Path) -> None:
         *(f"accounts/{name}.rs" for name in ("mod", "request", "models", "decode", "schema_table", "client", "client/tests", "tests")),
         *(f"accounts/personal/{name}.rs" for name in ("mod", "request", "permit", "decode", "schema_table", "client", "tests", "tests/execution", "tests/admission")),
         *(f"accounts/tokens/{name}.rs" for name in ("mod", "request", "models", "decode", "schema_table", "client", "tests", "tests/execution")),
+        *(f"settings/{name}.rs" for name in ("mod", "request", "decode", "schema_table", "client", "tests", "tests/execution")),
         *(f"wire/{name}.rs" for name in (
             "mod", "error", "rate", "shared_rate", "user_agent", "envelope",
             "response", "policy_tests", "response_tests", "boundary_tests",
@@ -230,6 +231,11 @@ def validate(root: Path) -> None:
         if (crate / forbidden).exists():
             raise BoundaryError(f"forbidden build-script source: {forbidden}")
     library = (crate / "src/lib.rs").read_text(encoding="ascii")
+    if '#[cfg(feature = "alloc")]\npub mod settings;' not in library:
+        raise BoundaryError("settings allocation guard changed")
+    settings = (crate / "src/settings/mod.rs").read_text(encoding="ascii")
+    if '#[cfg(feature = "blocking")]\nmod client;' not in settings:
+        raise BoundaryError("settings client guard changed")
     wire = (crate / "src/wire/mod.rs").read_text(encoding="ascii")
     discovery = (crate / "src/discovery/mod.rs").read_text(encoding="ascii")
     if '#[cfg(any(feature = "blocking", feature = "async"))]\nmod client;' not in discovery:

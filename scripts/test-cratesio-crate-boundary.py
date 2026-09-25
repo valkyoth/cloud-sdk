@@ -332,6 +332,7 @@ def main() -> None:
         test_wire_scheduling_cannot_lose_its_std_guard,
         test_discovery_feature_guards_cannot_be_removed,
         test_catalog_feature_guards_cannot_be_removed,
+        test_settings_feature_guards_cannot_be_removed,
     )
     for test in tests:
         test()
@@ -376,6 +377,24 @@ def test_catalog_feature_guards_cannot_be_removed() -> None:
         checker.validate(root)
     finally:
         shutil.rmtree(root)
+
+
+def test_settings_feature_guards_cannot_be_removed() -> None:
+    for path, guard, replacement, error in (
+        ("lib.rs", '#[cfg(feature = "alloc")]\npub mod settings;',
+         "pub mod settings;", "settings allocation guard"),
+        ("settings/mod.rs", '#[cfg(feature = "blocking")]\nmod client;',
+         "mod client;", "settings client guard"),
+    ):
+        root = fixture()
+        try:
+            module = root / checker.CRATE / "src" / path
+            original = module.read_text(encoding="ascii")
+            assert guard in original
+            module.write_text(original.replace(guard, replacement), encoding="ascii")
+            assert_rejected(root, error)
+        finally:
+            shutil.rmtree(root)
 
 
 if __name__ == "__main__":

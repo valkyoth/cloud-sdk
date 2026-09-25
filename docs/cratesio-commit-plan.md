@@ -10,8 +10,9 @@ GitHub green on evidence checkpoint `5c925018` and authorized Commit 12.
 Commit 12 passed its incremental pentest at `7d98a087`; the user confirmed
 GitHub green on evidence checkpoint `7d4c147b` and authorized Commit 13.
 Commit 13 passed incremental pentest and GitHub at `9a1f2020`.
-Commit 14 implements token inspection and revocation; pentest is required.
-Stop before Commit 15; do not tag or publish.
+Commit 14 passed incremental pentest and GitHub at `fae5b5a1`.
+Commit 15 implements crate/version settings; pentest is required.
+Stop before Commit 16; do not tag or publish.
 
 ## Decision Summary
 
@@ -551,7 +552,8 @@ Implementation checkpoint: [token contract](CRATESIO_TOKEN_POLICY.md).
 All three public operations use consumed permits and a trusted blocking
 credential-adapter callback. Exact empty 204 self-revocation is separate from
 the JSON response boundary. Bundled authenticated/async integration remains
-Commit 20 work. Incremental pentest baseline: `9a1f2020`. Stop before Commit 15.
+Commit 20 work. Accepted after remediation, clean pentest and GitHub at
+`fae5b5a1`; see the [checkpoint report](../security/pentest/cratesio-commit-14.md).
 
 Goal: support the complete public token-management surface without inventing an
 undocumented token-creation API.
@@ -573,14 +575,20 @@ management surface.
 
 ## Commit 15 - Crate And Version Settings Mutations
 
+Implementation checkpoint: [settings contract](CRATESIO_SETTINGS_POLICY.md).
+Incremental pentest baseline: `fae5b5a1`. Stop before Commit 16.
+
 Goal: implement metadata changes without ambiguous partial-update behavior.
 
 Deliverables: crate settings update and version settings update operations;
-typed patch fields; validation for empty and conflicting patches; mutation
-permits; and checked postcondition models.
+typed `trustpub_only`, `yanked` and `yank_message` patch fields; no empty
+patch constructor; validation for conflicting patches; mutation permits; and
+checked postcondition models. Message replacement/clearing is explicit because
+upstream omission and null both clear it. No invented description, URL or
+archived-state write API; those remain bounded response metadata only.
 
-Verification: omitted versus null fields, archived state, description and URL
-bounds, version identity mismatch, no-op updates, concurrent modification,
+Verification: omitted versus null fields, archived response metadata, description
+and URL response bounds, version identity mismatch, no-op updates, concurrent modification,
 retry classification, wrong crate scope, and response validation.
 
 Exit criteria: both source-locked settings operations require explicit mutation

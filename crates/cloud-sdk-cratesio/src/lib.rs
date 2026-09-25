@@ -20,6 +20,8 @@ pub mod ownership;
 pub mod pagination;
 pub mod publishing;
 pub mod query;
+#[cfg(feature = "alloc")]
+pub mod settings;
 pub mod trusted_publishing;
 pub mod versions;
 pub mod wire;

@@ -44,6 +44,8 @@ python3 scripts/test-cratesio-personal.py
 python3 scripts/generate_cratesio_personal.py
 python3 scripts/test-cratesio-tokens.py
 python3 scripts/generate_cratesio_tokens.py
+python3 scripts/test-cratesio-settings.py
+python3 scripts/generate_cratesio_settings.py
 python3 scripts/check_admission_evidence.py
 python3 scripts/test-admission-evidence.py
 scripts/check_cratesio_endpoints.py

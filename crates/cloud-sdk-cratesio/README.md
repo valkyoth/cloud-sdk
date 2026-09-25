@@ -26,10 +26,11 @@ provider-neutral execution contracts from `cloud-sdk`.
 The crate is an unreleased `1.1.0` candidate. Seven discovery, three catalog
 and five version operations, four download/statistics operations and six public
 account/ownership operations have checked blocking, local-async and Send-async
-execution. Commit 13 is accepted; Commit 14 requires pentest. Eight personal
+execution. Commit 14 is accepted; Commit 15 requires pentest. Eight personal
 mutation operations now have single-attempt execution through an explicitly
 trusted blocking credential-adapter callback, not a bundled token transport.
 Three token-management operations now share that explicit adapter boundary.
+Two settings PATCH operations also use explicit permits and checked postconditions.
 Authentication preparation, endpoint, query and response foundations
 are available, but bundled authenticated adapters and other API workflows remain
 assigned to later checkpoints. This is not yet a complete crates.io provider.
@@ -58,6 +59,7 @@ assigned to later checkpoints. This is not yet a complete crates.io provider.
 | Public accounts and owners | user lookup with linked accounts, user statistics, team lookup and combined/user/team owner lists |
 | Personal workflows | follow/unfollow, invitation accept/decline, token acceptance, email confirmation/resend, single-setting user updates and legacy notifications; explicit permits and trusted blocking adapter |
 | Token management | lookup by ID, explicit revoke-by-ID and self-revocation; protected scope/expiry metadata and single-use permits |
+| Crate/version settings | trusted-publishing-only policy, yank state and explicit message replacement/clearing; trusted blocking adapter |
 | Artifact streaming | static-origin transport and SHA-256 hooks, transactional sink, bounded scratch and cancellation cleanup; caller-supplied streaming adapter required |
 | Other API operations | deferred to their source-locked implementation commits |
 
@@ -66,6 +68,29 @@ The public modules reserve ownership without claiming executable coverage:
 later work; public ownership reads do not grant mutation authority.
 The complete 51-operation scope is maintained in the
 [crates.io source lock](https://github.com/valkyoth/cloud-sdk/blob/main/docs/CRATESIO_SOURCE_LOCK.md).
+
+## Settings Intent
+
+```rust
+# #[cfg(feature = "alloc")] {
+use cloud_sdk_cratesio::{identifiers::{CrateName, Version},
+    settings::{SettingsRequest, YankMessage}};
+let patch = SettingsRequest::version(
+    CrateName::new("example")?, Version::new("1.0.0")?,
+    Some(true), YankMessage::Set("Use the corrected release"),
+)?;
+let mut scratch = [0; 1024];
+patch.with_json_body(&mut scratch, |body| assert!(!body.is_empty()))?;
+assert!(scratch.iter().all(|byte| *byte == 0));
+// Explicit patch.confirm(&api_token) is required before SettingsClient::execute.
+# }
+# Ok::<(), Box<dyn std::error::Error>>(())
+```
+
+`YankMessage::Clear` explicitly removes a message. There is no preserve-message
+variant: upstream omission also clears it. Settings do not edit descriptions,
+URLs or archived state. No automatic retries or compare-and-swap protection is
+claimed; see the [settings contract](https://github.com/valkyoth/cloud-sdk/blob/main/docs/CRATESIO_SETTINGS_POLICY.md).
 
 ## Token Management Intent
 
