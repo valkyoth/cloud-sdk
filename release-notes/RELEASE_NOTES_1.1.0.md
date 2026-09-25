@@ -480,8 +480,23 @@ see [the report](../security/pentest/cratesio-commit-14.md).
   tests and compile-fail authorization coverage. No dependency/feature changes.
 - See [the settings contract](../docs/CRATESIO_SETTINGS_POLICY.md).
 
-Pentest is required from accepted checkpoint `fae5b5a1`.
-Stop before Commit 16; no tag or publication is authorized.
+Pentest and GitHub passed at `42e534bd` with no findings;
+see [the report](../security/pentest/cratesio-commit-15.md).
+
+### Commit 16 - Ownership Mutations
+
+- Add Cargo-compatible owner additions/removals with explicit identity
+  namespaces, bounded batches and separate destructive removal confirmation.
+- Add optional crate-bound self/last-individual-owner preflight without claiming
+  snapshot authority, freshness or compare-and-swap semantics.
+- Return protected acknowledgements, not inferred invitation acceptance or
+  per-owner completion. No automatic retries or implicit mutation chaining.
+- Pin current namespace controller semantics alongside the existing source
+  lock, check OpenAPI/Cargo compatibility and add adversarial/gate regressions.
+- See [the ownership contract](../docs/CRATESIO_OWNERSHIP_POLICY.md).
+
+Pentest is required from accepted checkpoint `42e534bd`.
+Stop before Commit 17; no tag or publication is authorized.
 
 ### Maintenance Evidence (Earlier Checkpoints)
 

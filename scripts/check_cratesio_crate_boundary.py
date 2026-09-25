@@ -197,6 +197,8 @@ def validate(root: Path) -> None:
         "lib.rs",
         "identity.rs",
         "ownership.rs",
+        "ownership/changes.rs",
+        *(f"ownership/changes/{name}.rs" for name in ("identity", "request", "preflight", "decode", "client", "tests", "tests/execution")),
         *ENDPOINT_SOURCES,
         *CREDENTIAL_SOURCES,
         *(f"identifiers/{name}.rs" for name in ("mod", "date", "version", "tests")),
@@ -231,6 +233,12 @@ def validate(root: Path) -> None:
         if (crate / forbidden).exists():
             raise BoundaryError(f"forbidden build-script source: {forbidden}")
     library = (crate / "src/lib.rs").read_text(encoding="ascii")
+    ownership = (crate / "src/ownership.rs").read_text(encoding="ascii")
+    if '#[cfg(feature = "alloc")]\nmod changes;' not in ownership:
+        raise BoundaryError("ownership allocation guard changed")
+    changes = (crate / "src/ownership/changes.rs").read_text(encoding="ascii")
+    if '#[cfg(feature = "blocking")]\nmod client;' not in changes:
+        raise BoundaryError("ownership client guard changed")
     if '#[cfg(feature = "alloc")]\npub mod settings;' not in library:
         raise BoundaryError("settings allocation guard changed")
     settings = (crate / "src/settings/mod.rs").read_text(encoding="ascii")

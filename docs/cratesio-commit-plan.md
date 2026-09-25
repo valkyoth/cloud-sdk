@@ -11,8 +11,9 @@ Commit 12 passed its incremental pentest at `7d98a087`; the user confirmed
 GitHub green on evidence checkpoint `7d4c147b` and authorized Commit 13.
 Commit 13 passed incremental pentest and GitHub at `9a1f2020`.
 Commit 14 passed incremental pentest and GitHub at `fae5b5a1`.
-Commit 15 implements crate/version settings; pentest is required.
-Stop before Commit 16; do not tag or publish.
+Commit 15 passed incremental pentest and GitHub at `42e534bd`.
+Commit 16 implements ownership mutations; pentest is required.
+Stop before Commit 17; do not tag or publish.
 
 ## Decision Summary
 
@@ -576,7 +577,8 @@ management surface.
 ## Commit 15 - Crate And Version Settings Mutations
 
 Implementation checkpoint: [settings contract](CRATESIO_SETTINGS_POLICY.md).
-Incremental pentest baseline: `fae5b5a1`. Stop before Commit 16.
+Accepted after clean pentest and GitHub at `42e534bd`; see the
+[checkpoint report](../security/pentest/cratesio-commit-15.md).
 
 Goal: implement metadata changes without ambiguous partial-update behavior.
 
@@ -598,6 +600,13 @@ Pentest stop: run an incremental pentest for the exact Commit 15 crate and
 version settings surface.
 
 ## Commit 16 - Ownership Mutations
+
+Implementation checkpoint: [ownership contract](CRATESIO_OWNERSHIP_POLICY.md).
+Incremental pentest baseline: `42e534bd`. Stop before Commit 17. The current
+OpenAPI describes qualified user namespaces missing in the older controller
+pin; a supplemental controller pin records their semantics without changing
+unrelated source locks. Human-readable acknowledgements do not expose per-user
+acceptance, invitation IDs or proof of email delivery.
 
 Goal: implement owner changes while preventing accidental lockout and identity
 confusion.

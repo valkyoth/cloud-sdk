@@ -385,6 +385,10 @@ def test_settings_feature_guards_cannot_be_removed() -> None:
          "pub mod settings;", "settings allocation guard"),
         ("settings/mod.rs", '#[cfg(feature = "blocking")]\nmod client;',
          "mod client;", "settings client guard"),
+        ("ownership.rs", '#[cfg(feature = "alloc")]\nmod changes;',
+         "mod changes;", "ownership allocation guard"),
+        ("ownership/changes.rs", '#[cfg(feature = "blocking")]\nmod client;',
+         "mod client;", "ownership client guard"),
     ):
         root = fixture()
         try:

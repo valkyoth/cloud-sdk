@@ -26,11 +26,13 @@ provider-neutral execution contracts from `cloud-sdk`.
 The crate is an unreleased `1.1.0` candidate. Seven discovery, three catalog
 and five version operations, four download/statistics operations and six public
 account/ownership operations have checked blocking, local-async and Send-async
-execution. Commit 14 is accepted; Commit 15 requires pentest. Eight personal
+execution. Commit 15 is accepted; Commit 16 requires pentest. Eight personal
 mutation operations now have single-attempt execution through an explicitly
 trusted blocking credential-adapter callback, not a bundled token transport.
 Three token-management operations now share that explicit adapter boundary.
 Two settings PATCH operations also use explicit permits and checked postconditions.
+Owner additions/removals use consumed consent, conservative acknowledgements
+and an optional local removal preflight.
 Authentication preparation, endpoint, query and response foundations
 are available, but bundled authenticated adapters and other API workflows remain
 assigned to later checkpoints. This is not yet a complete crates.io provider.
@@ -60,14 +62,37 @@ assigned to later checkpoints. This is not yet a complete crates.io provider.
 | Personal workflows | follow/unfollow, invitation accept/decline, token acceptance, email confirmation/resend, single-setting user updates and legacy notifications; explicit permits and trusted blocking adapter |
 | Token management | lookup by ID, explicit revoke-by-ID and self-revocation; protected scope/expiry metadata and single-use permits |
 | Crate/version settings | trusted-publishing-only policy, yank state and explicit message replacement/clearing; trusted blocking adapter |
+| Ownership mutations | Cargo-compatible additions/removals, explicit namespaces, destructive confirmation and optional self/last-owner preflight; trusted blocking adapter |
 | Artifact streaming | static-origin transport and SHA-256 hooks, transactional sink, bounded scratch and cancellation cleanup; caller-supplied streaming adapter required |
 | Other API operations | deferred to their source-locked implementation commits |
 
 The public modules reserve ownership without claiming executable coverage:
-`publishing` and `trusted_publishing`. Crate ownership-list mutations remain
-later work; public ownership reads do not grant mutation authority.
+`publishing` and `trusted_publishing`. Public ownership reads do not grant
+mutation authority.
 The complete 51-operation scope is maintained in the
 [crates.io source lock](https://github.com/valkyoth/cloud-sdk/blob/main/docs/CRATESIO_SOURCE_LOCK.md).
+
+## Ownership Intent
+
+```rust
+# #[cfg(feature = "alloc")] {
+use cloud_sdk_cratesio::{identifiers::CrateName,
+    ownership::{OwnerSelector, OwnerChangeRequest}};
+let owners = [OwnerSelector::new("crates.io:example-user")?];
+let request = OwnerChangeRequest::add(CrateName::new("example")?, &owners)?;
+let mut scratch = [0; 512];
+request.with_json_body(&mut scratch, |body| {
+    assert_eq!(body, br#"{"users":["crates.io:example-user"]}"#);
+})?;
+// request.confirm_add(&api_token)? authorizes one trusted-adapter call.
+# }
+# Ok::<(), Box<dyn std::error::Error>>(())
+```
+
+Removal uses `confirm_removal` or `confirm_removal_after_preflight`, never an
+addition permit. Acknowledgements do not prove invitation acceptance or echo
+the crate identity. See the [ownership contract](https://github.com/valkyoth/cloud-sdk/blob/main/docs/CRATESIO_OWNERSHIP_POLICY.md)
+for namespace, snapshot and concurrent-change boundaries.
 
 ## Settings Intent
 
