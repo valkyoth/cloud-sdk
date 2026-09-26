@@ -36,9 +36,32 @@ final qualification checkpoint.
 
 ## Commit Checkpoint Workflow
 
-Work remains on main. The initial accepted baseline is v1.1.0; record its full
-commit hash when starting. If another release intervenes, explicitly approve
-and record the replacement baseline.
+Implementation takes place on the temporary `scaleway` branch. Keep `main`
+available for Hetzner, crates.io, and shared maintenance fixes and qualified
+patch releases such as `1.1.1`. Do not merge incomplete Scaleway work into a
+maintenance release. No implementation checkpoint has started merely because
+the branch exists.
+
+The initial accepted release baseline is `v1.1.0`; record its full commit hash
+and the branch starting hash when starting Commit 1. Include intervening changes
+in the review record. If another release replaces that baseline, explicitly
+approve and record the replacement rather than silently skipping changes.
+
+Merge maintenance fixes from `main` into `scaleway` regularly, before checkpoint
+qualification. Include merge resolutions and imported changes in the next gate
+and review record; do not rewrite already accepted checkpoint history. Review
+the entire delta from the preceding accepted checkpoint, not only first-parent
+changes. Shared fixes discovered on `scaleway` should also be brought to `main`
+as isolated, tested fixes where applicable, without importing provider work.
+
+Rust CI runs for pushes to `scaleway` and pull requests targeting it. Verify
+GitHub CodeQL Default Setup coverage for this branch or its pull request before
+accepting the first checkpoint; a green Rust CI run alone is insufficient.
+Retain Default Setup rather than introducing an advanced CodeQL workflow.
+
+Two accepted checkpoints per day is a pacing goal, not a deadline or permission
+to skip gates. Eighty checkpoints imply about 40 working days at that pace;
+remediation, service access, drift, and additional scope may extend the schedule.
 
 1. Implement only the numbered scope and commit normally.
 2. Run the checkpoint gate and pentest the entire range from the preceding
@@ -57,6 +80,9 @@ The final checkpoint additionally receives a full-provider and affected-neutral
 code review, remediation retest, complete release gate, and green GitHub CI and
 CodeQL. Version selection, signed tagging, pushing, and publishing require the
 maintainer's explicit release approval; finishing implementation grants none.
+Integrate the latest `main`, qualify the combined result, and merge the completed
+provider through a pull request. Require green checks on the final release
+commit before tagging. Retire `scaleway` only after integration is complete.
 
 ## Survey Evidence And Source Discrepancies
 

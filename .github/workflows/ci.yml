@@ -4,9 +4,11 @@ on:
   push:
     branches:
       - main
+      - scaleway
   pull_request:
     branches:
       - main
+      - scaleway
 
 permissions:
   contents: read
