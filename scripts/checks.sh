@@ -54,6 +54,8 @@ python3 scripts/test-cratesio-publish.py
 python3 scripts/generate_cratesio_publish.py
 python3 scripts/test-cratesio-trusted-publishing.py
 python3 scripts/generate_cratesio_trusted_publishing.py
+cargo test --locked --release -p cloud-sdk-cratesio --no-default-features --features std \
+    trusted_publishing::tests::assertions::preflight_on_bounded_stack -- --exact
 python3 scripts/check_admission_evidence.py
 python3 scripts/test-admission-evidence.py
 scripts/check_cratesio_endpoints.py

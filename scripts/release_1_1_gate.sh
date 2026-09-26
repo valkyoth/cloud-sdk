@@ -25,6 +25,8 @@ python3 scripts/test-cratesio-publish.py
 python3 scripts/generate_cratesio_publish.py
 python3 scripts/test-cratesio-trusted-publishing.py
 python3 scripts/generate_cratesio_trusted_publishing.py
+cargo test --locked --release -p cloud-sdk-cratesio --no-default-features --features std \
+    trusted_publishing::tests::assertions::preflight_on_bounded_stack -- --exact
 scripts/checks.sh
 
 if [ "$(git rev-parse HEAD)" != "$reviewed_head" ]; then

@@ -1,4 +1,6 @@
 use super::*;
+#[cfg(all(feature = "std", not(debug_assertions)))]
+use crate::std as test_std;
 fn check(
     policy: ExchangePolicy<'_>,
     header: &Value,
@@ -145,7 +147,7 @@ fn issuer_audience_time_required_claims_provider_and_workflow_confusion_fail() {
     }
 }
 #[test]
-fn malformed_or_oversized_compact_jwt_and_duplicate_claims_fail() {
+fn malformed_or_oversized_compact_jwt_fails() {
     let p = policy(Publisher::GitHub, 100);
     for text in [
         String::from("a.b.c"),
@@ -165,9 +167,93 @@ fn malformed_or_oversized_compact_jwt_and_duplicate_claims_fail() {
             .is_err()
         );
     }
-    let duplicate = encode(br#"{"iss":"bad","iss":"other"}"#);
-    assert!(p.preflight(&serde_json::to_vec(&json!({"jwt":format!("{}.{}.{}", encode(&serde_json::to_vec(&header()).fixture("header")), duplicate, encode(b"fake"))})).fixture("body"),100).is_err());
     let mut oversized = vec![b'a'; 16385];
     assert!(OidcAssertion::from_mut_bytes(CredentialOrigin::Production, &mut oversized).is_err());
     assert!(oversized.iter().all(|b| *b == 0));
+}
+
+#[test]
+fn duplicate_valid_claims_cannot_hide_behind_unrelated_validation_errors() {
+    for provider in [Publisher::GitHub, Publisher::GitLab] {
+        let original = claims(provider, 100);
+        check(policy(provider, 100), &header(), &original, 100).fixture("valid control");
+        let valid = serde_json::to_string(&original).fixture("claims");
+        let rest = valid.strip_prefix('{').fixture("object");
+        let duplicate = format!(r#"{{"iss":"{}",{}"#, provider.issuer(), rest);
+        // A parser that silently keeps either equal value yields the valid control.
+        assert_eq!(
+            serde_json::from_str::<Value>(&duplicate).fixture("oracle"),
+            original
+        );
+        let token = format!(
+            "{}.{}.{}",
+            encode(&serde_json::to_vec(&header()).fixture("header")),
+            encode(duplicate.as_bytes()),
+            encode(b"fake")
+        );
+        assert_eq!(
+            policy(provider, 100).preflight(
+                &serde_json::to_vec(&json!({"jwt":token})).fixture("body"),
+                100
+            ),
+            Err(TrustedPublishingError::Json)
+        );
+    }
+}
+
+#[test]
+fn scratch_allocation_failure_is_reported_without_panicking() {
+    let wire = serde_json::to_vec(&json!({"jwt":jwt(&header(), &claims(Publisher::GitHub,100))}))
+        .fixture("body");
+    policy(Publisher::GitHub, 100)
+        .preflight(&wire, 100)
+        .fixture("valid control");
+    let mut calls = 0;
+    let result = policy(Publisher::GitHub, 100).preflight_allocating(&wire, 100, || {
+        calls += 1;
+        Err(TrustedPublishingError::Allocation)
+    });
+    assert_eq!(calls, 1);
+    assert_eq!(result, Err(TrustedPublishingError::Allocation));
+}
+
+// Optimized stack evidence is a dedicated check-gate invocation; debug frames
+// are larger and this is not a universal embedded-stack-size guarantee.
+#[cfg(all(feature = "std", not(debug_assertions)))]
+#[test]
+fn preflight_on_bounded_stack() {
+    for provider in [Publisher::GitHub, Publisher::GitLab] {
+        let normal = jwt(&header(), &claims(provider, 100));
+        let mut large_claims = claims(provider, 100);
+        large_claims
+            .as_object_mut()
+            .fixture("claims")
+            .insert("padding".into(), json!("x".repeat(10_000)));
+        let prefix = format!(
+            "{}.{}.",
+            encode(&serde_json::to_vec(&header()).fixture("header")),
+            encode(&serde_json::to_vec(&claims(provider, 100)).fixture("claims"))
+        );
+        let signature_length = 16_384usize
+            .checked_sub(prefix.len())
+            .fixture("remaining")
+            .checked_mul(3)
+            .fixture("length")
+            / 4;
+        let large_signature = format!("{prefix}{}", encode(&vec![0xa5; signature_length]));
+        for token in [normal, jwt(&header(), &large_claims), large_signature] {
+            assert!(token.len() <= 16_384);
+            let wire = serde_json::to_vec(&json!({"jwt":token})).fixture("body");
+            test_std::thread::Builder::new()
+                .stack_size(32_768)
+                .spawn(move || {
+                    policy(provider, 100)
+                        .preflight(&wire, 100)
+                        .fixture("bounded stack preflight");
+                })
+                .fixture("thread creation")
+                .join()
+                .fixture("thread completion");
+        }
+    }
 }

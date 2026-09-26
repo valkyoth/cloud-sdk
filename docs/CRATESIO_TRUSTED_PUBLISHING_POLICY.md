@@ -50,8 +50,13 @@ upstream permits any environment, not only absence of an environment.
 ## Unverified Assertion Preflight
 
 Protected compact JWT ingress is capped at 16,384 bytes. Decoding uses the exact
-already-admitted base64-ng constant-work scalar API with cleared bounded scratch,
-then bounded duplicate-rejecting JSON. This does not make JSON parsing or the
+already-admitted base64-ng constant-work scalar API with one reused 12,288-byte,
+fallibly allocated `SecretBoxBytes` scratch buffer. It is cleared before each
+decode and volatile-cleared on drop, including errors and unwinding. No JWT-sized
+stack array is used. Scratch allocation failure returns `Allocation`. Together
+with protected JSON allocations this still requires an allocator; no_std does
+not imply that arbitrary embedded stack or heap budgets are sufficient.
+Decoded parts undergo bounded duplicate-rejecting JSON parsing. This does not make JSON parsing or the
 entire preflight constant-time. Passing preflight does NOT authenticate a JWT.
 
 Preflight requires RS256, a key ID, exact caller-selected audience and the fixed
@@ -96,13 +101,23 @@ resource limits, clocks and process-abort handling. See [the threat model](threa
 
 ## Checkpoint Verification
 
-The checkpoint adds 14 regression tests, including the eight wire operations,
+The checkpoint has 16 regular regression tests and one optimized stack test,
+including the eight wire operations,
 GitLab exchange/publish/revoke composition, unverified claim confusion,
 configuration binding and duplicate rejection, checked continuation, expiry,
 wrong origins, short buffers, redaction, failure/unwind cleanup and shared-gate
 deferral. Tests use synthetic assertions, not valid signed tokens or network
 mutation. Eight source-contract regression groups reject changed authority,
 media/status, inherited parameters and stale request evidence.
+
+Commit 19 pentest remediation replaces per-part stack arrays with the shared
+protected allocation. Both check gates run optimized preflight on a requested
+32 KiB thread stack for GitHub/GitLab, including large claims and near-limit
+signatures. This is host regression evidence, not universal stack qualification.
+An injected scratch-allocation failure must return Allocation. The duplicate-key
+regression now duplicates a valid issuer in a completely valid claims object:
+both the original and an independent last-value parser's result pass the control,
+while the duplicate document must fail specifically at JSON validation.
 
 `scripts/checks.sh` passes with full workspace tests, doctests, feature-isolated
 Clippy and package verification. MSRV 1.92.0 all-feature compilation and alloc

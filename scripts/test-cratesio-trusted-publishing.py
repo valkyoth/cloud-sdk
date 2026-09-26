@@ -78,6 +78,9 @@ def main():
         lines = (generator.ROOT / gate).read_text().splitlines()
         assert "python3 scripts/generate_cratesio_trusted_publishing.py" in lines
         assert "python3 scripts/test-cratesio-trusted-publishing.py" in lines
+        commands = (generator.ROOT / gate).read_text().replace("\\\n", "")
+        assert ("cargo test --locked --release -p cloud-sdk-cratesio --no-default-features --features std "
+                "    trusted_publishing::tests::assertions::preflight_on_bounded_stack -- --exact") in commands
     print("Eight trusted publishing contract, source and gate regression groups passed.")
 
 

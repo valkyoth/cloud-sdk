@@ -3,7 +3,9 @@ use crate::discovery::{DiscoveryValue as Value, value::Builder};
 use cloud_sdk::incremental_json::{
     IncrementalJsonDecoder, IncrementalJsonLimits, IncrementalJsonProgress,
 };
-use cloud_sdk_sanitization::SecretBuffer;
+use cloud_sdk_sanitization::{SecretBoxBytes, sanitize_bytes};
+
+const JWT_DECODE_SCRATCH: usize = 12_288;
 
 /// Caller-selected expectations for unverified JWT preflight, NOT authentication.
 /// The registry alone validates signatures, keys, issuer authority, scope and replay.
@@ -53,45 +55,58 @@ impl<'a> ExchangePolicy<'a> {
     /// Input is the bounded exchange JSON object containing `jwt`, not a raw
     /// compact JWT. The caller retains responsibility for erasing input storage.
     pub fn preflight(self, json: &[u8], now: u64) -> Result<(), Error> {
+        self.preflight_allocating(json, now, || {
+            SecretBoxBytes::try_zeroed(JWT_DECODE_SCRATCH, JWT_DECODE_SCRATCH)
+                .map_err(|_| Error::Allocation)
+        })
+    }
+    pub(super) fn preflight_allocating(
+        self,
+        json: &[u8],
+        now: u64,
+        allocate: impl FnOnce() -> Result<SecretBoxBytes, Error>,
+    ) -> Result<(), Error> {
         self.time(now)?;
         let root = parse(json)?;
-        root.required("jwt")?.with_text(|jwt| {
-            if jwt.len() > 16_384 {
-                return Err(Error::Limit);
-            }
-            let mut parts = jwt.split('.');
-            let header = part(parts.next().ok_or(Error::Value)?)?;
-            equals(&header, "alg", "RS256", false)?;
-            required_text(&header, "kid")?;
-            if header.get("crit")?.is_some() || header.get("b64")?.is_some() {
-                return Err(Error::Value);
-            }
-            let claims = part(parts.next().ok_or(Error::Value)?)?;
-            let signature = parts.next().ok_or(Error::Value)?;
-            let mut signature_bytes = [0; 12_288];
-            let mut signature_bytes = SecretBuffer::new(&mut signature_bytes);
-            let length = base64_ng::ct::URL_SAFE_NO_PAD
-                .decode_slice_clear_tail(signature.as_bytes(), signature_bytes.as_mut_slice())
-                .map_err(|_| Error::Value)?;
-            if length == 0 || parts.next().is_some() {
-                return Err(Error::Value);
-            }
-            equals(&claims, "iss", self.config.publisher.issuer(), false)?;
-            equals(&claims, "aud", self.audience, false)?;
-            let issued = claims.required("iat")?.count(u64::MAX)?;
-            let expires = claims.required("exp")?.count(u64::MAX)?;
-            if issued > now || expires <= now || expires <= issued {
-                return Err(Error::Binding);
-            }
-            if let Some(nbf) = claims.get("nbf")?
-                && nbf.count(u64::MAX)? > now
-            {
-                return Err(Error::Binding);
-            }
-            required_text(&claims, "jti")?;
-            required_text(&claims, "sha")?;
-            self.publisher_claims(&claims)
-        })?
+        let mut scratch = allocate()?;
+        scratch.with_secret_mut(|scratch| {
+            root.required("jwt")?.with_text(|jwt| {
+                if jwt.len() > 16_384 {
+                    return Err(Error::Limit);
+                }
+                let mut parts = jwt.split('.');
+                let header = part(parts.next().ok_or(Error::Value)?, scratch)?;
+                equals(&header, "alg", "RS256", false)?;
+                required_text(&header, "kid")?;
+                if header.get("crit")?.is_some() || header.get("b64")?.is_some() {
+                    return Err(Error::Value);
+                }
+                let claims = part(parts.next().ok_or(Error::Value)?, scratch)?;
+                let signature = parts.next().ok_or(Error::Value)?;
+                sanitize_bytes(scratch);
+                let length = base64_ng::ct::URL_SAFE_NO_PAD
+                    .decode_slice_clear_tail(signature.as_bytes(), scratch)
+                    .map_err(|_| Error::Value)?;
+                if length == 0 || parts.next().is_some() {
+                    return Err(Error::Value);
+                }
+                equals(&claims, "iss", self.config.publisher.issuer(), false)?;
+                equals(&claims, "aud", self.audience, false)?;
+                let issued = claims.required("iat")?.count(u64::MAX)?;
+                let expires = claims.required("exp")?.count(u64::MAX)?;
+                if issued > now || expires <= now || expires <= issued {
+                    return Err(Error::Binding);
+                }
+                if let Some(nbf) = claims.get("nbf")?
+                    && nbf.count(u64::MAX)? > now
+                {
+                    return Err(Error::Binding);
+                }
+                required_text(&claims, "jti")?;
+                required_text(&claims, "sha")?;
+                self.publisher_claims(&claims)
+            })?
+        })
     }
     fn publisher_claims(self, claims: &Value) -> Result<(), Error> {
         let c = self.config;
@@ -194,13 +209,12 @@ pub(super) fn equals(
         }
     })?
 }
-fn part(text: &str) -> Result<Value, Error> {
-    let mut storage = [0; 12_288];
-    let mut storage = SecretBuffer::new(&mut storage);
+fn part(text: &str, storage: &mut [u8]) -> Result<Value, Error> {
+    sanitize_bytes(storage);
     let n = base64_ng::ct::URL_SAFE_NO_PAD
-        .decode_slice_clear_tail(text.as_bytes(), storage.as_mut_slice())
+        .decode_slice_clear_tail(text.as_bytes(), storage)
         .map_err(|_| Error::Value)?;
-    parse(storage.as_slice().get(..n).ok_or(Error::Limit)?)
+    parse(storage.get(..n).ok_or(Error::Limit)?)
 }
 pub(super) fn parse(bytes: &[u8]) -> Result<Value, Error> {
     let mut builder = Builder::default();

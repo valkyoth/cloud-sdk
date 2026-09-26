@@ -528,6 +528,10 @@ see [the report](../security/pentest/cratesio-commit-15.md).
 
 ### Commit 19 - Trusted Publishing
 
+- Pentest remediation: replace JWT-sized stack arrays with one fallible,
+  clear-on-drop sanitization allocation; enforce an optimized 32 KiB stack
+  regression in both gates and test allocation failure. Duplicate-claim
+  rejection now has an otherwise valid control payload and exact JSON error.
 - Add all eight GitHub/GitLab configuration, OIDC exchange and temporary-token
   revocation operations through consumed permits and the trusted blocking adapter.
 - Bind configuration intent and seek pagination; check exact JSON/empty response
