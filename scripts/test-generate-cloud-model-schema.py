@@ -61,7 +61,10 @@ def synthetic_document() -> dict:
                 },
             },
         }
-        paths[f"/{model}"] = {"get": response(model, schema)}
+        root = "members" if model == "network_member" else model
+        if model == "network_member":
+            schema = {"type": "array", "items": schema}
+        paths[f"/{model}"] = {"get": response(root, schema)}
     return {"paths": paths}
 
 
@@ -395,7 +398,7 @@ def test_committed_evidence_is_structurally_complete() -> None:
         )
     )
     fixtures = json.loads(generator.DEFAULT_FIXTURES.read_text(encoding="ascii"))
-    assert len(rows) == 730
+    assert len(rows) == 737
     assert {row["model"] for row in rows} == generator.ALL_EXPECTED_MODELS
     assert set(fixtures) == generator.ALL_EXPECTED_MODELS
     identities = [(row["model"], row["path"]) for row in rows]
@@ -418,6 +421,7 @@ def test_committed_evidence_is_structurally_complete() -> None:
         "date-time",
         "decimal",
         "double",
+        "ipv4",
         "int64",
     }
     assert {row["pattern"] for row in rows} == {

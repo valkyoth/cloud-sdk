@@ -29,13 +29,15 @@ def main() -> None:
     query = MODULE.render_query(rows)
     inventory = MODULE.render_inventory(rows)
     operations = MODULE.render_operations(rows)
-    assert query.count("\n") == 219
+    assert query.count("\n") == 225
     assert "get_server_metrics\ttype\tyes\tstring[]\tcomma\tcpu|disk|network\t" in query
     assert "list_servers\tsort\tno\tstring[]\trepeat\t" in query
     assert inventory.count("\n") == 1 + len(rows) + len(MODULE.body_operations())
     assert "\trequest-body\t" in inventory
     assert "\ttyped-json-body\n" in inventory
-    assert operations.count("pub const ") == 47
+    assert operations.count("pub const ") == 48
+    assert "list_network_members\tsubnet\tno\tstring[]\trepeat\t" in query
+    assert 'pub const LIST_NETWORK_MEMBERS: Self = Self("list_network_members");' in operations
     assert 'pub const GET_SERVER_METRICS: Self = Self("get_server_metrics");' in operations
     assert "LIST_DATACENTERS" not in operations
     assert "list_datacenters\tquery\tname\tno\tstring" in inventory
