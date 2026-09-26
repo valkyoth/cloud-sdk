@@ -25,6 +25,12 @@
   </a>
 </p>
 
+| API | Status | Last Checked |
+| :--------- | :----: |
+| [Hetzner Cloud](https://docs.hetzner.cloud/reference/cloud) | ✅ Ready to use | 2026/09/26 |
+| [Hetzner Robot](https://robot.hetzner.com/doc/webservice/en.html) | ✅ Ready to use | 2026/09/26 |
+| [crates.io](https://crates.io) | ✅ Ready to use | 2026/09/26 |
+
 # cloud-sdk
 
 `cloud-sdk` is a `no_std`-first Rust foundation for building secure, portable
