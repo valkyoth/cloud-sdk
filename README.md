@@ -26,10 +26,10 @@
 </p>
 
 | API | Status | Last Checked |
-| :--------- | :----: |
+| :--- | :--- | :---: |
 | [Hetzner Cloud](https://docs.hetzner.cloud/reference/cloud) | ✅ Ready to use | 2026/09/26 |
 | [Hetzner Robot](https://robot.hetzner.com/doc/webservice/en.html) | ✅ Ready to use | 2026/09/26 |
-| [crates.io](https://crates.io) | ✅ Ready to use | 2026/09/26 |
+| [crates.io](https://crates.io) | Unreleased 1.1.0 candidate | 2026/09/26 |
 
 # cloud-sdk
 
