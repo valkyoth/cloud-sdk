@@ -1,8 +1,14 @@
 # crates.io Candidate Qualification
 
-Status: Commit 22 implementation and local qualification in progress.
+Status: Commit 22 locally qualified; stop for full-service pentest and GitHub.
 Candidate: unreleased workspace `1.1.0`; publication remains blocked.
 Previous accepted checkpoint: `cbcaf17f54b50918b9b6f6fb29f76cbd9656b537`.
+
+The complete candidate gate passed on 2026-09-26 at
+`dd753e9372ad5af99b7e6274402303f446c93132`, including identical archives for
+all six packages from two clean clones. Subsequent documentation-only evidence
+updates do not constitute pentest acceptance. Warning-denied workspace rustdoc,
+live IANA IPv6 and Robot wire-source checks also passed.
 
 ## Frozen Scope
 

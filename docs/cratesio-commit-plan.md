@@ -18,7 +18,7 @@ Commit 18 passed incremental pentest and GitHub at `ddb12f74`.
 Commit 19 passed incremental pentest and GitHub at `f49b7712`.
 Commit 20 passed incremental pentest and GitHub at `df5892e7`.
 Commit 21 passed incremental pentest/retest and GitHub at `cbcaf17f`.
-Commit 22 is in progress; full-service pentest and candidate qualification remain required.
+Commit 22 passed local qualification; full-service pentest and GitHub acceptance remain required.
 Do not tag or publish.
 
 ## Decision Summary
@@ -783,13 +783,13 @@ and Cargo-compatibility surface.
 
 ## Commit 21 - Live Evidence, Fuzzing, And Platform Qualification
 
-Implementation status: implementation stop reached; incremental pentest required.
+Implementation status: accepted pentest/retest and GitHub at `cbcaf17f`.
 The checkpoint adds an operator-only read harness, protected stdin input,
 actual CI rejection probes, four provider fuzz targets with shared deterministic
 tests, a 128-case OpenAPI mutation campaign and reproducible archive checks.
 See [the qualification ledger](CRATESIO_QUALIFICATION.md) for completed local
 gates, operator-authorized live mutation evidence, manual cleanup and the
-separate Hetzner drift blocker. No Commit 22 work or publication is authorized.
+Hetzner drift subsequently resolved in Commit 22. Publication remains blocked.
 
 Goal: produce current adversarial and platform evidence without granting CI
 publication or account-mutation authority.
@@ -828,7 +828,7 @@ permission to accept a changed hash without implementation review.
 Implementation and evidence: [candidate ledger](CRATESIO_CANDIDATE.md).
 The September 26 source refresh implements the Network members operation and
 records the already-validated Primary IP semantics; all live Hetzner source
-gates passed. Candidate-wide qualification and full-service pentest remain open.
+gates and candidate-wide local qualification passed. Full-service pentest remains open.
 
 Goal: freeze and qualify the complete selected crates.io integration without
 adding features.
@@ -857,7 +857,7 @@ publishing crates.
 
 ## Deferred Surfaces
 
-Commit 1 records exact exclusions, but the following are presumed deferred:
+Commit 1 records exact exclusions. These surfaces are outside this candidate:
 
 - crates.io private OpenAPI operations and undocumented backend routes;
 - browser session-cookie ingestion and web-frontend session automation;
@@ -865,17 +865,27 @@ Commit 1 records exact exclusions, but the following are presumed deferred:
 - creating or packaging `.crate` archives from a source workspace;
 - legacy Git index cloning and sparse-index bulk synchronization;
 - RSS and database-dump parsers;
-- automatic publication retries or unattended mutation workflows;
-- bypassing the official API rate or identifying-user-agent requirements; and
+- automatic publication retries or unattended mutation workflows; and
 - any public operation added after the Commit 1 source lock.
 
 Deferral is not permanent rejection. A later release can add a source-locked
 surface through a separate commit plan after its protocol, security, policy,
 and maintenance costs are reviewed.
 
+These exclusions distinguish a client SDK from website automation, Cargo archive
+creation and registry hosting or mirroring. Publishing an existing archive is
+supported; creating that archive from a workspace remains Cargo's responsibility.
+New upstream operations are detected by drift checks, not automatically admitted.
+Automatic mutation retries are excluded because a failed exchange can conceal a
+successful server-side mutation; callers must reconcile the outcome first.
+
+Bypassing official API rate limits or identifying-user-agent requirements is
+unsupported, not deferred. Future features must preserve those policy boundaries.
+
 ## Release Decision
 
-This document deliberately does not name a release version. After Commit 22
+The workspace uses unreleased `1.1.0` as its working candidate version, not as
+publication authorization. After Commit 22
 passes its full-service pentest, complete release gate, GitHub CI, and CodeQL,
 maintainers decide whether the accumulated compatible workspace changes warrant
 a minor workspace release or another SemVer version. The

@@ -26,7 +26,7 @@ provider-neutral execution contracts from `cloud-sdk`.
 The crate is an unreleased `1.1.0` candidate. Seven discovery, three catalog
 and five version operations, four download/statistics operations and six public
 account/ownership operations have checked blocking, local-async and Send-async
-execution. Commits 1 through 21 are accepted; Commit 22 candidate qualification is in progress.
+execution. Commits 1 through 21 are accepted; Commit 22 passed local qualification and awaits full-service pentest.
 The `RegistryClient` facade executes eight personal mutation operations,
 including both API-token and consumed secret-path variants, in all three modes.
 Three token-management operations use the same checked execution boundary.

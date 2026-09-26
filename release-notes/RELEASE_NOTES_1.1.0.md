@@ -49,7 +49,7 @@ is implemented.
 
 ## Completed Checkpoints
 
-### Commit 22 - Candidate Scope Freeze (Qualification In Progress)
+### Commit 22 - Candidate Scope Freeze (Full-Service Pentest Required)
 
 Commit 21 passed pentest/retest and GitHub at `cbcaf17f`. The candidate retains
 all 51 selected crates.io operations and their stable/experimental/deprecated
