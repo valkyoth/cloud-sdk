@@ -2,7 +2,6 @@ use core::future::{Future, poll_fn};
 use core::task::Poll;
 use std::sync::Arc;
 use std::sync::atomic::{AtomicBool, AtomicU8, Ordering};
-use std::vec::Vec;
 
 use bytes::Bytes;
 use cloud_sdk::Method;
@@ -10,9 +9,8 @@ use cloud_sdk::transport::{
     AsyncResponseStaging, RawResponsePolicy, ResponseAttempt, ResponseCompletion, ResponseHeaders,
     ResponseMetadata, ResponseWriterError, StatusCode, TransportFailure, TransportRequest,
 };
-use cloud_sdk_sanitization::sanitize_bytes;
 use http::header::{AUTHORIZATION, HeaderName, HeaderValue, USER_AGENT};
-use http_body_util::{BodyExt, Full};
+use http_body_util::BodyExt;
 use hyper::body::Incoming;
 #[cfg(any(
     feature = "async-rustls",
@@ -37,8 +35,12 @@ use super::{
 
 mod streaming;
 pub use streaming::StreamingResponse;
+mod body;
+mod upload;
+use body::{RequestBody, SanitizedBody};
+pub use upload::RawUpload;
 
-type HttpClient = Client<HttpsConnector<HttpConnector>, Full<Bytes>>;
+type HttpClient = Client<HttpsConnector<HttpConnector>, RequestBody>;
 
 pub(crate) trait RawResponseSink<'buffer> {
     fn body_capacity(&self) -> usize;
@@ -258,7 +260,7 @@ impl RawHyperClient {
         &self,
         request: TransportRequest<'_>,
         authorization: Option<HeaderValue>,
-    ) -> Result<http::Request<Full<Bytes>>, RawTransportFailure> {
+    ) -> Result<http::Request<RequestBody>, RawTransportFailure> {
         validate_request_body_len(request.body()).map_err(TransportFailure::not_sent)?;
         let url = self
             .endpoint
@@ -304,14 +306,14 @@ impl RawHyperClient {
             stage_request_body(request.body()).map_err(TransportFailure::not_sent)?
         };
         builder
-            .body(Full::new(body))
+            .body(RequestBody::full(body))
             .map_err(|_| TransportFailure::not_sent(RawHttpError::RequestBuildFailed))
     }
 
     async fn execute_timed<'buffer>(
         &self,
         method: Method,
-        request: http::Request<Full<Bytes>>,
+        request: http::Request<RequestBody>,
         policy: RawResponsePolicy<'_>,
         sink: &mut impl RawResponseSink<'buffer>,
         state: &ResponseState,
@@ -417,35 +419,6 @@ pub(super) async fn read_bounded_body<'buffer>(
             .copy_from_slice(&data);
     }
     Ok(budget.len())
-}
-
-struct SanitizedBody {
-    bytes: Vec<u8>,
-}
-
-impl SanitizedBody {
-    fn copy_from(source: &[u8]) -> Result<Self, ()> {
-        let mut bytes = Vec::new();
-        bytes.try_reserve_exact(source.len()).map_err(|_| ())?;
-        bytes.extend_from_slice(source);
-        Ok(Self { bytes })
-    }
-
-    fn into_bytes(self) -> Bytes {
-        Bytes::from_owner(self)
-    }
-}
-
-impl AsRef<[u8]> for SanitizedBody {
-    fn as_ref(&self) -> &[u8] {
-        &self.bytes
-    }
-}
-
-impl Drop for SanitizedBody {
-    fn drop(&mut self) {
-        sanitize_bytes(&mut self.bytes);
-    }
 }
 
 fn validate_request_body_len(source: &[u8]) -> Result<(), RawHttpError> {

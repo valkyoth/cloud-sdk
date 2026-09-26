@@ -93,7 +93,22 @@ retries, stream into that same exchange's direct sink, and commit the response
 only after that exchange. The SDK checks upload completion before admitting
 the reply, but a malicious adapter can lie about its actual network behavior.
 This is the same explicit transport trust boundary as other mutation clients.
-Bundled authenticated and async integration remains Commit 20.
+Commit 20 adds `PublishClient::execute_bundled`, `execute_bundled_local` and
+`execute_bundled_async` plus the corresponding `RegistryClient::publish`,
+`publish_local` and `publish_async` conveniences. These opt-in methods retain
+the permit, origin, user-agent, shared admission and checked acknowledgement
+rules without requiring a caller HTTP callback. Local sources may be non-Send;
+Send execution has a Send future. Guards are installed before future creation.
+
+The neutral bundled adapter uses a one-chunk queue and sanitization-owned frame
+storage; it never concatenates the archive. It sets the exact Content-Length,
+checks source framing/progress, and requires completed upload plus a checked
+response before committing response storage. It rejects an early final response
+while the source is incomplete, uses the original total timeout across upload
+and response, and disables retries, redirects, cookies and decompression.
+Underlying transport/TLS buffers remain within their documented trust boundary.
+Deadline enforcement cannot preempt non-cooperative caller source code. Final
+generated operation coverage and integrated qualification remain Commit 20 gates.
 
 Short/overlong archives, source failure, sink failure, exhausted waits and
 incomplete responses fail closed. Partial remote writes cannot be rolled back.

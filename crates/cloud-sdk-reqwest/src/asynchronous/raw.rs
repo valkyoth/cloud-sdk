@@ -13,7 +13,7 @@ use crate::shared::{HttpsEndpoint, RawHyperClient, RawTransportFailure};
 /// Raw async HTTP executor with no implicit authentication or provider policy.
 #[derive(Clone)]
 pub struct RawAsyncClient {
-    inner: RawHyperClient,
+    pub(super) inner: RawHyperClient,
     endpoint: HttpsEndpoint,
 }
 

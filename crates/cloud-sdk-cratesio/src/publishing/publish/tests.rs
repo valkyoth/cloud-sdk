@@ -7,6 +7,10 @@ use cloud_sdk::transport::{
     BlockingStreamSink, BlockingStreamSource, StreamLimits, StreamPartialState, StreamRead,
     StreamReplayability,
 };
+#[cfg(feature = "async")]
+mod asynchronous;
+#[cfg(any(feature = "blocking-rustls", feature = "async-rustls"))]
+mod bundled;
 #[cfg(feature = "blocking")]
 mod execution;
 mod metadata;

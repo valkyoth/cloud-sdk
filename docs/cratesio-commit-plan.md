@@ -726,7 +726,9 @@ The second increment adds guarded local/Send async execution for the currently
 enabled reads and permits, including explicit API-token catalog requests.
 The storage increment adds real Unix filesystem qualification for transactional
 downloads, including cancellation and non-overwriting publication failure.
-Neither increment closes the remaining 51-operation and streaming-upload gates.
+The upload increment adds bundled blocking/local/Send Cargo publication with
+live bounded raw transport, without a caller HTTP callback. These increments
+do not close the final integrated 51-operation and Cargo-compatibility gates.
 
 Dependency follow-up detected during Commit 18 on 2026-09-25:
 `rustls-platform-verifier 0.7.1` supersedes the reviewed `0.7.0` pin and changes

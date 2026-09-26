@@ -399,8 +399,12 @@ def test_settings_feature_guards_cannot_be_removed() -> None:
          "mod client;", "yank client guard"),
         ("publishing.rs", '#[cfg(feature = "alloc")]\nmod publish;',
          "mod publish;", "publish allocation guard"),
-        ("publishing/publish.rs", '#[cfg(feature = "blocking")]\nmod client;',
+        ("publishing/publish.rs", '#[cfg(any(feature = "blocking", feature = "async"))]\nmod client;',
          "mod client;", "publish client guard"),
+        ("publishing/publish.rs", '#[cfg(feature = "blocking-rustls")]\nmod bundled;',
+         "mod bundled;", "bundled publish transport guard"),
+        ("publishing/publish.rs", '#[cfg(feature = "async-rustls")]\nmod bundled_async;',
+         "mod bundled_async;", "bundled publish transport guard"),
     ):
         root = fixture()
         try:

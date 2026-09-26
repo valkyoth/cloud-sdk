@@ -209,6 +209,13 @@ def validate(root: Path) -> None:
         "downloads/sha256.rs",
         "downloads/artifact/tests/storage.rs",
         "downloads/artifact/tests/storage/cases.rs",
+        "client/publish.rs",
+        "client/publish_async.rs",
+        "publishing/publish/bundled.rs",
+        "publishing/publish/bundled_async.rs",
+        "publishing/publish/stream/asynchronous.rs",
+        "publishing/publish/tests/asynchronous.rs",
+        "publishing/publish/tests/bundled.rs",
         "identity.rs",
         "ownership.rs",
         "publishing.rs",
@@ -266,8 +273,11 @@ def validate(root: Path) -> None:
     if '#[cfg(feature = "alloc")]\nmod publish;' not in publishing:
         raise BoundaryError("publish allocation guard changed")
     publish = (crate / "src/publishing/publish.rs").read_text(encoding="ascii")
-    if '#[cfg(feature = "blocking")]\nmod client;' not in publish:
+    if '#[cfg(any(feature = "blocking", feature = "async"))]\nmod client;' not in publish:
         raise BoundaryError("publish client guard changed")
+    for feature, module in (("blocking-rustls", "bundled"), ("async-rustls", "bundled_async")):
+        if f'#[cfg(feature = "{feature}")]\nmod {module};' not in publish:
+            raise BoundaryError("bundled publish transport guard changed")
     if '#[cfg(feature = "alloc")]\nmod yank;' not in publishing:
         raise BoundaryError("yank allocation guard changed")
     yank = (crate / "src/publishing/yank.rs").read_text(encoding="ascii")

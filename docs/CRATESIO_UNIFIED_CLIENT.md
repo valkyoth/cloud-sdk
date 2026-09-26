@@ -9,7 +9,8 @@ No tag, publication, Commit 21 authorization or full-provider coverage claim.
 - `client::RegistryClient` binds production or staging and delegates blocking
   typed reads and consumed mutation permits to their existing checked runners.
   Request assembly and authorization dispatch no longer need a caller callback
-  on these paths. Publish still requires the existing streaming callback.
+  on these paths. Separate bundled `publish`, `publish_local` and `publish_async`
+  methods now accept a consumed permit and borrowed archive source.
 - `execute_local` and `execute_async` now cover those same read and permit
   families. API-token catalog requests have corresponding explicit methods.
   Local execution accepts non-Send transports; Send execution has compile-checked
@@ -43,6 +44,12 @@ No tag, publication, Commit 21 authorization or full-provider coverage claim.
   trusted registry metadata; hashing alone does not authenticate that metadata.
 - Optional `blocking-rustls`, `async-rustls` and `artifact-sha256` features do
   not change the default, alloc-only or Serde-only dependency boundary.
+- Bundled publication now streams Cargo framing through destination-bound raw
+  upload execution. A one-chunk queue, sanitized owned frames, declared-length
+  and progress checks, total deadline, and checked response admission prevent
+  whole-archive buffering or implicit replay. Early final responses before
+  source completion fail closed. Local sources need not be Send. Source storage
+  and non-cooperative source execution remain caller responsibilities.
 - Platform-verifier 0.7.1 and its Android helper 0.2.0 are recorded in all
   affected locks and the dependency-review digest. Android bundled transport
   support is not added by this dependency refresh.
@@ -57,9 +64,11 @@ No tag, publication, Commit 21 authorization or full-provider coverage claim.
 
 1. Qualify unified async execution with the bundled adapters across the final
    operation matrix. Mock parity and cleanup tests pass for the currently
-   enabled families; this does not cover the excluded path-secret or publish paths.
-2. Add real bundled authenticated streaming publication, including partial
-   writes, early rejection, truncation, deadlines and no implicit replay.
+   enabled families; this does not cover the excluded path-secret operations
+   or substitute for final integrated publish-operation evidence.
+2. Retain the live authenticated streaming-upload qualification in the final
+   gate. Transport loopback tests, Cargo framing tests and facade preflight/
+   cancellation checks now exist; complete the final integrated operation matrix.
 3. Generate exact execution coverage against all 51 operation matrix rows;
    trait implementations alone do not prove each variant executes correctly.
    First qualify secret-path URI storage and enable the two excluded personal
@@ -130,3 +139,28 @@ The tests cover 38 transfer cases using actual host files: three successful
 mode variants, 21 error cases, six publication collisions and eight cancellation
 cases. This evidence qualifies the test sink on this Unix host, not arbitrary
 caller storage or crash recovery. The full Commit 20 checkpoint remains open.
+
+## Upload Increment Verification
+
+Checked locally on 2026-09-26 after the storage increment:
+
+- Full `scripts/checks.sh`: passed, including workspace tests, Clippy, feature
+  isolation, packaging, doctests and the new bundled publish README example.
+- Rust 1.92.0: all eight neutral upload test groups and all 14 provider publish
+  test groups passed with all features. Provider async-only and async-rustls-only
+  warning-denied Clippy passed as well.
+- The loopback source waits for server receipt before producing its next chunk,
+  proving the adapter does not preload the body. Tests cover exact wire bytes,
+  explicit authorization, early responses, deadlines, short/long sources,
+  incoherent policies, response media/size/framing checks and cancellation.
+- Cargo framing is compared with independently assembled bytes across chunk
+  sizes and short/long archives. Non-Send local/blocking sources are supported;
+  Send futures are compile-checked. Both credential kinds fail origin mismatch
+  without consuming archive input, and unpolled facade futures clear all scratch.
+- The fail-closed AST policy, crate/source inventory, feature-guard regression
+  tests, publish source/schema checks, formatting, documentation links,
+  file-length/modularity checks and all four SBOM graphs passed.
+
+No manifests or lockfiles changed. No live registry mutation was performed;
+HTTP upload tests use loopback fixtures. This increment is not acceptance of
+Commit 20 or a substitute for the final integrated matrix and pentest.

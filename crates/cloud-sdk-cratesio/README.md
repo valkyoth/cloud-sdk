@@ -37,7 +37,8 @@ and an optional local removal preflight.
 Cargo yank/unyank uses bodyless single-attempt mutations, checked acknowledgements
 and explicit version-state read-back.
 Publishing adds validated metadata, exact binary framing, single-use authority
-and bounded streaming through an explicitly trusted blocking adapter.
+and bounded streaming through bundled blocking/local-async/Send-async adapters,
+or an explicitly trusted custom blocking adapter.
 Trusted publishing adds GitHub/GitLab configuration management, unverified OIDC
 preflight and exchange, and protected temporary-token revocation.
 Authentication preparation, endpoint, query and response foundations
@@ -72,10 +73,10 @@ completed coverage or parity gate. This is not yet a complete crates.io provider
 | Crate/version settings | trusted-publishing-only policy, yank state and explicit message replacement/clearing; trusted blocking adapter |
 | Ownership mutations | Cargo-compatible additions/removals, explicit namespaces, destructive confirmation and optional self/last-owner preflight; trusted blocking adapter |
 | Cargo yank/unyank | exact bodyless DELETE/PUT, consumed consent, checked acknowledgements and explicit state observation; trusted blocking adapter |
-| Cargo publish | bounded metadata, exact little-endian framing, borrowed/streaming archives, API or temporary token consent and checked warnings; trusted blocking streaming adapter |
+| Cargo publish | bounded metadata, exact little-endian framing, borrowed/streaming archives, API or temporary token consent and checked warnings; opt-in bundled blocking/local-async/Send-async upload |
 | Trusted publishing | GitHub/GitLab list/create/delete, assertion exchange and temporary-token revocation; local deadline/crate restrictions, not a JWT authenticator; trusted blocking adapter |
 | Artifact streaming | opt-in bundled static-origin live body sources and SHA-256; caller-supplied transactional sink remains required |
-| Unified execution | blocking, local-async and Send-async typed reads and permits except publish and the two secret-path personal operations; secret-path storage, streaming publish and exhaustive qualification remain in progress |
+| Unified execution | blocking, local-async and Send-async typed reads and permits, plus separate bundled publish methods accepting a source; two secret-path personal operations and exhaustive qualification remain in progress |
 
 See the [Commit 20 implementation ledger](https://github.com/valkyoth/cloud-sdk/blob/main/docs/CRATESIO_UNIFIED_CLIENT.md)
 for exact remaining gates. Do not treat these foundations as full-provider qualification.
@@ -205,17 +206,61 @@ let request = PublishRequest::new(metadata, 1024, limits)?;
 assert_eq!(request.archive_length(), 1024);
 assert!(!request.permits_automatic_retry());
 // Supply an actual 1024-byte .crate archive, then explicitly confirm_api(&token)
-// or confirm_trusted(&temporary_token) for PublishClient's trusted adapter.
+// or confirm_trusted(&temporary_token) for a checked publish client.
 # }
 # Ok::<(), Box<dyn std::error::Error>>(())
 ```
 
-Metadata parsing and intents need `alloc`; `PublishClient` needs `blocking`.
+Metadata parsing and intents need `alloc`; `PublishClient` needs `blocking` or `async`.
 The adapter must stream exactly one authenticated exchange with the declared
 length. No archive is built or inspected, and a successful acknowledgement does
 not prove index propagation. The immutable source bytes remain caller-owned.
 See the [publish contract](https://github.com/valkyoth/cloud-sdk/blob/main/docs/CRATESIO_PUBLISH_POLICY.md)
 for validation limits, adapter obligations and cleanup boundaries.
+
+### Bundled Publication
+
+The bundled facade accepts an explicit permit and an already packaged source.
+`publish` needs `blocking-rustls`; `publish_async` and `publish_local` need
+`async-rustls`. The body region is reusable upload scratch, not an archive copy.
+
+```rust,no_run
+# #[cfg(feature = "blocking-rustls")]
+fn publish_package(
+    token: &cloud_sdk_cratesio::credentials::ApiToken,
+    metadata: &[u8],
+    archive: &[u8],
+) -> Result<(), Box<dyn std::error::Error>> {
+    use cloud_sdk::transport::StreamLimits;
+    use cloud_sdk_cratesio::{bundled, client::{RegistryBuffers, RegistryClient},
+        publishing::{PublishMetadata, PublishRequest, SlicePackage},
+        wire::IdentifyingUserAgent};
+    let identity = IdentifyingUserAgent::new("my-registry-tool/1 (ops@example.org)")?;
+    let timeouts = bundled::RequestTimeouts::new(
+        std::time::Duration::from_secs(60), std::time::Duration::from_secs(5))?;
+    let transport = bundled::production_blocking(identity, timeouts)?;
+    let client = RegistryClient::production(&transport, identity, 65_536)?;
+    let limits = StreamLimits::new(16_777_216, 4096, 8192, 65_536, 2)?;
+    let permit = PublishRequest::new(PublishMetadata::from_json(metadata)?,
+        u64::try_from(archive.len())?, limits)?.confirm_api(token);
+    let mut source = SlicePackage::new(archive);
+    let mut credential = [0; 1024];
+    let mut body = [0; 4096];
+    let mut response = vec![0; 65_536];
+    let mut headers = [0; 4096];
+    let _acknowledgement = client.publish(permit, &mut source, RegistryBuffers {
+        credential: &mut credential, body: &mut body,
+        response: &mut response, headers: &mut headers,
+    })?;
+    Ok(())
+}
+# fn main() {}
+```
+
+An error or cancellation can follow a remote mutation. Do not automatically
+retry publication; successful acknowledgement does not prove index propagation.
+The source must cooperate with execution: a blocking callback or an async poll
+that never returns cannot be preempted by the transport deadline.
 
 ## Cargo Yank Intent
 
@@ -797,8 +842,8 @@ for exact input limits and source-verification commands.
 
 The provider will not support browser-session cookies or undocumented private
 routes. Operation-bound clients, consumed mutation permits, scheduling and
-bounded response admission are implemented. Bundled streaming publication,
-secret-path execution and final integration qualification remain open in the
+bounded response admission are implemented. Bundled streaming publication is
+implemented; secret-path execution and final integration qualification remain open in the
 Commit 20 implementation ledger above.
 
 Direct crates.io API use must follow the service's data-access policy. Prefer

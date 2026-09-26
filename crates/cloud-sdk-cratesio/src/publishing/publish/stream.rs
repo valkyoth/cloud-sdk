@@ -1,5 +1,5 @@
 use super::PublishError as Error;
-#[cfg(any(feature = "blocking", test))]
+#[cfg(any(feature = "blocking", feature = "async-rustls", test))]
 use super::PublishRequest;
 use cloud_sdk::transport::{
     BlockingStreamSink, BlockingStreamSource, StreamCompletion, StreamOutcome, StreamPolicy,
@@ -49,22 +49,8 @@ pub struct PublishUpload<'a, S> {
 impl<'a, S: BlockingStreamSource> PublishUpload<'a, S> {
     #[cfg(any(feature = "blocking", test))]
     pub(super) fn new(request: &'a PublishRequest<'_>, source: &'a mut S) -> Result<Self, Error> {
-        let metadata_length = u32::try_from(request.metadata.bytes.len())
-            .map_err(|_| Error::Limit)?
-            .to_le_bytes();
-        let archive_length = u32::try_from(request.archive)
-            .map_err(|_| Error::Limit)?
-            .to_le_bytes();
         Ok(Self {
-            body: Some(Framed {
-                metadata: request.metadata.bytes,
-                source,
-                metadata_length,
-                archive_length,
-                stage: 0,
-                offset: 0,
-                remaining: request.archive,
-            }),
+            body: Some(Framed::new(request, source)?),
             policy: request.policy,
             complete: false,
         })
@@ -75,6 +61,11 @@ impl<'a, S: BlockingStreamSource> PublishUpload<'a, S> {
             cloud_sdk::transport::StreamFraming::Declared(n) => n,
             _ => 0,
         }
+    }
+    #[cfg(feature = "blocking-rustls")]
+    pub(super) fn take_framed(&mut self) -> Result<(Framed<'a, S>, StreamPolicy), Error> {
+        self.complete = false;
+        Ok((self.body.take().ok_or(Error::Binding)?, self.policy))
     }
     /// Stream once with bounded progress and direct sink abort semantics. Any
     /// failure, cancellation signalled by the source/sink, or unwinding aborts
@@ -106,7 +97,7 @@ impl<'a, S: BlockingStreamSource> PublishUpload<'a, S> {
         Ok(result)
     }
 }
-struct Framed<'a, S> {
+pub(super) struct Framed<'a, S> {
     metadata: &'a [u8],
     source: &'a mut S,
     metadata_length: [u8; 4],
@@ -121,6 +112,32 @@ impl<S: BlockingStreamSource> BlockingStreamSource for Framed<'_, S> {
         StreamReplayability::NotReplayable
     }
     fn read_chunk(&mut self, output: &mut [u8]) -> Result<StreamRead, Error> {
+        if let Some(read) = self.prefix(output)? {
+            return Ok(read);
+        }
+        let read = self.source.read_chunk(output).map_err(|_| Error::Value)?;
+        self.finish_read(read, output.len())
+    }
+}
+
+impl<'a, S> Framed<'a, S> {
+    #[cfg(any(feature = "blocking", feature = "async-rustls", test))]
+    pub(super) fn new(request: &'a PublishRequest<'_>, source: &'a mut S) -> Result<Self, Error> {
+        Ok(Self {
+            metadata: request.metadata.bytes,
+            source,
+            metadata_length: u32::try_from(request.metadata.bytes.len())
+                .map_err(|_| Error::Limit)?
+                .to_le_bytes(),
+            archive_length: u32::try_from(request.archive)
+                .map_err(|_| Error::Limit)?
+                .to_le_bytes(),
+            stage: 0,
+            offset: 0,
+            remaining: request.archive,
+        })
+    }
+    fn prefix(&mut self, output: &mut [u8]) -> Result<Option<StreamRead>, Error> {
         if output.is_empty() {
             return Err(Error::Limit);
         }
@@ -142,11 +159,14 @@ impl<S: BlockingStreamSource> BlockingStreamSource for Framed<'_, S> {
                 .ok_or(Error::Limit)?
                 .copy_from_slice(rest.get(..n).ok_or(Error::Limit)?);
             self.offset = self.offset.checked_add(n).ok_or(Error::Limit)?;
-            return Ok(StreamRead::Chunk(n));
+            return Ok(Some(StreamRead::Chunk(n)));
         }
-        match self.source.read_chunk(output).map_err(|_| Error::Value)? {
+        Ok(None)
+    }
+    fn finish_read(&mut self, read: StreamRead, capacity: usize) -> Result<StreamRead, Error> {
+        match read {
             StreamRead::Chunk(n) => {
-                if n > output.len() {
+                if n > capacity {
                     return Err(Error::Limit);
                 }
                 self.remaining = self
@@ -160,3 +180,6 @@ impl<S: BlockingStreamSource> BlockingStreamSource for Framed<'_, S> {
         }
     }
 }
+
+#[cfg(feature = "async")]
+pub(super) mod asynchronous;

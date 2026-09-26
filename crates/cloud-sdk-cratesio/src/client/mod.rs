@@ -10,6 +10,10 @@ mod blocking;
 mod buffers;
 #[cfg(feature = "async")]
 pub(crate) mod prepared;
+#[cfg(feature = "blocking-rustls")]
+mod publish;
+#[cfg(feature = "async-rustls")]
+mod publish_async;
 #[cfg(all(test, feature = "blocking"))]
 mod tests;
 #[cfg(all(test, feature = "blocking", feature = "async"))]

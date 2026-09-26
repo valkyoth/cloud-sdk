@@ -5,8 +5,8 @@ mod basic_config;
 mod client;
 mod config;
 mod raw;
+mod upload;
 
-pub use crate::shared::StreamingResponse;
 pub use crate::shared::{
     AuthenticatedTransportFailure, BasicCredential, BasicCredentialError, BasicCredentialScope,
     BasicCredentialScopeError, BasicPassword, BasicPasswordError, BasicUsername,
@@ -20,6 +20,7 @@ pub use crate::shared::{
     RequestTimeouts, TimeoutError, TokenRefreshError, TokenRotationError, TransportError,
     UserAgent, UserAgentError,
 };
+pub use crate::shared::{RawUpload, StreamingResponse};
 pub use basic_client::AsyncBasicClient;
 pub use basic_config::AsyncBasicClientBuilder;
 pub use client::AsyncClient;

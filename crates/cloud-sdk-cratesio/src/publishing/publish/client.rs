@@ -1,20 +1,23 @@
-use super::{
-    PublishError as Error, PublishPermit, PublishResponse, PublishUpload,
-    request::PublishCredential,
-};
+use super::PublishError as Error;
+#[cfg(feature = "blocking")]
+use super::{PublishPermit, PublishResponse, PublishUpload, request::PublishCredential};
+#[cfg(feature = "blocking")]
 use crate::{
     credentials::{CredentialContext, ScopedCredentialMaterial},
-    discovery::{DiscoveryClient, DiscoveryExecutionError as Failure},
+    discovery::DiscoveryExecutionError as Failure,
     endpoint::ApiRequestTarget,
-    wire::IdentifyingUserAgent,
 };
+use crate::{discovery::DiscoveryClient, wire::IdentifyingUserAgent};
+use cloud_sdk::transport::{BoundTransport, BoundUserAgent};
+#[cfg(feature = "blocking")]
 use cloud_sdk::{
     Method,
     transport::{
-        BlockingStreamSource, BoundTransport, BoundUserAgent, MediaType, RawResponsePolicy,
-        RequestHeader, RequestHeaders, ResponseBuffer, ResponseWriter, TransportRequest,
+        BlockingStreamSource, MediaType, RawResponsePolicy, RequestHeader, RequestHeaders,
+        ResponseBuffer, ResponseWriter, TransportRequest,
     },
 };
+#[cfg(feature = "blocking")]
 use cloud_sdk_sanitization::{SecretBuffer, sanitize_bytes};
 
 /// Storage cleared on every exit. Source metadata/archive storage is caller-owned.
@@ -26,8 +29,9 @@ pub struct PublishBuffers<'a> {
     /// Retained response headers.
     pub headers: &'a mut [u8],
 }
-/// One-shot official-origin publisher over an explicitly trusted streaming callback.
-pub struct PublishClient<'a, T: ?Sized>(DiscoveryClient<'a, T>);
+/// One-shot official-origin publisher. Bundled transports provide checked
+/// streaming methods; custom blocking adapters use an explicitly trusted callback.
+pub struct PublishClient<'a, T: ?Sized>(pub(super) DiscoveryClient<'a, T>);
 impl<'a, T: BoundTransport + BoundUserAgent + ?Sized> PublishClient<'a, T> {
     /// Fixed production origin and shared admission gate.
     pub fn production(
@@ -56,6 +60,7 @@ impl<'a, T: BoundTransport + BoundUserAgent + ?Sized> PublishClient<'a, T> {
     /// use cloud_sdk_cratesio::publishing::*;
     /// fn duplicate(p: PublishPermit<'_>) { let a = p; let b = p; }
     /// ```
+    #[cfg(feature = "blocking")]
     pub fn execute<S: BlockingStreamSource, E>(
         &self,
         permit: PublishPermit<'_>,

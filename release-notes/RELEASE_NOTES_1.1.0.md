@@ -562,7 +562,10 @@ Real Unix filesystem tests now qualify transactional artifact sinks against
 checksum/length/I/O failures, non-overwriting commit collisions, and cancellation
 at read/write/commit boundaries. This is a test reference sink, not a new
 filesystem API, Windows qualification or crash/secure-erasure guarantee.
-Actual bundled streaming publish and exhaustive Cargo/51-operation evidence
+Bundled blocking/local/Send publication now streams Cargo framing through a
+bounded, destination-bound upload adapter. Live loopback tests cover backpressure,
+early responses, truncation, response policy and deadlines; no retries occur.
+Exhaustive Cargo/51-operation evidence and final integrated qualification
 remain open in [the implementation ledger](../docs/CRATESIO_UNIFIED_CLIENT.md).
 Commit 19 was accepted at `f49b7712`; no tag or publication is authorized.
 The new facade rejects email-confirmation and token-based invitation permits

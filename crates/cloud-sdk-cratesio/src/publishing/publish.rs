@@ -1,3 +1,7 @@
+#[cfg(feature = "blocking-rustls")]
+mod bundled;
+#[cfg(feature = "async-rustls")]
+mod bundled_async;
 mod metadata;
 mod request;
 mod response;
@@ -10,11 +14,11 @@ pub use metadata::PublishMetadata;
 pub use request::{PublishPermit, PublishRequest};
 pub use response::PublishResponse;
 pub use stream::{PublishUpload, SlicePackage};
-#[cfg(feature = "blocking")]
+#[cfg(any(feature = "blocking", feature = "async"))]
 mod client;
-#[cfg(feature = "blocking")]
+#[cfg(any(feature = "blocking", feature = "async"))]
 pub use crate::discovery::DiscoveryExecutionError as PublishExecutionError;
-#[cfg(feature = "blocking")]
+#[cfg(any(feature = "blocking", feature = "async"))]
 pub use client::{PublishBuffers, PublishClient};
 #[cfg(test)]
 mod tests;

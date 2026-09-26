@@ -1,0 +1,44 @@
+use super::{RawBlockingClient, RawHttpError, RawTransportFailure, RawUpload};
+use cloud_sdk::transport::{
+    BlockingStreamSource, RawResponsePolicy, ResponseWriter, TransportFailure, TransportRequest,
+};
+
+impl RawBlockingClient {
+    /// Executes one finite, declared-length authenticated upload without
+    /// buffering the whole body, redirects or retries. Partial remote writes
+    /// cannot be rolled back. The caller's synchronous source must not block
+    /// indefinitely: an executor timeout cannot preempt caller code.
+    pub fn execute_upload<S: BlockingStreamSource>(
+        &self,
+        request: TransportRequest<'_>,
+        policy: RawResponsePolicy<'_>,
+        upload: RawUpload<'_, S>,
+        response: &mut ResponseWriter<'_>,
+    ) -> Result<(), RawTransportFailure> {
+        let mut attempt = response
+            .begin_attempt()
+            .map_err(|_| TransportFailure::not_sent(RawHttpError::ResponseAlreadyCommitted))?;
+        if tokio::runtime::Handle::try_current().is_ok() {
+            return Err(TransportFailure::not_sent(
+                RawHttpError::BlockingRuntimeContext,
+            ));
+        }
+        let runtime = tokio::runtime::Builder::new_current_thread()
+            .enable_all()
+            .build()
+            .map_err(|_| TransportFailure::not_sent(RawHttpError::RuntimeInitializationFailed))?;
+        let completion = runtime.block_on(self.inner.execute_upload_blocking(
+            request,
+            policy,
+            upload,
+            &mut attempt,
+        ))?;
+        let status = completion.status();
+        attempt.commit_completion(completion).map_err(|_| {
+            TransportFailure::response_started_with_status(
+                status,
+                RawHttpError::ResponseCommitFailed,
+            )
+        })
+    }
+}

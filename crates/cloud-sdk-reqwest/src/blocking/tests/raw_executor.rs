@@ -13,6 +13,7 @@ use crate::test_server::{spawn, spawn_concurrent_pair, spawn_raw_response};
 
 mod request_body;
 mod streaming;
+mod upload;
 
 fn build_raw_loopback(endpoint: &str) -> Option<RawBlockingClient> {
     let endpoint = crate::blocking::HttpsEndpoint::local_http(endpoint).ok()?;

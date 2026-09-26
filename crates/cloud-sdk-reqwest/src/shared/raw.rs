@@ -36,6 +36,10 @@ pub enum RawHttpError {
     RequestBuildFailed,
     /// Caller streaming output is empty or the response source is no longer usable.
     InvalidStreamState,
+    /// The source, progress policy or streaming request-body transfer failed.
+    UploadFailed,
+    /// A final response arrived before source framing was verified complete.
+    UploadIncomplete,
     /// The blocking adapter could not construct its private executor.
     RuntimeInitializationFailed,
     /// The blocking adapter was called from an active Tokio runtime.
@@ -93,6 +97,8 @@ impl_static_error!(RawHttpError,
     Self::RequestBodyTooLarge => "request body is too large",
     Self::RequestBuildFailed => "raw request construction failed",
     Self::InvalidStreamState => "stream source or output state is invalid",
+    Self::UploadFailed => "streaming upload failed",
+    Self::UploadIncomplete => "response arrived before upload completion",
     Self::RuntimeInitializationFailed => "blocking executor initialization failed",
     Self::BlockingRuntimeContext => "blocking executor called from an async runtime",
     Self::ConnectFailed => "connection failed",

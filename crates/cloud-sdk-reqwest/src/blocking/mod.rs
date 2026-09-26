@@ -8,6 +8,8 @@ mod client;
 mod config;
 mod raw;
 mod streaming;
+mod upload;
+pub use crate::shared::RawUpload;
 pub use streaming::BlockingStreamingResponse;
 
 pub use crate::shared::{

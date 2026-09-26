@@ -16,6 +16,7 @@ mod driver;
 mod precommitted;
 mod request_body;
 mod streaming;
+mod upload;
 
 pub(super) use driver::RawAsyncTestExt;
 

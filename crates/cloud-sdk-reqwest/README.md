@@ -164,8 +164,20 @@ anonymous finite GET responses as live sources. They admit only status 200 and
 identity coding, reject redirects and trailers, retain bounded frames, and
 enforce the original total deadline through EOF. The caller supplies the body
 byte cap; an additional 4,096 upstream frame cap bounds work. Async read
-cancellation invalidates the source. These are download sources, not a bundled
-streaming-upload API or transactional filesystem implementation.
+cancellation invalidates the source. These download sources do not implement
+transactional filesystem storage.
+
+`RawBlockingClient::execute_upload`, `RawAsyncClient::execute_upload` and
+`execute_upload_local` accept a one-shot `RawUpload` with an expected endpoint,
+complete authorization value, borrowed source, finite declared-length direct
+policy, and cleanup-owned scratch. They use a one-chunk queue plus bounded
+transport buffering, not a whole-body copy. Owned chunks and credential headers
+use sanitization-backed storage. Source length/progress, the original total
+deadline, and the usual raw response policies remain enforced. Early final
+responses before verified source completion fail closed; no redirect or retry
+occurs. An error/cancellation cannot roll back bytes already sent. Sources must
+cooperate: deadlines cannot preempt synchronous caller code or a non-returning
+future poll. Providers still own operation consent and credential-scope checks.
 
 Use the raw executor below provider authentication and typed client policy. It
 sends no bearer token or JSON `Accept`, performs no retry, and retains only

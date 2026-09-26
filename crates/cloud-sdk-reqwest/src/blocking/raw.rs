@@ -13,7 +13,7 @@ use crate::shared::{HttpsEndpoint, RawHttpError, RawHyperClient, RawTransportFai
 /// Raw blocking HTTP executor with no implicit authentication or provider policy.
 #[derive(Clone)]
 pub struct RawBlockingClient {
-    inner: RawHyperClient,
+    pub(super) inner: RawHyperClient,
     endpoint: HttpsEndpoint,
 }
 
