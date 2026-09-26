@@ -1,8 +1,10 @@
 # crates.io Unified Client Work
 
-Status: Commit 20 **in progress**, not an accepted implementation checkpoint.
+Status: Commit 20 **implementation stop reached; pentest required**.
 Baseline: `f49b7712` (Commit 19, user-confirmed pentest and GitHub pass).
 No tag, publication, Commit 21 authorization or full-provider coverage claim.
+The increment sections below retain historical evidence. The final checkpoint
+section records current qualification; it is not pentest or GitHub acceptance.
 
 ## Implemented Foundation
 
@@ -62,7 +64,7 @@ No tag, publication, Commit 21 authorization or full-provider coverage claim.
   This is a test reference sink, not a bundled filesystem adapter, crash-safety
   guarantee, secure disk-erasure claim or Windows qualification.
 
-## Remaining Commit 20 Gates
+## Commit 20 Qualification Gates
 
 1. Retain unified execution and bundled adapter qualification in the final
    checkpoint. All 51 facade rows now have successful three-mode witnesses,
@@ -75,17 +77,18 @@ No tag, publication, Commit 21 authorization or full-provider coverage claim.
    Trait implementations alone do not prove each variant executes correctly.
    Retain the secret-path URI ownership, exact-wire and cancellation evidence
    in that generated qualification.
-4. Complete higher-level Cargo publish/owner/yank/unyank/search workflows and
-   independently verify all seven stable wire contracts byte-for-byte. Add the
-   explicit Cargo owner profile described below in the final integrated matrix.
+4. Retain the seven independent Cargo wire-contract fixtures described below,
+   including the explicit owner profile and strict publication response boundary.
+   These cover higher-level publish/owner/yank/unyank/search execution.
 5. Retain the real-filesystem qualification in the final integration gate.
    Unix host tests now cover cancellation, checksum failure and commit failure;
    other storage adapters and platforms still require their own qualification.
-6. Complete adapter/provider integration, compile-checked examples, complete
-   repository/MSRV/platform/dependency/SBOM checks, and the incremental pentest.
+6. Local adapter/provider integration, compile-checked examples and complete
+   repository/MSRV/platform/dependency/SBOM checks passed at the final checkpoint.
+   The incremental pentest and GitHub acceptance remain required.
 
-Do not mark Commit 20 complete or advance the accepted baseline until all six
-items and the original commit-plan exit criteria have executable evidence.
+Do not advance the accepted baseline or start Commit 21 until the user confirms
+the incremental pentest and GitHub checks are green.
 
 ## Foundation Verification
 
@@ -250,10 +253,37 @@ Publication's binary framing and both authorization schemes are independently
 verified. Its response model still deliberately follows the pinned crates.io
 schema, requiring `crate` and `warnings`, whereas generic Cargo permits a
 minimal success with no warnings. A three-mode characterization test confirms
-that the strict decoder rejects both `{}` and warnings-only success. Complete
-the final seven-contract qualification with this distinction explicit; do not
-label the current response model a generic registry fallback. A separate Cargo
-response profile, if required, must not silently relax the strict model.
+that the strict decoder rejects both `{}` and warnings-only success. This is
+intentional for this fixed-origin crates.io client: Cargo request compatibility
+does not turn it into a client for arbitrary Cargo registries. There is no
+generic-registry success fallback and the strict model is not relaxed.
+
+### Seven-Contract Evidence
+
+The following independent fixtures run in blocking, non-Send local and Send
+modes in the provider test suite. Paths, bodies and expected frame bytes are
+literal fixtures, not outputs produced by the request builder under test.
+
+| Cargo operation | Independent wire assertion | Response qualification |
+| --- | --- | --- |
+| Publish | PUT `/api/v1/crates/new`; octet-stream; both little-endian lengths and original metadata/archive; exact raw API token (and separate trusted Bearer profile) | Strict crates.io crate/warnings model; minimal generic registry replies deliberately rejected |
+| Yank | DELETE `/api/v1/crates/serde/1.0.0/yank`; empty body; exact raw API token | Checked `ok: true` |
+| Unyank | PUT `/api/v1/crates/serde/1.0.0/unyank`; empty body; exact raw API token | Checked `ok: true` |
+| List owners | GET `/api/v1/crates/serde/owners`; empty body; exact raw API token | Explicit minimal Cargo owner profile, separate from website model |
+| Add owners | PUT `/api/v1/crates/serde/owners`; literal users JSON; exact raw API token | Checked success/message model |
+| Remove owners | DELETE `/api/v1/crates/serde/owners`; literal users JSON; exact raw API token | Checked success/message model |
+| Search | GET literal canonical `per_page=10&q=serde%20json` query; no credentials or body | Minimal Cargo search response |
+
+All seven assert JSON Accept headers. JSON mutation fixtures assert exact
+Content-Type; bodyless requests omit it. Publication separately asserts its
+octet-stream type. Authorization assertions never print credentials on failure.
+The fixtures live in `client/asynchronous/tests/{cargo,operations,publish}.rs`.
+Run them with `cargo test --locked -p cloud-sdk-cratesio --all-features
+client::asynchronous::tests --lib`; the ordinary repository suite runs them too.
+The separate strict generated gate must still pass all 51 operation rows.
+
+This qualifies request protocol interoperability and the documented response
+profiles, not generic-registry response interchangeability or live publication.
 
 ## Neutral Upload Integration
 
@@ -346,3 +376,36 @@ Checked locally on 2026-09-26:
 
 No production API implementation, manifests or lockfiles changed in this
 increment. No live registry mutation or new pentest acceptance is claimed.
+
+## Final Implementation Checkpoint
+
+Checked locally on 2026-09-26:
+
+- Full `scripts/checks.sh`: passed, including workspace default/all-feature
+  tests, doctests, warning-denied Clippy, isolated features, package verification,
+  security policy, fail-closed test policy and fuzz metadata regressions.
+- Strict generated execution coverage: 51/51 rows in blocking/local/Send modes.
+  All 22 unified-client test groups passed with exact JSON Accept/Content-Type
+  assertions and exact raw-token assertions for all four Cargo mutations.
+- Complete `scripts/check_rust_version_matrix.sh`: all 12 supported compiler
+  versions passed, Rust 1.92.0 through 1.98.1.
+- Complete `scripts/check_platform_matrix.sh --all`: ten portable targets,
+  feature boundaries, unsupported transport diagnostics and native transport
+  tests passed. Portable cross-compilation is not native runtime qualification;
+  live credential-dependent tests remain intentionally ignored.
+- Live crates.io schema, source-lock, endpoint and request-policy checks: passed.
+  The source inventory remains 51 operations with seven Cargo overlaps.
+- Direct dependency-pin and pinned Cargo-tool freshness queries: passed.
+  Fresh RustSec audit and cargo-deny checks: passed. All four SBOM graphs match.
+- Documentation links, README checks, plan contracts, source-length/modularity
+  policy, formatting and whitespace checks: passed.
+
+The seven-contract table above records the intentional strict crates.io publish
+response boundary. No generic-registry fallback, live mutation, publication,
+tag or external deployment was performed. No manifest or lockfile changed in
+this final qualification increment.
+
+Pentest range: accepted Commit 19 `f49b7712d742c1d17eacd0821fd99c4d2995bdff`
+through the commit containing this checkpoint (HEAD when handed off). Review
+the complete Commit 20 range, not only this final test/documentation increment.
+Stop here for incremental pentest and GitHub; Commit 21 is not authorized.

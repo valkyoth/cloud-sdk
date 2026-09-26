@@ -24,25 +24,42 @@ pub(super) fn yank() -> YankRequest<'static> {
 #[test]
 fn yank_unyank_and_owner_permits_have_three_mode_wire_parity() {
     let _lock = TEST_GATE_LOCK.lock().fixture("gate");
-    let token = token(CredentialOrigin::Production);
+    static NEXT: AtomicUsize = AtomicUsize::new(0);
+    let expected = [b'a'.saturating_add(
+        u8::try_from(NEXT.fetch_add(1, Ordering::Relaxed) % 26).fixture("variation"),
+    ); 32];
+    let mut source = expected;
+    let token =
+        ApiToken::from_mut_bytes(CredentialOrigin::Production, &mut source).fixture("token");
+    assert!(source.iter().all(|byte| *byte == 0));
+    fn authorized<'a>(mut fixture: Fixture<'a>, expected: &'a [u8]) -> Fixture<'a> {
+        fixture.expected_auth = Some(expected);
+        fixture
+    }
     parity(
         || yank().confirm(&token),
-        Fixture::new(
-            Method::Delete,
-            "/api/v1/crates/serde/1.0.0/yank",
-            b"",
-            br#"{"ok":true}"#,
-            200,
+        authorized(
+            Fixture::new(
+                Method::Delete,
+                "/api/v1/crates/serde/1.0.0/yank",
+                b"",
+                br#"{"ok":true}"#,
+                200,
+            ),
+            &expected,
         ),
     );
     parity(
         || YankRequest::unyank(name(), Version::new("1.0.0").fixture("version")).confirm(&token),
-        Fixture::new(
-            Method::Put,
-            "/api/v1/crates/serde/1.0.0/unyank",
-            b"",
-            br#"{"ok":true}"#,
-            200,
+        authorized(
+            Fixture::new(
+                Method::Put,
+                "/api/v1/crates/serde/1.0.0/unyank",
+                b"",
+                br#"{"ok":true}"#,
+                200,
+            ),
+            &expected,
         ),
     );
     let owners = [OwnerSelector::new("alice").fixture("owner")];
@@ -53,12 +70,15 @@ fn yank_unyank_and_owner_permits_have_three_mode_wire_parity() {
                 .confirm_add(&token)
                 .fixture("permit")
         },
-        Fixture::new(
-            Method::Put,
-            "/api/v1/crates/serde/owners",
-            br#"{"users":["alice"]}"#,
-            br#"{"ok":true,"msg":"invited"}"#,
-            200,
+        authorized(
+            Fixture::new(
+                Method::Put,
+                "/api/v1/crates/serde/owners",
+                br#"{"users":["alice"]}"#,
+                br#"{"ok":true,"msg":"invited"}"#,
+                200,
+            ),
+            &expected,
         ),
     );
     parity(
@@ -68,12 +88,15 @@ fn yank_unyank_and_owner_permits_have_three_mode_wire_parity() {
                 .confirm_removal(&token)
                 .fixture("permit")
         },
-        Fixture::new(
-            Method::Delete,
-            "/api/v1/crates/serde/owners",
-            br#"{"users":["alice"]}"#,
-            br#"{"ok":true,"msg":"removed"}"#,
-            200,
+        authorized(
+            Fixture::new(
+                Method::Delete,
+                "/api/v1/crates/serde/owners",
+                br#"{"users":["alice"]}"#,
+                br#"{"ok":true,"msg":"removed"}"#,
+                200,
+            ),
+            &expected,
         ),
     );
 }

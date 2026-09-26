@@ -83,8 +83,18 @@ impl<'a> Fixture<'a> {
         assert!(request.headers().get("authorization").is_none());
         assert!(request.headers().get("cookie").is_none());
         assert_eq!(
-            request.headers().get("content-type").is_some(),
-            !self.payload.is_empty()
+            request
+                .headers()
+                .get("accept")
+                .map(|header| header.value().as_str()),
+            Some("application/json")
+        );
+        assert_eq!(
+            request
+                .headers()
+                .get("content-type")
+                .map(|header| header.value().as_str()),
+            (!self.payload.is_empty()).then_some("application/json")
         );
         assert!(policy.admits_header("retry-after"));
     }

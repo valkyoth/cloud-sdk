@@ -111,8 +111,9 @@ response before committing response storage. It rejects an early final response
 while the source is incomplete, uses the original total timeout across upload
 and response, and disables retries, redirects, cookies and decompression.
 Underlying transport/TLS buffers remain within their documented trust boundary.
-Deadline enforcement cannot preempt non-cooperative caller source code. Final
-integrated qualification remains a Commit 20 gate. The strict generated facade
+Deadline enforcement cannot preempt non-cooperative caller source code.
+Integrated qualification is recorded in the [Commit 20 ledger](CRATESIO_UNIFIED_CLIENT.md).
+The strict generated facade
 coverage check now passes all 51 rows, including actual successful publication
 fixtures in three modes with both credential schemes. This is not live registry
 publication or proof that arbitrary custom adapters satisfy the contract.

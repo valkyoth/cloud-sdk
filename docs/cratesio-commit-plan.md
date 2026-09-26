@@ -16,7 +16,8 @@ Commit 16 passed incremental pentest and GitHub at `9fabe832`.
 Commit 17 passed incremental pentest and GitHub at `04f24c38`.
 Commit 18 passed incremental pentest and GitHub at `ddb12f74`.
 Commit 19 passed incremental pentest and GitHub at `f49b7712`.
-Commit 20 is authorized and in progress; its exit gate has not been met.
+Commit 20 has reached its implementation stop; incremental pentest and GitHub
+acceptance remain required before advancing the accepted baseline.
 Stop before Commit 21; do not tag or publish.
 
 ## Decision Summary
@@ -717,26 +718,30 @@ publishing surface.
 
 Goal: make the checked path the easiest path for every admitted operation.
 
-Implementation status: in progress. The first working increment adds the
+Implementation status: implementation stop reached; pentest required.
+Local repository, complete compiler/platform, live source, dependency and SBOM
+qualification passed on 2026-09-26; see the final checkpoint in the ledger.
+The first working increment adds the
 blocking registry facade, explicit destination-bound raw authorization,
 official transport constructors, live anonymous artifact reads and SHA-256.
 See [the implementation ledger](CRATESIO_UNIFIED_CLIENT.md) for tested pieces
-and remaining work. This is not the completed Commit 20 pentest checkpoint.
+and the exact security boundaries. This is not pentest or GitHub acceptance.
 The second increment adds guarded local/Send async execution for the currently
 enabled reads and permits, including explicit API-token catalog requests.
 The storage increment adds real Unix filesystem qualification for transactional
 downloads, including cancellation and non-overwriting publication failure.
 The upload increment adds bundled blocking/local/Send Cargo publication with
-live bounded raw transport, without a caller HTTP callback. These increments
-do not close the final integrated 51-operation and Cargo-compatibility gates.
+live bounded raw transport, without a caller HTTP callback. Final qualification
+covers the integrated 51-operation and documented Cargo-compatibility gates.
 The secret-path increment enables consumed confirmation and invitation tokens
 in all modes, with protected URI staging and exact-wire/lifetime regressions.
 Generated runtime coverage now measures 51/51 operation rows in all three
 facade modes. Publication has integrated witnesses for both credential kinds;
 the strict checker passes. These are executable fixtures, not live mutations
-or a coverage claim based only on trait implementations. Final seven-contract
-qualification must retain the documented strict crates.io versus minimal Cargo
-publish-response distinction, not silently widen the response decoder.
+or a coverage claim based only on trait implementations. Independent fixtures
+now qualify all seven Cargo request contracts, including exact authorization,
+media types and framing. They retain the documented strict crates.io versus
+minimal Cargo publish-response distinction, without widening the decoder.
 The Cargo cross-check now includes an explicit owner-list compatibility profile:
 its authenticated request and minimal response differ from the anonymous,
 website-schema account operation. Three-mode independent fixtures preserve that
@@ -746,7 +751,7 @@ Dependency follow-up from Commit 18 was admitted in the Commit 20 foundation:
 `rustls-platform-verifier 0.7.1` and its Android helper `0.2.0` are recorded in
 the affected locks, dependency-review digest and SBOM evidence. This does not
 add Android bundled-transport qualification. Final freshness and platform
-checks remain required; an earlier admission is not evidence of current currency.
+checks passed at this implementation checkpoint; repeat them before release.
 
 Deliverables: official crates.io client constructors; operation-to-prepared
 request bindings for all 51 rows; automatic method, target, headers, body,

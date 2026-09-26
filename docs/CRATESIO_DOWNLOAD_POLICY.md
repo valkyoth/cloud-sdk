@@ -62,12 +62,12 @@ and an empty GET body prevent API token/cookie forwarding. There is no custom
 URL argument, URL follow, automatic retry or staging-to-static credential path.
 
 Execution accepts a caller-supplied `BlockingArtifactTransport`,
-`LocalArtifactTransport` or `AsyncArtifactTransport`. Commit 20's in-progress
-foundation adds `bundled::ArtifactTransport` over neutral live HTTP/1 sources
+`LocalArtifactTransport` or `AsyncArtifactTransport`. Commit 20 adds
+`bundled::ArtifactTransport` over neutral live HTTP/1 sources
 and `Sha256Checksum` over the already admitted RustCrypto implementation.
 These optional features leave default/alloc/Serde graphs transport-free.
-The remaining integration, transactional-storage and complete-client gates are
-listed in [the implementation ledger](CRATESIO_UNIFIED_CLIENT.md).
+Integration evidence, real Unix transactional-storage tests and the current
+pentest boundary are listed in [the implementation ledger](CRATESIO_UNIFIED_CLIENT.md).
 Do not substitute a buffered adapter and claim bounded streaming. A live adapter must
 open the exact request on its immutable bound origin, without authentication,
 redirects, retries, decompression or whole-body buffering, and enforce TLS,

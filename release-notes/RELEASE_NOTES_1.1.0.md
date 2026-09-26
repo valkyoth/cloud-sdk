@@ -548,9 +548,10 @@ see [the report](../security/pentest/cratesio-commit-15.md).
   Commit 18 was accepted at `ddb12f74`; that is the Commit 19 incremental pentest
   baseline. Stop before Commit 20. Do not tag or publish.
 
-### Commit 20 Foundation (In Progress)
+### Commit 20 Unified Client (Pentest Required)
 
-Commit 20 is in progress, not yet a pentest checkpoint. Its first working
+Commit 20 has reached its implementation stop, pending incremental pentest and
+GitHub acceptance. Its first working
 increment adds destination-bound raw authorization contracts, a blocking
 registry facade over existing checked operations, official bundled transport
 constructors, live anonymous artifact sources, and opt-in SHA-256. It updates
@@ -565,8 +566,8 @@ filesystem API, Windows qualification or crash/secure-erasure guarantee.
 Bundled blocking/local/Send publication now streams Cargo framing through a
 bounded, destination-bound upload adapter. Live loopback tests cover backpressure,
 early responses, truncation, response policy and deadlines; no retries occur.
-Exhaustive Cargo/51-operation evidence and final integrated qualification
-remain open in [the implementation ledger](../docs/CRATESIO_UNIFIED_CLIENT.md).
+Cargo/51-operation evidence and final local qualification are recorded
+in [the implementation ledger](../docs/CRATESIO_UNIFIED_CLIENT.md).
 Commit 19 was accepted at `f49b7712`; no tag or publication is authorized.
 The facade now accepts consumed email-confirmation and invitation-token permits
 in all three modes. Raw URI paths use sanitization-owned bytes, with separate
@@ -584,9 +585,16 @@ the separately selected authenticated/minimal Cargo owner profile. Its typed
 request now executes through the unified blocking/local/Send client with explicit
 raw API-token authorization and bounded protected response decoding. Website
 validation and the generic token route allowlist remain unchanged. Commit 20
-remains open for final Cargo compatibility qualification and pentest. The strict
+remains open for pentest and GitHub acceptance. The strict
 publish response still requires the pinned crates.io `crate`/`warnings` fields;
 generic Cargo minimal replies are not silently accepted.
+
+Final local qualification passed the complete repository suite, all 12 supported
+Rust versions (1.92.0 through 1.98.1), the ten-target portable/native platform
+gate, live crates.io source checks, direct-pin/tool freshness, fresh RustSec and
+cargo-deny checks, and all four SBOM graphs. Seven independent Cargo fixtures
+cover exact request bytes, authorization and media types in all three modes.
+No live registry mutation, tag or publication was performed. Stop before Commit 21.
 
 ### Maintenance Evidence (Earlier Checkpoints)
 

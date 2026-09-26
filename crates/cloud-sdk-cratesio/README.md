@@ -26,11 +26,10 @@ provider-neutral execution contracts from `cloud-sdk`.
 The crate is an unreleased `1.1.0` candidate. Seven discovery, three catalog
 and five version operations, four download/statistics operations and six public
 account/ownership operations have checked blocking, local-async and Send-async
-execution. Commit 19 is accepted; Commit 20 is in progress. Eight personal
-mutation operations now have single-attempt execution through an explicitly
-trusted blocking credential-adapter callback. The new `RegistryClient` facade
-supports both API-token and consumed secret-path variants in all three modes.
-Three token-management operations now share that explicit adapter boundary.
+execution. Commit 19 is accepted; Commit 20 is ready for incremental pentest.
+The `RegistryClient` facade executes eight personal mutation operations,
+including both API-token and consumed secret-path variants, in all three modes.
+Three token-management operations use the same checked execution boundary.
 Two settings PATCH operations also use explicit permits and checked postconditions.
 Owner additions/removals use consumed consent, conservative acknowledgements
 and an optional local removal preflight.
@@ -44,8 +43,9 @@ preflight and exchange, and protected temporary-token revocation.
 Authentication preparation, endpoint, query and response foundations
 are available. The blocking/local/Send facade, official bundled constructors and
 anonymous artifact streaming have three-mode fixture coverage for all 51 API
-operations. Final Cargo compatibility qualification and the Commit 20 pentest
-remain open. This is not yet a complete crates.io provider.
+operations. Independent Cargo wire fixtures and local qualification pass;
+the Commit 20 pentest and GitHub acceptance remain open. This is not yet a
+release-qualified crates.io provider.
 
 ## Current Boundary
 
@@ -69,15 +69,15 @@ remain open. This is not yet a complete crates.io provider.
 | Version operations | seek-paged versions, exact detail, dependencies, deprecated empty authors and JSON README location |
 | Download operations | JSON archive location, crate/version count windows and bounded reverse dependencies |
 | Public accounts and owners | user lookup with linked accounts, user statistics, team lookup and combined/user/team owner lists |
-| Personal workflows | follow/unfollow, invitation accept/decline, token acceptance, email confirmation/resend, single-setting user updates and legacy notifications; explicit permits and trusted blocking adapter |
+| Personal workflows | follow/unfollow, invitation accept/decline, token acceptance, email confirmation/resend, single-setting user updates and legacy notifications; explicit permits and three-mode unified execution |
 | Token management | lookup by ID, explicit revoke-by-ID and self-revocation; protected scope/expiry metadata and single-use permits |
-| Crate/version settings | trusted-publishing-only policy, yank state and explicit message replacement/clearing; trusted blocking adapter |
-| Ownership mutations | Cargo-compatible additions/removals, explicit namespaces, destructive confirmation and optional self/last-owner preflight; trusted blocking adapter |
-| Cargo yank/unyank | exact bodyless DELETE/PUT, consumed consent, checked acknowledgements and explicit state observation; trusted blocking adapter |
+| Crate/version settings | trusted-publishing-only policy, yank state and explicit message replacement/clearing; three-mode unified execution |
+| Ownership mutations | Cargo-compatible additions/removals, explicit namespaces, destructive confirmation and optional self/last-owner preflight; three-mode unified execution |
+| Cargo yank/unyank | exact bodyless DELETE/PUT, consumed consent, checked acknowledgements and explicit state observation; three-mode unified execution |
 | Cargo publish | bounded metadata, exact little-endian framing, borrowed/streaming archives, API or temporary token consent and checked warnings; opt-in bundled blocking/local-async/Send-async upload |
-| Trusted publishing | GitHub/GitLab list/create/delete, assertion exchange and temporary-token revocation; local deadline/crate restrictions, not a JWT authenticator; trusted blocking adapter |
+| Trusted publishing | GitHub/GitLab list/create/delete, assertion exchange and temporary-token revocation; local deadline/crate restrictions, not a JWT authenticator; three-mode unified execution |
 | Artifact streaming | opt-in bundled static-origin live body sources and SHA-256; caller-supplied transactional sink remains required |
-| Unified execution | blocking, local-async and Send-async typed reads and permits, including secret-path personal operations, plus separate bundled publish methods accepting a source; exhaustive qualification remains in progress |
+| Unified execution | blocking, local-async and Send-async typed reads and permits, including secret-path personal operations, plus streaming publish methods accepting a source; 51/51 three-mode fixtures pass, incremental pentest pending |
 
 See the [Commit 20 implementation ledger](https://github.com/valkyoth/cloud-sdk/blob/main/docs/CRATESIO_UNIFIED_CLIENT.md)
 for exact remaining gates. Do not treat these foundations as full-provider qualification.
@@ -879,8 +879,8 @@ for exact input limits and source-verification commands.
 The provider will not support browser-session cookies or undocumented private
 routes. Operation-bound clients, consumed mutation permits, scheduling and
 bounded response admission are implemented. Bundled streaming publication is
-implemented, including secret-path execution. Final integration qualification
-remains open in the Commit 20 implementation ledger above. Custom adapters must
+implemented, including secret-path execution. Local integration qualification
+and the pending pentest are recorded in the Commit 20 ledger above. Custom adapters must
 not log targets or retain unprotected secret URI copies. Bundled raw adapters
 clear owned URI staging; upstream HTTP/TLS buffers and server/proxy logs remain
 deployment boundaries.
