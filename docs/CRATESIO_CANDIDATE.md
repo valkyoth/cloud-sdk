@@ -1,7 +1,7 @@
 # crates.io Candidate Qualification
 
-Status: Commit 22 full-service pentest remediation; retest and requalification required.
-Candidate: unreleased workspace `1.1.0`; publication remains blocked.
+Status: full-scope review and remediation retest accepted at `96ae9a2c`.
+Release: workspace `1.1.0`; final local/GitHub qualification and publication approval remain required.
 Previous accepted checkpoint: `cbcaf17f54b50918b9b6f6fb29f76cbd9656b537`.
 
 The complete candidate gate passed on 2026-09-26 at
@@ -9,6 +9,12 @@ The complete candidate gate passed on 2026-09-26 at
 all six packages from two clean clones. Subsequent documentation-only evidence
 updates do not constitute pentest acceptance. Warning-denied workspace rustdoc,
 live IANA IPv6 and Robot wire-source checks also passed.
+
+The subsequent full review found two availability issues; both were fixed and
+independently retested at `96ae9a2c`, with no new confirmed finding. The
+[permanent release report](../security/pentest/v1.1.0.md) distinguishes the
+full assessment from its focused remediation retest. Release preparation now
+reruns `scripts/release_1_1_gate.sh` on the committed publication metadata.
 
 ## Frozen Scope
 

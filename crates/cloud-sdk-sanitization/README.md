@@ -29,11 +29,9 @@ Provider-neutral cleanup and secret-handling boundary for the main
 [`cloud-sdk`](https://github.com/valkyoth/cloud-sdk) workspace and
 [`cloud-sdk`](https://crates.io/crates/cloud-sdk) crate.
 
-This README tracks the unreleased workspace `1.1.0` candidate. The published
-stable cleanup crate remains `1.0.0` until the complete candidate train is
-qualified.
+This crate is part of the cloud-sdk 1.1.0 release.
 
-Version 1.0 provides the mandatory volatile cleanup primitive used by the
+This crate provides the mandatory volatile cleanup primitive used by the
 stable default `no_std` SDK plus reusable caller-owned guards. It delegates
 clearing to the independently reviewed
 [`sanitization`](https://crates.io/crates/sanitization) crate with default
@@ -43,8 +41,7 @@ features disabled.
 
 Use `cargo add` in your application to select published dependencies and write
 version requirements to its manifest. These examples need no wildcard or
-manually maintained version pin. Review the resulting manifest and lockfile;
-unpublished candidate APIs still require this checkout.
+manually maintained version pin. Review the resulting manifest and lockfile.
 
 ```sh
 cargo add cloud-sdk

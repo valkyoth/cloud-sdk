@@ -29,11 +29,9 @@ Hetzner provider crate for the main GitHub
 [`cloud-sdk`](https://github.com/valkyoth/cloud-sdk) workspace and the
 [`cloud-sdk`](https://crates.io/crates/cloud-sdk) crate on crates.io.
 
-This README tracks the unreleased workspace `1.1.0` candidate. The published
-stable Hetzner provider remains `1.0.0` until the complete candidate train is
-qualified.
+This crate is part of the cloud-sdk 1.1.0 release.
 
-Version 1.0 is the main documentation surface for stable Hetzner support in
+This is the main documentation surface for stable Hetzner support in
 `cloud-sdk`. It covers the complete claimed non-deprecated Hetzner Cloud, DNS,
 Security, Console Storage Box, Server Metadata, and Robot APIs with validated
 request models, typed clients, and reviewed response and workflow boundaries.
@@ -42,8 +40,7 @@ request models, typed clients, and reviewed response and workflow boundaries.
 
 Use `cargo add` in your application to select published dependencies and write
 version requirements to its manifest. These examples need no wildcard or
-manually maintained version pin. Review the resulting manifest and lockfile;
-unpublished candidate APIs still require this checkout.
+manually maintained version pin. Review the resulting manifest and lockfile.
 
 ```sh
 cargo add cloud-sdk
@@ -769,14 +766,14 @@ authentication scope, raw response policy, and official endpoint.
 
 | Capability | Current coverage | Release status |
 | --- | --- | --- |
-| Request models | Complete for all 209 non-deprecated operations | 1.1 candidate |
-| Path/query encoding | Complete for all 209 non-deprecated operations | 1.1 candidate |
-| Body serialization | Complete for all 91 non-deprecated operations with request bodies | 1.1 candidate |
-| Success response models | Complete checked envelopes for all 209 operations; source-complete ordinary Cloud resources, DNS zones and RRSets, zonefiles, actions, metrics, composites, pricing, locations, certificates, SSH keys, and Console Storage Boxes, types, snapshots, subaccounts, and folders; operation-branded typed execution guards decode through `decode_associated_checked_response` | 1.1 candidate |
-| Error response models | Complete checked typed API error decoding for all active operations | 1.1 candidate |
-| End-to-end client | Complete named workflows for all 209 active Cloud, DNS, Security, and Console Storage Box operations; custom-endpoint execution remains unavailable | 1.1 candidate |
-| Robot client | Complete typed contracts for all 89 active Robot operations; 45 read-only routes execute directly and every state change remains permit-gated | 1.1 candidate |
-| Server Metadata | Complete strict contracts for all seven canonical credential-free link-local reads | 1.1 candidate |
+| Request models | Complete for all 209 non-deprecated operations | 1.1.0 |
+| Path/query encoding | Complete for all 209 non-deprecated operations | 1.1.0 |
+| Body serialization | Complete for all 91 non-deprecated operations with request bodies | 1.1.0 |
+| Success response models | Complete checked envelopes for all 209 operations; source-complete ordinary Cloud resources, DNS zones and RRSets, zonefiles, actions, metrics, composites, pricing, locations, certificates, SSH keys, and Console Storage Boxes, types, snapshots, subaccounts, and folders; operation-branded typed execution guards decode through `decode_associated_checked_response` | 1.1.0 |
+| Error response models | Complete checked typed API error decoding for all active operations | 1.1.0 |
+| End-to-end client | Complete named workflows for all 209 active Cloud, DNS, Security, and Console Storage Box operations; custom-endpoint execution remains unavailable | 1.1.0 |
+| Robot client | Complete typed contracts for all 89 active Robot operations; 45 read-only routes execute directly and every state change remains permit-gated | 1.1.0 |
+| Server Metadata | Complete strict contracts for all seven canonical credential-free link-local reads | 1.1.0 |
 
 The convenience request types cover common filters with domain-specific
 values. `query::SourceLockedQuery` is the complete operation-bound fallback
@@ -802,7 +799,7 @@ The construction, storage, and trust boundaries are described in the
 Upstream source monitoring and lock-refresh decisions follow the
 [API drift maintenance runbook](https://github.com/valkyoth/cloud-sdk/blob/main/docs/API_DRIFT_MAINTENANCE.md).
 
-The current candidate includes the September 2026
+Version 1.1.0 includes the September 2026
 [schema and deprecation review](https://github.com/valkyoth/cloud-sdk/blob/main/docs/SPEC_LOCK.md#reviewed-live-drift-2026-09-10).
 Use the replacement `deprecation` metadata: Hetzner has announced removal of
 legacy `deprecated` fields on November 2. Both present and omitted legacy

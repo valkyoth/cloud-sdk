@@ -29,7 +29,7 @@
 | :--- | :--- | :---: |
 | [Hetzner Cloud](https://docs.hetzner.cloud/reference/cloud) | ✅ Ready to use | 2026/09/26 |
 | [Hetzner Robot](https://robot.hetzner.com/doc/webservice/en.html) | ✅ Ready to use | 2026/09/26 |
-| [crates.io](https://crates.io) | Unreleased 1.1.0 candidate | 2026/09/26 |
+| [crates.io](https://crates.io) | Supported in 1.1.0 | 2026/09/26 |
 
 # cloud-sdk
 
@@ -46,9 +46,9 @@ fit their environment. The project emphasizes validated inputs, bounded
 memory use, caller-controlled behavior, cross-platform compatibility,
 security review, and reproducible release evidence.
 
-The latest published stable release is `1.0.0`. The `main` branch carries the
-unreleased `1.1.0` crates.io provider candidate and cannot be published while
-its release metadata remains in the non-public `candidate` stage.
+Version `1.1.0` supports Hetzner Cloud and Robot through `cloud-sdk-hetzner`,
+and the reviewed public crates.io API and Cargo Registry Web API through
+`cloud-sdk-cratesio`. Each provider documents its exact scope and security boundaries.
 
 ## Cost And Production Warning
 
@@ -86,7 +86,7 @@ please report it so it can be fixed.
 | Provider or role | Target | Crate or status |
 | --- | --- | --- |
 | [`Hetzner Cloud & Robot`](https://www.hetzner.com/) | `1.0.0` | stable in [`cloud-sdk-hetzner`](https://crates.io/crates/cloud-sdk-hetzner) |
-| [`crates.io`](https://crates.io/) | `1.1.0` | in development; complete public API and Cargo Registry Web API compatibility through `cloud-sdk-cratesio` |
+| [`crates.io`](https://crates.io/) | `1.1.0` | supported: 51 source-locked public operations and Cargo Registry Web API compatibility through [`cloud-sdk-cratesio`](https://crates.io/crates/cloud-sdk-cratesio) |
 | [`Scaleway`](https://www.scaleway.com/en/developers/api/) | candidate assessment | commit plan available; stable GA APIs first |
 | [`DigitalOcean`](https://docs.digitalocean.com/reference/api/reference/public-apis/) | candidate assessment | commit plan available |
 | [`OVHcloud`](https://docs.ovhcloud.com/en/) full provider | later candidate | follows a dedicated v1/v2 and product-scope plan |
@@ -117,15 +117,13 @@ Portable and native platform evidence is documented in
 
 Use `cargo add` in your application to select published dependencies and write
 version requirements to its manifest. These examples need no wildcard or
-manually maintained version pin. Review the resulting manifest and lockfile;
-unpublished candidate APIs still require this checkout.
-
-The crates.io-installable release remains `1.0.0` while the `1.1.0` candidate
-is developed on `main`:
+manually maintained version pin. Review the resulting manifest and lockfile.
+Select the provider needed by your application:
 
 ```sh
 cargo add cloud-sdk
 cargo add cloud-sdk-hetzner
+cargo add cloud-sdk-cratesio --features blocking-rustls
 ```
 
 ## cloud-sdk Features
@@ -854,7 +852,7 @@ transport, testing, and secret-handling capabilities remain provider-neutral.
 ## Provider Documentation
 
 Provider-specific API coverage and maintenance procedures live outside this
-provider-neutral README. The unreleased crates.io provider has its own
+provider-neutral README. The crates.io provider has its own
 [crate documentation](https://github.com/valkyoth/cloud-sdk/tree/main/crates/cloud-sdk-cratesio),
 [implementation plan](https://github.com/valkyoth/cloud-sdk/blob/main/docs/cratesio-commit-plan.md),
 and [source lock](https://github.com/valkyoth/cloud-sdk/blob/main/docs/CRATESIO_SOURCE_LOCK.md).

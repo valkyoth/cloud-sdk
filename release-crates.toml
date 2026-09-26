@@ -5,7 +5,7 @@ baseline = "1.0.0"
 review_baseline = "1.0.0"
 cumulative_milestones = ["1.1.0"]
 policy = "independent"
-stage = "candidate"
+stage = "public"
 exceptional = false
 exception_reason = ""
 
@@ -13,40 +13,40 @@ exception_reason = ""
 previous_version = "1.0.0"
 version = "1.1.0"
 change = "code"
-publish = false
-reason = "Add shared incremental decoding and transport user-agent identity without enabling candidate publication."
+publish = true
+reason = "Add shared incremental decoding and transport user-agent identity; retain empty defaults."
 
 [crates."cloud-sdk-cratesio"]
 previous_version = "none"
 version = "1.1.0"
 change = "code"
-publish = false
-reason = "Add the initial crates.io provider boundary without enabling candidate publication."
+publish = true
+reason = "Release all 51 source-locked crates.io operations with three-mode clients and Cargo-compatible workflows."
 
 [crates."cloud-sdk-hetzner"]
 previous_version = "1.0.0"
 version = "1.1.0"
 change = "code"
-publish = false
-reason = "Refresh reviewed Hetzner schemas and announced deprecation compatibility; publication remains disabled."
+publish = true
+reason = "Refresh reviewed Hetzner schemas, add Network members, and preserve announced deprecation compatibility."
 
 [crates."cloud-sdk-reqwest"]
 previous_version = "1.0.0"
 version = "1.1.0"
 change = "code"
-publish = false
-reason = "Expose stable identifying user-agent configuration on neutral raw transports; publication remains disabled."
+publish = true
+reason = "Add bounded streaming upload/download execution, user-agent identity and DNS shutdown hardening."
 
 [crates."cloud-sdk-sanitization"]
 previous_version = "1.0.0"
 version = "1.1.0"
 change = "metadata"
-publish = false
-reason = "Keep the cleanup boundary on the coherent unreleased workspace version."
+publish = true
+reason = "Publish synchronized 1.1.0 documentation and reviewed dependency metadata; no first-party runtime change."
 
 [crates."cloud-sdk-testkit"]
 previous_version = "1.0.0"
 version = "1.1.0"
 change = "metadata"
-publish = false
-reason = "Keep the testkit on the coherent unreleased workspace version."
+publish = true
+reason = "Publish synchronized 1.1.0 documentation and workspace dependencies; no first-party runtime change."

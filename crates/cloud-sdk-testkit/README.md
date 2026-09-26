@@ -25,11 +25,10 @@
 
 # cloud-sdk-testkit
 
-Stable version 1.0 provider-neutral testing support for the main
+Provider-neutral testing support for the main
 [`cloud-sdk`](https://crates.io/crates/cloud-sdk) crate and its provider crates.
 
-This README tracks the unreleased workspace `1.1.0` candidate. The published
-stable testkit remains `1.0.0` until the complete candidate train is qualified.
+This crate is part of the cloud-sdk 1.1.0 release.
 The default graph is no_std, allocation-free, network-free, filesystem-free,
 and runtime-free.
 
@@ -42,8 +41,7 @@ failures need deterministic multi-request coverage.
 
 Use `cargo add` in your application to select published dependencies and write
 version requirements to its manifest. These examples need no wildcard or
-manually maintained version pin. Review the resulting manifest and lockfile;
-unpublished candidate APIs still require this checkout.
+manually maintained version pin. Review the resulting manifest and lockfile.
 
 ```sh
 cargo add --dev cloud-sdk cloud-sdk-testkit

@@ -1,6 +1,7 @@
 # crates.io Commit Plan
 
-Status: selected unreleased `1.1.0` implementation train. Commits 1 through 9
+Status: `1.1.0` implementation complete; release qualification in progress.
+The following records the accepted checkpoint history. Commits 1 through 9
 are accepted; the user confirmed GitHub green on the Commit 9 evidence
 checkpoint `38d493a17c6741691e676be16fa6ac341ed28642` and authorized Commit 10.
 Version-detail pentest/retest passed at `94c004b2`; the user confirmed GitHub
@@ -18,7 +19,8 @@ Commit 18 passed incremental pentest and GitHub at `ddb12f74`.
 Commit 19 passed incremental pentest and GitHub at `f49b7712`.
 Commit 20 passed incremental pentest and GitHub at `df5892e7`.
 Commit 21 passed incremental pentest/retest and GitHub at `cbcaf17f`.
-Commit 22 passed local qualification; full-service pentest and GitHub acceptance remain required.
+Commit 22 full-service review and focused remediation retest passed at `96ae9a2c`.
+Final release qualification, GitHub acceptance and maintainer publication approval remain required.
 Do not tag or publish.
 
 ## Decision Summary
@@ -828,7 +830,8 @@ permission to accept a changed hash without implementation review.
 Implementation and evidence: [candidate ledger](CRATESIO_CANDIDATE.md).
 The September 26 source refresh implements the Network members operation and
 records the already-validated Primary IP semantics; all live Hetzner source
-gates and candidate-wide local qualification passed. Full-service pentest remains open.
+gates and candidate-wide local qualification passed. Full-service review and
+focused remediation retest passed; see [the release report](../security/pentest/v1.1.0.md).
 
 Goal: freeze and qualify the complete selected crates.io integration without
 adding features.

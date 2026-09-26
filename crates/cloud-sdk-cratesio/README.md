@@ -23,10 +23,11 @@ provider identities, API models, request preparation, checked response
 decoding, authentication rules, and high-level workflows while reusing the
 provider-neutral execution contracts from `cloud-sdk`.
 
-The crate is an unreleased `1.1.0` candidate. Seven discovery, three catalog
+Version `1.1.0` supports all 51 selected public crates.io API operations.
+Seven discovery, three catalog
 and five version operations, four download/statistics operations and six public
 account/ownership operations have checked blocking, local-async and Send-async
-execution. Commits 1 through 21 are accepted; Commit 22 passed local qualification and awaits full-service pentest.
+execution.
 The `RegistryClient` facade executes eight personal mutation operations,
 including both API-token and consumed secret-path variants, in all three modes.
 Three token-management operations use the same checked execution boundary.
@@ -43,9 +44,10 @@ preflight and exchange, and protected temporary-token revocation.
 Authentication preparation, endpoint, query and response foundations
 are available. The blocking/local/Send facade, official bundled constructors and
 anonymous artifact streaming have three-mode fixture coverage for all 51 API
-operations. Independent Cargo wire fixtures and local qualification pass;
-Commit 21 passed local qualification, pentest and GitHub. Final full-service candidate review remains open. This is not yet a
-release-qualified crates.io provider.
+operations. Seven operations overlap the stable Cargo Registry Web API;
+other public operations remain subject to crates.io's experimental API policy.
+Private routes, browser sessions, archive creation and registry hosting are
+outside this provider's scope.
 
 ## Current Boundary
 
@@ -77,10 +79,10 @@ release-qualified crates.io provider.
 | Cargo publish | bounded metadata, exact little-endian framing, borrowed/streaming archives, API or temporary token consent and checked warnings; opt-in bundled blocking/local-async/Send-async upload |
 | Trusted publishing | GitHub/GitLab list/create/delete, assertion exchange and temporary-token revocation; local deadline/crate restrictions, not a JWT authenticator; three-mode unified execution |
 | Artifact streaming | opt-in bundled static-origin live body sources and SHA-256; caller-supplied transactional sink remains required |
-| Unified execution | blocking, local-async and Send-async typed reads and permits, including secret-path personal operations, plus streaming publish methods accepting a source; 51/51 three-mode fixtures pass, full-service candidate review pending |
+| Unified execution | blocking, local-async and Send-async typed reads and permits, including secret-path personal operations, plus streaming publish methods accepting a source; all 51 operations have three-mode fixture coverage |
 
-See the [Commit 20 implementation ledger](https://github.com/valkyoth/cloud-sdk/blob/main/docs/CRATESIO_UNIFIED_CLIENT.md)
-for exact remaining gates. Do not treat these foundations as full-provider qualification.
+See the [qualification record](https://github.com/valkyoth/cloud-sdk/blob/main/docs/CRATESIO_CANDIDATE.md)
+for tested guarantees and deployment boundaries.
 Public ownership reads do not grant mutation authority.
 The complete 51-operation scope is maintained in the
 [crates.io source lock](https://github.com/valkyoth/cloud-sdk/blob/main/docs/CRATESIO_SOURCE_LOCK.md).
@@ -453,15 +455,14 @@ All supplied scratch is cleared; caller-created copies remain caller-owned.
 
 ## Install
 
-This provider remains unpublished. For the candidate examples, use a checkout
-with its complete workspace, as opposed to selecting a published package:
+Use `cargo add` to select the provider and optional bundled transport:
 
 ```sh
-cargo add cloud-sdk --path /path/to/cloud-sdk/crates/cloud-sdk
-cargo add cloud-sdk-cratesio --path /path/to/cloud-sdk/crates/cloud-sdk-cratesio --features blocking
+cargo add cloud-sdk
+cargo add cloud-sdk-cratesio --features blocking-rustls
 ```
 
-For published SDK crates, `cargo add` without a path selects registry metadata
+`cargo add` selects registry metadata
 and writes version requirements to your application's manifest. Workspace
 security pins and lockfile review remain separate from these install examples.
 
@@ -883,7 +884,7 @@ implemented, including secret-path execution. Local integration qualification
 is recorded in the Commit 20 ledger above; ongoing qualification is tracked in
 [Commit 21](https://github.com/valkyoth/cloud-sdk/blob/main/docs/CRATESIO_QUALIFICATION.md).
 Final scope freeze and release qualification are tracked in the
-[Commit 22 candidate](https://github.com/valkyoth/cloud-sdk/blob/main/docs/CRATESIO_CANDIDATE.md).
+[release qualification](https://github.com/valkyoth/cloud-sdk/blob/main/docs/CRATESIO_CANDIDATE.md).
 Custom adapters must
 not log targets or retain unprotected secret URI copies. Bundled raw adapters
 clear owned URI staging; upstream HTTP/TLS buffers and server/proxy logs remain

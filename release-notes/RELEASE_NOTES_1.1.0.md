@@ -1,27 +1,28 @@
 # cloud-sdk 1.1.0 Release Notes
 
-Status: unreleased crates.io API implementation candidate.
+Status: security review accepted; final release qualification and GitHub acceptance required.
 
 Release date: pending
 
-Security-Review: PENDING
-Pentest: PENDING
-Publication: BLOCKED DURING CANDIDATE TRAIN
+Security-Review: PASS
+Pentest: PASS
+Publication: PENDING
 
 ## Overview
 
-The `1.1.0` development line adds a complete source-locked crates.io provider
+Version `1.1.0` adds a complete source-locked crates.io provider
 while preserving the stable Hetzner provider and provider-neutral execution
-boundaries introduced in `1.0.0`. Work follows the numbered checkpoints in
-`docs/cratesio-commit-plan.md`. Each checkpoint is committed, incrementally
-pentested against the preceding accepted checkpoint, and kept untagged.
+boundaries introduced in `1.0.0`. All 22 implementation checkpoints are complete.
+The full-scope pentest and focused remediation retest are accepted at
+`96ae9a2cf90b1c5346a93585a5607cfe1351ce03`; see the
+[permanent report](../security/pentest/v1.1.0.md).
 
-No crate may be published while `release-crates.toml` uses
-`stage = "candidate"`. The final checkpoint will replace this draft with exact
-API, dependency, security, migration, and package-change evidence before the
-plan can become `public`.
+The publication plan selects exactly six SDK packages at `1.1.0`. Fuzzing,
+feature-unification fixtures, coverage tooling and the OVHcloud probe remain
+unpublished. A clean release gate, GitHub CI/CodeQL and explicit maintainer
+approval are still required before tagging and publishing.
 
-## Candidate Scope
+## Release Scope
 
 - source-lock all public crates.io OpenAPI operations and stable Cargo Registry
   Web API overlaps;
@@ -33,23 +34,23 @@ plan can become `public`.
 - qualify the complete provider through drift checks, adversarial tests,
   fuzzing, platform evidence, pentest, CI, and CodeQL.
 
-## Candidate Versions
+## Package Versions
 
-| Crate | Published | Candidate | Current state |
+| Crate | Previous | Release | Changes |
 | --- | --- | --- | --- |
 | `cloud-sdk` | `1.0.0` | `1.1.0` | shared incremental JSON decoder; default graph unchanged |
-| `cloud-sdk-hetzner` | `1.0.0` | `1.1.0` | stable API; compatibility exports use the shared decoder |
-| `cloud-sdk-reqwest` | `1.0.0` | `1.1.0` | reviewed TLS and authentication dependency updates |
-| `cloud-sdk-sanitization` | `1.0.0` | `1.1.0` | reviewed sanitization dependency update |
-| `cloud-sdk-testkit` | `1.0.0` | `1.1.0` | candidate metadata |
-| `cloud-sdk-cratesio` | none | `1.1.0` | endpoint-safe provider, protected credentials, wire, typed query and pagination foundations |
+| `cloud-sdk-hetzner` | `1.0.0` | `1.1.0` | Network members, reviewed schema/deprecation changes and shared decoder compatibility exports |
+| `cloud-sdk-reqwest` | `1.0.0` | `1.1.0` | streaming uploads/downloads, protected execution and bounded DNS/runtime cleanup |
+| `cloud-sdk-sanitization` | `1.0.0` | `1.1.0` | documentation and reviewed dependency metadata; no first-party runtime change |
+| `cloud-sdk-testkit` | `1.0.0` | `1.1.0` | documentation and workspace dependency metadata; no first-party runtime change |
+| `cloud-sdk-cratesio` | none | `1.1.0` | all 51 source-locked operations, three execution modes, Cargo workflows and transactional downloads |
 
-Exact final change classifications are assigned only after the complete train
-is implemented.
+Exact change classifications and publication order are enforced by
+`release-crates.toml` and `scripts/release_crates.py --check`.
 
 ## Completed Checkpoints
 
-### Commit 22 - Candidate Scope Freeze (Full-Service Pentest Required)
+### Commit 22 - Scope Freeze And Accepted Full-Service Review
 
 Commit 21 passed pentest/retest and GitHub at `cbcaf17f`. The candidate retains
 all 51 selected crates.io operations and their stable/experimental/deprecated
@@ -73,11 +74,13 @@ for the complete gate, compatibility review and full-service pentest boundary.
   completion. Source-lock fetching uses a killable worker to enforce the total
   retrieval deadline even during a slow buffered read. Regression tests cover
   all four blocking request paths, cancellation, saturation, unwind and child
-  termination. Retest and fresh release qualification remain required.
+  termination. Independent retest accepted both fixes without new findings.
 
 The new API is additive: existing exhaustive endpoint/query enums are unchanged.
-The candidate remains unreleased and publication-blocked. Full-service pentest,
-GitHub CI and CodeQL acceptance must follow the exact committed candidate.
+The release remains untagged and unpublished until final local and GitHub checks
+pass and the maintainer authorizes publication. The checkpoint history below
+records intermediate statuses; the current summary and permanent report supersede
+historical pending-review and drift statements.
 
 ### Commit 1 - Source Lock And Finite Scope
 

@@ -55,7 +55,7 @@ def main() -> None:
 
         metadata = (
             "Server Metadata | Complete strict contracts for all seven canonical "
-            "credential-free link-local reads | 1.1 candidate"
+            "credential-free link-local reads | 1.1.0"
         )
         path.write_text(
             source.replace(metadata, "Server Metadata | Planned | v0.98"),

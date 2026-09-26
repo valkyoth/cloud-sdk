@@ -1,6 +1,6 @@
 # crates.io Commit 21 Qualification
 
-Status: Commit 21 accepted at `cbcaf17f`; Commit 22 locally qualified, awaiting full-service pentest.
+Status: Commit 21 accepted at `cbcaf17f`; Commit 22 full review and retest accepted at `96ae9a2c`.
 Commit 20 was accepted after user-confirmed pentest and
 GitHub green at `df5892e712281ac5d27aeae900d89b754aa60a49`.
 The user confirmed pentest/retest and GitHub green and authorized Commit 22.
