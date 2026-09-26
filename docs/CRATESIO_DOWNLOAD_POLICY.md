@@ -96,6 +96,30 @@ future, clear scratch and abort the sink. Process abort, allocator exhaustion,
 malicious adapters, and caller-retained copies remain outside cleanup guarantees.
 No transport or hashing dependency was added to the default provider graph.
 
+### Filesystem Contract Qualification
+
+Commit 20 adds Unix-only tests under `downloads/artifact/tests/storage` with
+`std,artifact-sha256`. They exercise real files through blocking, local-async
+and Send-async downloads, not an in-memory substitute. A newly created private
+0700 directory contains a 0600 tentative file. The final path appears only after
+length/checksum verification and a non-overwriting hard-link publication on the
+same filesystem. Existing files and symlinks are never replaced. Cleanup removes
+the tentative name, including after write/commit failure and cancellation.
+
+Cancellation tests inspect the exact tentative bytes and the absence of the
+published path before dropping the future. They cover unpolled execution,
+pending reads, a write that reached the file before returning Pending, and a pending
+commit before publication. A public SHA-256 known-answer digest is independent
+of the received body. The normal all-feature suite runs these tests on Unix.
+
+This test-only sink uses synchronous filesystem calls even in its async trait
+methods; it is not a production async storage adapter. Unlinking is rollback,
+not secure physical erasure. Directory durability, process/crash recovery,
+hostile same-user processes, Windows semantics and arbitrary caller sinks are
+not qualified by these tests. A production sink must define its own publication
+linearization point, avoid returning failure after making output visible, and
+qualify its storage and crash policy separately.
+
 ## Source And Drift Review
 
 The source lock remains at upstream commit

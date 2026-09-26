@@ -558,8 +558,11 @@ platform-verifier to 0.7.1 and the Android helper to 0.2.0 without adding bundle
 Android support. A follow-up adds guarded local/Send async execution for the
 enabled read/permit families and explicit token catalog calls. Guards precede
 future creation; cancellation clears scratch without authorizing replay.
-Actual bundled streaming publish,
-transactional-storage qualification and exhaustive Cargo/51-operation evidence
+Real Unix filesystem tests now qualify transactional artifact sinks against
+checksum/length/I/O failures, non-overwriting commit collisions, and cancellation
+at read/write/commit boundaries. This is a test reference sink, not a new
+filesystem API, Windows qualification or crash/secure-erasure guarantee.
+Actual bundled streaming publish and exhaustive Cargo/51-operation evidence
 remain open in [the implementation ledger](../docs/CRATESIO_UNIFIED_CLIENT.md).
 Commit 19 was accepted at `f49b7712`; no tag or publication is authorized.
 The new facade rejects email-confirmation and token-based invitation permits

@@ -7,6 +7,9 @@ use core::{
     task::{Context, Poll, Waker},
 };
 
+#[cfg(all(feature = "std", feature = "artifact-sha256", unix))]
+mod storage;
+
 const UA: &str = "artifact-test/1 (test@example.org)";
 // A test hook checks exact accepted input; this is not a SHA-256 implementation.
 struct Checksum(Vec<u8>);

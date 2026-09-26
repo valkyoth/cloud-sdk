@@ -207,6 +207,8 @@ def validate(root: Path) -> None:
         *(f"{area}/tests/unified.rs" for area in ("discovery", "catalog", "versions", "downloads", "accounts", "accounts/tokens", "settings", "trusted_publishing")),
         *(f"bundled/{name}.rs" for name in ("mod", "artifacts", "tests")),
         "downloads/sha256.rs",
+        "downloads/artifact/tests/storage.rs",
+        "downloads/artifact/tests/storage/cases.rs",
         "identity.rs",
         "ownership.rs",
         "publishing.rs",
