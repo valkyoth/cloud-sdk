@@ -9,8 +9,14 @@ Future Scaleway work follows the authoritative
 including alpha/beta and supported HTTP data planes, using pentested numbered
 checkpoints and green GitHub CI/CodeQL without intermediate tags.
 
+DigitalOcean follows its authoritative
+[`digitalocean-commit-plan.md`](digitalocean-commit-plan.md): full current public
+APIs, including preview contracts, Paperspace and supported HTTP data planes,
+with the same checkpoint workflow and no assigned release version.
+
 The post-1.0 provider/version sketches retained below are historical and
-superseded, including their GA-only scope and `v1.1.0-v1.6.0` Scaleway allocation.
+superseded, including their narrow provider scope, `v1.1.0-v1.6.0` Scaleway
+allocation and `v1.7.0-v1.12.0` DigitalOcean/freeze allocation.
 They do not assign future versions or override the current commit plans.
 
 This plan is intentionally granular. `cloud-sdk` manages infrastructure APIs,

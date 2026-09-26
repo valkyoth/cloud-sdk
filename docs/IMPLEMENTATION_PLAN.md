@@ -211,14 +211,21 @@ only the final approved release is tagged and published. Native application
 protocol clients and unsupported upstream compatibility features remain outside
 the provider API claim, not hidden omissions from a GA-only subset.
 
-`cloud-sdk-digitalocean` follows Scaleway. Its release selects a finite operation
-inventory from an exact revision of DigitalOcean's official
-[OpenAPI source](https://github.com/digitalocean/openapi) and validates the
-simpler bearer-auth and `/v2` path together with same-authority link
-pagination, optional error `request_id`, rate-limit metadata, `Retry-After`,
-and the same bounded response and explicit retry rules used by other providers.
-Spaces, metadata, OAuth applications, AI services, and every unselected
-surface remain explicit exclusions.
+`cloud-sdk-digitalocean` follows Scaleway under the authoritative
+[DigitalOcean commit plan](digitalocean-commit-plan.md). Its 75-checkpoint
+roadmap targets the full current public API, including alpha/beta/preview
+contracts, AI/inference, secure OAuth, Spaces' supported S3 subset, registry
+distribution, Functions execution, Droplet metadata, Secrets Manager, and
+the current Paperspace API, all within one provider crate.
+
+The central OpenAPI document is only one source. Product references, official
+SDK/CLI discrepancies and supported HTTP protocols must reconcile into a
+field-level operation/execution ledger. Unknown public rows block completion;
+new public contracts require a reviewed plan amendment rather than automatic
+deferral. Each checkpoint stops for pentest and green GitHub CI/CodeQL, with no
+intermediate tag or assigned release version. Private and retired APIs,
+unsupported upstream compatibility features and native application protocol
+clients remain explicit evidence-backed exclusions.
 
 `cloud-sdk-ovhcloud` is planned after those providers because a production
 implementation needs a dedicated split for
