@@ -1,0 +1,30 @@
+{
+  "format": 1,
+  "authorized_at": "2026-09-26",
+  "authorization": "Maintainer explicitly requested follow-up at the end of implementation, or earlier when provider clarification is available.",
+  "inventory_sha256": "b448337073c62b3c3702bcd6985fab2d2da47b5f5fb517c276748e5fb4017b39",
+  "resolve_by_checkpoint": 76,
+  "release_allowed_with_unresolved": false,
+  "candidates": [
+    "/api/reseller/ v1",
+    "/api/vpc/private-network-with-nics v2",
+    "/api/vpc/routes-with-nexthop v2",
+    "/api/managed-database-postgre-mysql/encryption v1",
+    "/api/generative-apis-consumption-limits v1",
+    "/api/domains-and-dns/suggestion v2beta1",
+    "/api/webhosting/control-panel v1",
+    "/api/webhosting/dedibox v1",
+    "/api/iam/unauthenticated v1alpha1",
+    "/api/account/iso-code v3",
+    "/api/account/organization v3",
+    "/api/account/unauthenticated v3",
+    "/api/account/unauthenticated-user v3",
+    "/api/account/user v3",
+    "SDK autoscaling v1alpha1",
+    "SDK billing v2",
+    "SDK documentdb v1beta1",
+    "SDK ipam v1alpha1",
+    "SDK search v1alpha1",
+    "SDK vpc_gw v1"
+  ]
+}

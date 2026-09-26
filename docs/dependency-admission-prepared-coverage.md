@@ -44,6 +44,14 @@ or provider responses. YAML event validation rejects anchors and aliases before
 building a document and enforces resource limits; workflow policy regressions
 remain mandatory. No published SDK runtime uses this parser.
 
+Scaleway inventory tooling also uses the isolated `source-yaml-json` binary to
+parse public documentation snapshots offline. It consumes at most 10 MiB,
+500,000 parser events, and 64 nesting levels, rejects duplicate/merge keys,
+anchors, aliases, explicit tags, non-string mapping keys and multiple documents,
+and emits JSON only after successful parsing. The caller imposes a subprocess
+deadline; the parser never fetches references. No dependencies or features were
+added for this use. Raw upstream sources remain separate digest-bound evidence.
+
 ## Security Decision
 
 The previous Python scanner did not implement nested Rust comments,

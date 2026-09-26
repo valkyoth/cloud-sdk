@@ -30,6 +30,9 @@ scripts/check_review_digests.py
 scripts/test-publishable-readmes.py
 scripts/check-release-plan-structure.py
 scripts/test-release-plan-structure.py
+python3 scripts/check_scaleway_inventory.py --qualify
+python3 scripts/test-scaleway-inventory.py
+cargo test --locked --manifest-path tools/prepared-coverage-check/Cargo.toml --bin source-yaml-json
 scripts/test-provider-identities.py
 scripts/check_provider_identities.sh
 scripts/check_cratesio_crate_boundary.py

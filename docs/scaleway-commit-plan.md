@@ -1,7 +1,12 @@
 # Scaleway Commit Plan
 
 Status: full public Scaleway API implementation roadmap, refreshed 2026-09-26.
-No implementation checkpoint has started and no release version is assigned.
+Commit 1 implementation stop reached on `scaleway`; inventory capture and offline
+validation are implemented and the full repository gate passed. Twenty public-support discrepancies have an explicit
+maintainer-approved follow-up allowance dated 2026-09-26, bounded to the current
+inventory. Pentest and GitHub acceptance are still required.
+The tentative release target is `1.2.0`, after the complete train is qualified;
+published package versions have not changed.
 This document supersedes the earlier GA-only 30-checkpoint assessment and the
 historical version-based Scaleway sketch in RELEASE_PLAN.md.
 
@@ -30,17 +35,33 @@ Unknown public status blocks scope approval; unavailable credentials limit live
 evidence, not implementation coverage. A genuine reduction of the full target
 requires a maintainer-approved plan change and a narrower published claim.
 
+The maintainer approved investigating the 20 current public-support ambiguities
+later in the train, or earlier when clarification arrives. This changes the
+timing of scope decisions, not the full-coverage target or final release gate.
+The exact candidates and source digest are locked in
+`provider-drift/scaleway/followups.json`. Newly discovered ambiguities are not
+automatically covered. Resolve these decisions by Commit 76, adding checkpoint
+scope where necessary, before final qualification; do not defer required
+implementation to Commit 80.
+
 The count may grow after inventory review. Add or split checkpoints before
 implementing newly discovered work; never compress unfinished scope into the
 final qualification checkpoint.
 
 ## Commit Checkpoint Workflow
 
+Current evidence and blockers: [Scaleway source inventory](SCALEWAY_SOURCE_INVENTORY.md).
+The accepted release baseline is `v1.1.0` at
+`1f9634df50703f19dc43c8213eb0421c97255857`; Commit 1 began from
+`49ee09d7284b187d4b1d4b032de20765a6b3e524`. The intervening commits
+contain planning/documentation and branch CI setup and remain part of the first
+review range. Commit 2 is not authorized until Commit 1's stop is accepted.
+
 Implementation takes place on the temporary `scaleway` branch. Keep `main`
 available for Hetzner, crates.io, and shared maintenance fixes and qualified
 patch releases such as `1.1.1`. Do not merge incomplete Scaleway work into a
 maintenance release. No implementation checkpoint has started merely because
-the branch exists.
+the branch exists. Commit 1 now awaits pentest and GitHub acceptance as recorded above.
 
 The initial accepted release baseline is `v1.1.0`; record its full commit hash
 and the branch starting hash when starting Commit 1. Include intervening changes
@@ -228,7 +249,9 @@ Goal: Identify every documented public Scaleway control-plane contract.
 Deliverables: Bounded retrieval of the index, nested navigation, all versions and
 schemas; source digests, public/private evidence, deprecations, supported-version
 decisions, and ownership assignments. Resolve Billing and auxiliary-schema
-discrepancies; record unresolved candidates explicitly.
+discrepancies; record unresolved candidates explicitly. The 2026-09-26 approved
+follow-ups may remain unresolved through this checkpoint with exact evidence
+binding; resolve them earlier when information arrives and no later than Commit 76.
 
 Verification: Reproduce digests; reject duplicate YAML keys, unsafe tags, unbounded
 aliases/depth, unreviewed references, cross-origin redirects, malformed versions, and
@@ -237,8 +260,9 @@ deadlines, bounded workers and process cleanup. Compare the pinned SDK without
 treating it as sole public-support proof.
 
 Exit criteria: Every discovered control-plane row has a supported, superseded, private,
-or unresolved disposition; no unresolved public candidate may pass this gate. Necessary
-checkpoint splits are approved.
+or unresolved disposition; only the exact maintainer-approved follow-ups may pass
+the checkpoint gate (`python3 scripts/check_scaleway_inventory.py --qualify`).
+Any new or changed ambiguity requires review. Necessary checkpoint splits are approved.
 
 Pentest stop: Run the incremental pentest for the complete Commit 1 range, remediate and
 retest, then wait for green GitHub CI and CodeQL before continuing.
@@ -258,7 +282,8 @@ behavior, and partial source retrieval.
 
 Exit criteria: The finite full public inventory covers control and data planes. No
 public product is excluded merely because it is alpha/beta, lacks OpenAPI, or requires a
-different protocol.
+different protocol. The approved Commit 1 follow-ups remain explicitly unresolved,
+not excluded; this allowance does not cover newly discovered data-plane ambiguity.
 
 Pentest stop: Run the incremental pentest for the complete Commit 2 range, remediate and
 retest, then wait for green GitHub CI and CodeQL before continuing.
@@ -1508,6 +1533,13 @@ Verification: Regenerate from locked sources, compare fresh official sources, mu
 optional fields/status/media variants and prove every omission fails; audit all public
 product dispositions.
 
+Run `python3 scripts/check_scaleway_inventory.py --release`: the temporary
+Commit 1 allowance must not bypass this audit. Resolve every entry from
+`provider-drift/scaleway/followups.json` with official evidence, update source
+locks and ownership, and implement any newly confirmed public contracts through
+explicit added checkpoints before continuing. Information received earlier
+should be incorporated at the relevant product checkpoint rather than delayed.
+
 Exit criteria: No unclassified or model-only public row remains. New public scope is
 implemented through an approved added checkpoint, or the release explicitly abandons the
 full claim.
@@ -1580,6 +1612,9 @@ Verification: Compose the preceding 79 gates with this checkpoint's final checks
 fresh API drift, complete workspace/provider tests, three modes, fuzz, platforms,
 dependencies, docs, public API and reproducible artifacts. The final gate must not
 invoke itself recursively; repeat affected qualification after fixes.
+
+Re-run `python3 scripts/check_scaleway_inventory.py --release`; no unresolved
+Commit 1 follow-up may be carried into the release using checkpoint permission.
 
 Exit criteria: All in-scope public rows are executable and documented, unresolved
 discrepancies are zero, full-provider review/retest is accepted, and GitHub CI/CodeQL
