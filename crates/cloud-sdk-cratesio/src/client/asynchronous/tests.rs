@@ -10,7 +10,9 @@ use core::{
     sync::atomic::{AtomicBool, AtomicUsize, Ordering},
     task::{Context, Poll, Waker},
 };
+mod cargo;
 mod catalog;
+mod coverage;
 mod lifecycle;
 mod operations;
 mod secret_paths;
@@ -341,5 +343,6 @@ where
         core::mem::discriminant(&third)
     );
     assert_eq!(local.0.calls.load(Ordering::SeqCst), 3);
+    coverage::record(local.0.method, local.0.target);
     reset_test_gate();
 }

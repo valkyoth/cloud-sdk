@@ -731,6 +731,13 @@ live bounded raw transport, without a caller HTTP callback. These increments
 do not close the final integrated 51-operation and Cargo-compatibility gates.
 The secret-path increment enables consumed confirmation and invitation tokens
 in all modes, with protected URI staging and exact-wire/lifetime regressions.
+Generated runtime coverage now measures 50/51 operation rows in all three
+facade modes; publication still lacks its end-to-end witness. The strict checker
+is a release gate, not a coverage claim based on trait implementations.
+The Cargo cross-check also requires an explicit owner-list compatibility profile:
+its authenticated request and minimal response differ from the current anonymous,
+website-schema account operation. Preserve that operation's existing security
+boundary while adding and qualifying the distinct Cargo profile.
 
 Dependency follow-up detected during Commit 18 on 2026-09-25:
 `rustls-platform-verifier 0.7.1` supersedes the reviewed `0.7.0` pin and changes

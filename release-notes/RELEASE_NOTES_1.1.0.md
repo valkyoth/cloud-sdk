@@ -573,6 +573,11 @@ in all three modes. Raw URI paths use sanitization-owned bytes, with separate
 non-secret authority storage so origin keys cannot retain the token allocation.
 Pinned URI ownership and loopback wire tests cover exact composition and cleanup
 lifetimes. External HTTP/TLS buffers and access logs remain deployment boundaries.
+Generated execution evidence now links successful three-mode facade fixtures to
+the reviewed inventory: 50/51 rows are covered, with publication still pending.
+The release gate rejects missing witnesses. Independent Cargo search evidence
+and an owner-list characterization test distinguish website-schema coverage from
+the still-needed authenticated/minimal Cargo owner profile. Commit 20 remains open.
 
 ### Maintenance Evidence (Earlier Checkpoints)
 
