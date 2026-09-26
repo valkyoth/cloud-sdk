@@ -235,6 +235,15 @@ geographic authorities, asynchronous task resources, billable ordering, and
 OpenStack-based products. The `v0.57.0-v0.61.0` probe is deliberately too
 small and too isolated to count as this provider implementation.
 
+Tenable has a separate, unranked
+[candidate commit plan](tenable-commit-plan.md) for one `cloud-sdk-tenable`
+crate. Product modules distinguish Platform, Vulnerability Management, WAS,
+Exposure Management, PCI ASV, MSSP, Identity Exposure, ASM, Cloud Exposure,
+Enclave, OT, Security Center/Director, qualified Nessus and Downloads. The
+105 proposed checkpoints include source/permission admission for customer-gated
+schemas and appliance versions; they do not change the provider order above
+or assign a release version. Every checkpoint requires pentest and green CI.
+
 Each provider uses one primary crate. Shared transport, testkit, sanitization,
 pagination, authentication primitives, and policy abstractions remain neutral
 unless a provider demonstrates a genuinely different requirement.
