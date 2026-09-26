@@ -9,7 +9,7 @@ from pathlib import Path
 from check_api_matrix_coverage import parse_operations
 
 ROOT = Path(__file__).resolve().parents[1]
-EXPECTED_ACTIVE = 208
+EXPECTED_ACTIVE = 209
 
 FILES = {
     "core_prepared": "crates/cloud-sdk/src/operation/prepared.rs",

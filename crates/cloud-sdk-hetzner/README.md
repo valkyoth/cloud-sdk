@@ -661,11 +661,11 @@ See the
 [operation association guide](https://github.com/valkyoth/cloud-sdk/blob/main/docs/OPERATION_ASSOCIATIONS.md).
 The generated
 [complete binding manifest](https://github.com/valkyoth/cloud-sdk/blob/main/docs/TYPED_OPERATION_BINDINGS.tsv)
-makes all 208 active operation contracts reviewable without reading generated
+makes all 209 active operation contracts reviewable without reading generated
 Rust source.
 
 With `serde`, `HetznerClient::cloud` exposes named blocking, `Send` async, and
-local-async methods for all 139 active Cloud operations. Read-only calls use a
+local-async methods for all 140 active Cloud operations. Read-only calls use a
 `ClientWorkspaceLease` and return a fully checked, owned response. Mutation,
 destructive, and cost-bearing calls expose named preparation plus execution
 that accepts only the matching plan-confirm permit attempt. The client selects
@@ -748,7 +748,7 @@ execution.
 
 ## Request Operation Coverage
 
-The current release has complete prepared-request coverage for all 208
+The current release has complete prepared-request coverage for all 209
 source-locked non-deprecated Cloud, DNS, and Storage Box operations. Each
 prepared operation binds its method, target, bounded body, response policy,
 safety and retry classification, cost intent, exact provider service,
@@ -769,14 +769,14 @@ authentication scope, raw response policy, and official endpoint.
 
 | Capability | Current coverage | Release status |
 | --- | --- | --- |
-| Request models | Complete for all 208 non-deprecated operations | Stable 1.0 |
-| Path/query encoding | Complete for all 208 non-deprecated operations | Stable 1.0 |
-| Body serialization | Complete for all 91 non-deprecated operations with request bodies | Stable 1.0 |
-| Success response models | Complete checked envelopes for all 208 operations; source-complete ordinary Cloud resources, DNS zones and RRSets, zonefiles, actions, metrics, composites, pricing, locations, certificates, SSH keys, and Console Storage Boxes, types, snapshots, subaccounts, and folders; operation-branded typed execution guards decode through `decode_associated_checked_response` | Stable 1.0 |
-| Error response models | Complete checked typed API error decoding for all active operations | Stable 1.0 |
-| End-to-end client | Complete named workflows for all 208 active Cloud, DNS, Security, and Console Storage Box operations; custom-endpoint execution remains unavailable | Stable 1.0 |
-| Robot client | Complete typed contracts for all 89 active Robot operations; 45 read-only routes execute directly and every state change remains permit-gated | Stable 1.0 |
-| Server Metadata | Complete strict contracts for all seven canonical credential-free link-local reads | Stable 1.0 |
+| Request models | Complete for all 209 non-deprecated operations | 1.1 candidate |
+| Path/query encoding | Complete for all 209 non-deprecated operations | 1.1 candidate |
+| Body serialization | Complete for all 91 non-deprecated operations with request bodies | 1.1 candidate |
+| Success response models | Complete checked envelopes for all 209 operations; source-complete ordinary Cloud resources, DNS zones and RRSets, zonefiles, actions, metrics, composites, pricing, locations, certificates, SSH keys, and Console Storage Boxes, types, snapshots, subaccounts, and folders; operation-branded typed execution guards decode through `decode_associated_checked_response` | 1.1 candidate |
+| Error response models | Complete checked typed API error decoding for all active operations | 1.1 candidate |
+| End-to-end client | Complete named workflows for all 209 active Cloud, DNS, Security, and Console Storage Box operations; custom-endpoint execution remains unavailable | 1.1 candidate |
+| Robot client | Complete typed contracts for all 89 active Robot operations; 45 read-only routes execute directly and every state change remains permit-gated | 1.1 candidate |
+| Server Metadata | Complete strict contracts for all seven canonical credential-free link-local reads | 1.1 candidate |
 
 The convenience request types cover common filters with domain-specific
 values. `query::SourceLockedQuery` is the complete operation-bound fallback

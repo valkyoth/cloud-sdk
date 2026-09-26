@@ -192,7 +192,7 @@ fn upload_rejects_short_long_and_incoherent_sources_without_committing() {
                 assert_eq!(
                     result,
                     Err(cloud_sdk::transport::TransportFailure::possibly_sent(
-                        RawHttpError::UploadFailed
+                        RawHttpError::RequestFailed
                     ))
                 );
                 assert_eq!(scratch, [0; 2]);

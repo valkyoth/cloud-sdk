@@ -415,5 +415,6 @@ impl crate::prepared::QueryWire for crate::query::SourceLockedQuery<'_> {
 
 mod compute;
 mod network;
+mod network_members;
 mod security_dns;
 mod storage;

@@ -32,7 +32,7 @@ impl StreamingResponse {
     async fn read(&mut self, output: &mut [u8]) -> Result<StreamRead, RawTransportFailure> {
         if output.is_empty() || (self.body.is_none() && !self.ended) {
             return Err(TransportFailure::response_started(
-                RawHttpError::InvalidStreamState,
+                RawHttpError::RequestFailed,
             ));
         }
         if Instant::now() >= self.deadline {
@@ -44,9 +44,10 @@ impl StreamingResponse {
         if self.pending.is_empty() {
             // Take ownership before awaiting: cancellation drops the live body
             // and cannot resume a partially consumed frame as a fresh read.
-            let mut body = self.body.take().ok_or_else(|| {
-                TransportFailure::response_started(RawHttpError::InvalidStreamState)
-            })?;
+            let mut body = self
+                .body
+                .take()
+                .ok_or_else(|| TransportFailure::response_started(RawHttpError::RequestFailed))?;
             let frame = timeout_at(self.deadline, body.frame())
                 .await
                 .map_err(|_| TransportFailure::response_started(RawHttpError::TimedOut))?;
@@ -104,7 +105,7 @@ impl StreamingResponse {
         let bytes = self.pending.split_to(len);
         output
             .get_mut(..len)
-            .ok_or_else(|| TransportFailure::response_started(RawHttpError::InvalidStreamState))?
+            .ok_or_else(|| TransportFailure::response_started(RawHttpError::RequestFailed))?
             .copy_from_slice(&bytes);
         Ok(StreamRead::Chunk(len))
     }

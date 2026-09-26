@@ -43,7 +43,7 @@ not silently loosen official policies.
 ## Named Client Methods
 
 With the `serde` feature, the official Cloud client exposes named methods for
-all 139 active Cloud operations. Each read operation has blocking, `Send`
+all 140 active Cloud operations. Each read operation has blocking, `Send`
 async, and local-async methods. Mutation, destructive, and cost-bearing
 operations have a named cleanup-owning preparation method plus three execution
 methods that accept only the operation's matching `AssociatedPermitAttempt`.
@@ -114,7 +114,7 @@ bounded layout and wipes all four allocations on drop.
 
 `CLOUD_CLIENT_METHODS`, `DNS_CLIENT_METHODS`, `SECURITY_CLIENT_METHODS`, and
 `STORAGE_CLIENT_METHODS` expose the exhaustive operation descriptors behind
-the named surfaces for auditing and tooling. Their 139, 24, 14, and 31 rows
-cover all 208 active operations and are generated from the source-locked
+the named surfaces for auditing and tooling. Their 140, 24, 14, and 31 rows
+cover all 209 active operations and are generated from the source-locked
 operation association manifest with exact permit and pagination
 classifications.

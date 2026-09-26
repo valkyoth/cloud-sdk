@@ -86,7 +86,7 @@ mod tests {
 
     #[test]
     fn table_has_one_parseable_binding_per_active_operation() {
-        assert_eq!(TABLE.lines().skip(1).count(), 208);
+        assert_eq!(TABLE.lines().skip(1).count(), 209);
         for line in TABLE.lines().skip(1) {
             let operation = line.split('\t').nth(2);
             assert!(

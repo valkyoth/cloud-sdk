@@ -26,7 +26,7 @@ provider-neutral execution contracts from `cloud-sdk`.
 The crate is an unreleased `1.1.0` candidate. Seven discovery, three catalog
 and five version operations, four download/statistics operations and six public
 account/ownership operations have checked blocking, local-async and Send-async
-execution. Commit 20 is accepted; Commit 21 is ready for incremental pentest.
+execution. Commits 1 through 21 are accepted; Commit 22 candidate qualification is in progress.
 The `RegistryClient` facade executes eight personal mutation operations,
 including both API-token and consumed secret-path variants, in all three modes.
 Three token-management operations use the same checked execution boundary.
@@ -44,7 +44,7 @@ Authentication preparation, endpoint, query and response foundations
 are available. The blocking/local/Send facade, official bundled constructors and
 anonymous artifact streaming have three-mode fixture coverage for all 51 API
 operations. Independent Cargo wire fixtures and local qualification pass;
-Commit 21 local qualification passed; its pentest and GitHub acceptance remain open. This is not yet a
+Commit 21 passed local qualification, pentest and GitHub. Final full-service candidate review remains open. This is not yet a
 release-qualified crates.io provider.
 
 ## Current Boundary
@@ -77,7 +77,7 @@ release-qualified crates.io provider.
 | Cargo publish | bounded metadata, exact little-endian framing, borrowed/streaming archives, API or temporary token consent and checked warnings; opt-in bundled blocking/local-async/Send-async upload |
 | Trusted publishing | GitHub/GitLab list/create/delete, assertion exchange and temporary-token revocation; local deadline/crate restrictions, not a JWT authenticator; three-mode unified execution |
 | Artifact streaming | opt-in bundled static-origin live body sources and SHA-256; caller-supplied transactional sink remains required |
-| Unified execution | blocking, local-async and Send-async typed reads and permits, including secret-path personal operations, plus streaming publish methods accepting a source; 51/51 three-mode fixtures pass, incremental pentest pending |
+| Unified execution | blocking, local-async and Send-async typed reads and permits, including secret-path personal operations, plus streaming publish methods accepting a source; 51/51 three-mode fixtures pass, full-service candidate review pending |
 
 See the [Commit 20 implementation ledger](https://github.com/valkyoth/cloud-sdk/blob/main/docs/CRATESIO_UNIFIED_CLIENT.md)
 for exact remaining gates. Do not treat these foundations as full-provider qualification.
@@ -882,6 +882,8 @@ bounded response admission are implemented. Bundled streaming publication is
 implemented, including secret-path execution. Local integration qualification
 is recorded in the Commit 20 ledger above; ongoing qualification is tracked in
 [Commit 21](https://github.com/valkyoth/cloud-sdk/blob/main/docs/CRATESIO_QUALIFICATION.md).
+Final scope freeze and release qualification are tracked in the
+[Commit 22 candidate](https://github.com/valkyoth/cloud-sdk/blob/main/docs/CRATESIO_CANDIDATE.md).
 Custom adapters must
 not log targets or retain unprotected secret URI copies. Bundled raw adapters
 clear owned URI staging; upstream HTTP/TLS buffers and server/proxy logs remain

@@ -11,6 +11,8 @@ mod cloud_value;
 mod dns;
 mod location;
 mod metrics;
+#[cfg(test)]
+mod network_member_tests;
 mod resources;
 mod result;
 mod scalars;
@@ -38,7 +40,8 @@ pub use certificate::{
 };
 pub use cloud_resources::{
     CloudResource, CloudResourceKind, Firewall, FloatingIp, Image, Iso, LoadBalancer,
-    LoadBalancerType, Network, PlacementGroup, PrimaryIp, Server, ServerType, Volume,
+    LoadBalancerType, Network, NetworkMember, PlacementGroup, PrimaryIp, Server, ServerType,
+    Volume,
 };
 pub use cloud_value::{CloudNumber, CloudObject, CloudValue};
 pub use dns::{

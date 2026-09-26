@@ -38,6 +38,8 @@ def example_value(schema: dict[str, Any]) -> Any:
         return max(float(schema.get("minimum", 1.0)), 1.0)
     if nonnull == "string":
         format_value = schema.get("format")
+        if format_value == "ipv4":
+            return "10.0.1.2"
         if format_value == "date-time":
             return "2026-01-01T00:00:00Z"
         if format_value == "decimal":

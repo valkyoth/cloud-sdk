@@ -10,4 +10,4 @@ cargo test -p cloud-sdk-hetzner --all-features \
     --test cloud_client_unpolled_cleanup
 cargo check -p cloud-sdk-hetzner --no-default-features
 
-echo "All 139 Cloud operations have source-locked client methods and executor evidence."
+echo "All 140 Cloud operations have source-locked client methods and executor evidence."

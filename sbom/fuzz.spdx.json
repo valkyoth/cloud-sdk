@@ -1,17 +1,31 @@
 {
   "SPDXID": "SPDXRef-DOCUMENT",
   "creationInfo": {
-    "created": "2026-09-26T13:00:00Z",
+    "created": "2026-09-26T15:21:41Z",
     "creators": [
       "Tool: cargo-sbom-v0.10.0",
       "Tool: cloud-sdk-complete-spdx-v1"
     ]
   },
   "dataLicense": "CC0-1.0",
-  "documentNamespace": "https://spdx.org/spdxdocs/fuzz-915f1e51-f3fe-44bd-9506-8e43a460c2a0",
+  "documentNamespace": "https://spdx.org/spdxdocs/fuzz-c2d92e12-74c3-4e29-bcef-64d99ef2fe60",
   "files": [
     {
-      "SPDXID": "SPDXRef-File-action_polling",
+      "SPDXID": "SPDXRef-File-buffer_writers",
+      "checksums": [
+        {
+          "algorithm": "SHA1",
+          "checksumValue": "fc47dd9cd31ca12478d792023e60367e5377fb17"
+        }
+      ],
+      "fileName": "./Cargo.lock",
+      "fileTypes": [
+        "SOURCE",
+        "TEXT"
+      ]
+    },
+    {
+      "SPDXID": "SPDXRef-File-request_targets",
       "checksums": [
         {
           "algorithm": "SHA1",
@@ -39,118 +53,6 @@
       ]
     },
     {
-      "SPDXID": "SPDXRef-File-buffer_writers",
-      "checksums": [
-        {
-          "algorithm": "SHA1",
-          "checksumValue": "fc47dd9cd31ca12478d792023e60367e5377fb17"
-        }
-      ],
-      "fileName": "./Cargo.lock",
-      "fileTypes": [
-        "SOURCE",
-        "TEXT"
-      ]
-    },
-    {
-      "SPDXID": "SPDXRef-File-checked_response",
-      "checksums": [
-        {
-          "algorithm": "SHA1",
-          "checksumValue": "fc47dd9cd31ca12478d792023e60367e5377fb17"
-        }
-      ],
-      "fileName": "./Cargo.lock",
-      "fileTypes": [
-        "SOURCE",
-        "TEXT"
-      ]
-    },
-    {
-      "SPDXID": "SPDXRef-File-cloud_special_responses",
-      "checksums": [
-        {
-          "algorithm": "SHA1",
-          "checksumValue": "fc47dd9cd31ca12478d792023e60367e5377fb17"
-        }
-      ],
-      "fileName": "./Cargo.lock",
-      "fileTypes": [
-        "SOURCE",
-        "TEXT"
-      ]
-    },
-    {
-      "SPDXID": "SPDXRef-File-cratesio_continuation",
-      "checksums": [
-        {
-          "algorithm": "SHA1",
-          "checksumValue": "fc47dd9cd31ca12478d792023e60367e5377fb17"
-        }
-      ],
-      "fileName": "./Cargo.lock",
-      "fileTypes": [
-        "SOURCE",
-        "TEXT"
-      ]
-    },
-    {
-      "SPDXID": "SPDXRef-File-cratesio_metadata",
-      "checksums": [
-        {
-          "algorithm": "SHA1",
-          "checksumValue": "fc47dd9cd31ca12478d792023e60367e5377fb17"
-        }
-      ],
-      "fileName": "./Cargo.lock",
-      "fileTypes": [
-        "SOURCE",
-        "TEXT"
-      ]
-    },
-    {
-      "SPDXID": "SPDXRef-File-cratesio_redirect",
-      "checksums": [
-        {
-          "algorithm": "SHA1",
-          "checksumValue": "fc47dd9cd31ca12478d792023e60367e5377fb17"
-        }
-      ],
-      "fileName": "./Cargo.lock",
-      "fileTypes": [
-        "SOURCE",
-        "TEXT"
-      ]
-    },
-    {
-      "SPDXID": "SPDXRef-File-cratesio_targets",
-      "checksums": [
-        {
-          "algorithm": "SHA1",
-          "checksumValue": "fc47dd9cd31ca12478d792023e60367e5377fb17"
-        }
-      ],
-      "fileName": "./Cargo.lock",
-      "fileTypes": [
-        "SOURCE",
-        "TEXT"
-      ]
-    },
-    {
-      "SPDXID": "SPDXRef-File-incremental_json",
-      "checksums": [
-        {
-          "algorithm": "SHA1",
-          "checksumValue": "fc47dd9cd31ca12478d792023e60367e5377fb17"
-        }
-      ],
-      "fileName": "./Cargo.lock",
-      "fileTypes": [
-        "SOURCE",
-        "TEXT"
-      ]
-    },
-    {
       "SPDXID": "SPDXRef-File-labels_dns",
       "checksums": [
         {
@@ -165,7 +67,7 @@
       ]
     },
     {
-      "SPDXID": "SPDXRef-File-metadata_response",
+      "SPDXID": "SPDXRef-File-pagination",
       "checksums": [
         {
           "algorithm": "SHA1",
@@ -179,7 +81,21 @@
       ]
     },
     {
-      "SPDXID": "SPDXRef-File-pagination",
+      "SPDXID": "SPDXRef-File-quota_retry",
+      "checksums": [
+        {
+          "algorithm": "SHA1",
+          "checksumValue": "fc47dd9cd31ca12478d792023e60367e5377fb17"
+        }
+      ],
+      "fileName": "./Cargo.lock",
+      "fileTypes": [
+        "SOURCE",
+        "TEXT"
+      ]
+    },
+    {
+      "SPDXID": "SPDXRef-File-retry_policy",
       "checksums": [
         {
           "algorithm": "SHA1",
@@ -221,63 +137,7 @@
       ]
     },
     {
-      "SPDXID": "SPDXRef-File-quota_retry",
-      "checksums": [
-        {
-          "algorithm": "SHA1",
-          "checksumValue": "fc47dd9cd31ca12478d792023e60367e5377fb17"
-        }
-      ],
-      "fileName": "./Cargo.lock",
-      "fileTypes": [
-        "SOURCE",
-        "TEXT"
-      ]
-    },
-    {
-      "SPDXID": "SPDXRef-File-raw_http1_wire",
-      "checksums": [
-        {
-          "algorithm": "SHA1",
-          "checksumValue": "fc47dd9cd31ca12478d792023e60367e5377fb17"
-        }
-      ],
-      "fileName": "./Cargo.lock",
-      "fileTypes": [
-        "SOURCE",
-        "TEXT"
-      ]
-    },
-    {
-      "SPDXID": "SPDXRef-File-raw_response_parser",
-      "checksums": [
-        {
-          "algorithm": "SHA1",
-          "checksumValue": "fc47dd9cd31ca12478d792023e60367e5377fb17"
-        }
-      ],
-      "fileName": "./Cargo.lock",
-      "fileTypes": [
-        "SOURCE",
-        "TEXT"
-      ]
-    },
-    {
-      "SPDXID": "SPDXRef-File-request_targets",
-      "checksums": [
-        {
-          "algorithm": "SHA1",
-          "checksumValue": "fc47dd9cd31ca12478d792023e60367e5377fb17"
-        }
-      ],
-      "fileName": "./Cargo.lock",
-      "fileTypes": [
-        "SOURCE",
-        "TEXT"
-      ]
-    },
-    {
-      "SPDXID": "SPDXRef-File-response_content_type",
+      "SPDXID": "SPDXRef-File-action_polling",
       "checksums": [
         {
           "algorithm": "SHA1",
@@ -305,7 +165,7 @@
       ]
     },
     {
-      "SPDXID": "SPDXRef-File-retry_policy",
+      "SPDXID": "SPDXRef-File-response_content_type",
       "checksums": [
         {
           "algorithm": "SHA1",
@@ -319,7 +179,7 @@
       ]
     },
     {
-      "SPDXID": "SPDXRef-File-robot_boot_response",
+      "SPDXID": "SPDXRef-File-checked_response",
       "checksums": [
         {
           "algorithm": "SHA1",
@@ -333,7 +193,7 @@
       ]
     },
     {
-      "SPDXID": "SPDXRef-File-robot_cancellation_response",
+      "SPDXID": "SPDXRef-File-cloud_special_responses",
       "checksums": [
         {
           "algorithm": "SHA1",
@@ -347,7 +207,7 @@
       ]
     },
     {
-      "SPDXID": "SPDXRef-File-robot_error_protocol",
+      "SPDXID": "SPDXRef-File-raw_response_parser",
       "checksums": [
         {
           "algorithm": "SHA1",
@@ -361,7 +221,7 @@
       ]
     },
     {
-      "SPDXID": "SPDXRef-File-robot_failover_response",
+      "SPDXID": "SPDXRef-File-raw_http1_wire",
       "checksums": [
         {
           "algorithm": "SHA1",
@@ -375,7 +235,7 @@
       ]
     },
     {
-      "SPDXID": "SPDXRef-File-robot_firewall_response",
+      "SPDXID": "SPDXRef-File-incremental_json",
       "checksums": [
         {
           "algorithm": "SHA1",
@@ -403,63 +263,7 @@
       ]
     },
     {
-      "SPDXID": "SPDXRef-File-robot_ip_parser",
-      "checksums": [
-        {
-          "algorithm": "SHA1",
-          "checksumValue": "fc47dd9cd31ca12478d792023e60367e5377fb17"
-        }
-      ],
-      "fileName": "./Cargo.lock",
-      "fileTypes": [
-        "SOURCE",
-        "TEXT"
-      ]
-    },
-    {
-      "SPDXID": "SPDXRef-File-robot_ip_response",
-      "checksums": [
-        {
-          "algorithm": "SHA1",
-          "checksumValue": "fc47dd9cd31ca12478d792023e60367e5377fb17"
-        }
-      ],
-      "fileName": "./Cargo.lock",
-      "fileTypes": [
-        "SOURCE",
-        "TEXT"
-      ]
-    },
-    {
-      "SPDXID": "SPDXRef-File-robot_ordering_response",
-      "checksums": [
-        {
-          "algorithm": "SHA1",
-          "checksumValue": "fc47dd9cd31ca12478d792023e60367e5377fb17"
-        }
-      ],
-      "fileName": "./Cargo.lock",
-      "fileTypes": [
-        "SOURCE",
-        "TEXT"
-      ]
-    },
-    {
-      "SPDXID": "SPDXRef-File-robot_rdns_response",
-      "checksums": [
-        {
-          "algorithm": "SHA1",
-          "checksumValue": "fc47dd9cd31ca12478d792023e60367e5377fb17"
-        }
-      ],
-      "fileName": "./Cargo.lock",
-      "fileTypes": [
-        "SOURCE",
-        "TEXT"
-      ]
-    },
-    {
-      "SPDXID": "SPDXRef-File-robot_reset_response",
+      "SPDXID": "SPDXRef-File-robot_error_protocol",
       "checksums": [
         {
           "algorithm": "SHA1",
@@ -487,7 +291,35 @@
       ]
     },
     {
-      "SPDXID": "SPDXRef-File-robot_ssh_key_response",
+      "SPDXID": "SPDXRef-File-robot_ip_parser",
+      "checksums": [
+        {
+          "algorithm": "SHA1",
+          "checksumValue": "fc47dd9cd31ca12478d792023e60367e5377fb17"
+        }
+      ],
+      "fileName": "./Cargo.lock",
+      "fileTypes": [
+        "SOURCE",
+        "TEXT"
+      ]
+    },
+    {
+      "SPDXID": "SPDXRef-File-robot_cancellation_response",
+      "checksums": [
+        {
+          "algorithm": "SHA1",
+          "checksumValue": "fc47dd9cd31ca12478d792023e60367e5377fb17"
+        }
+      ],
+      "fileName": "./Cargo.lock",
+      "fileTypes": [
+        "SOURCE",
+        "TEXT"
+      ]
+    },
+    {
+      "SPDXID": "SPDXRef-File-robot_ip_response",
       "checksums": [
         {
           "algorithm": "SHA1",
@@ -515,7 +347,119 @@
       ]
     },
     {
+      "SPDXID": "SPDXRef-File-robot_reset_response",
+      "checksums": [
+        {
+          "algorithm": "SHA1",
+          "checksumValue": "fc47dd9cd31ca12478d792023e60367e5377fb17"
+        }
+      ],
+      "fileName": "./Cargo.lock",
+      "fileTypes": [
+        "SOURCE",
+        "TEXT"
+      ]
+    },
+    {
+      "SPDXID": "SPDXRef-File-robot_failover_response",
+      "checksums": [
+        {
+          "algorithm": "SHA1",
+          "checksumValue": "fc47dd9cd31ca12478d792023e60367e5377fb17"
+        }
+      ],
+      "fileName": "./Cargo.lock",
+      "fileTypes": [
+        "SOURCE",
+        "TEXT"
+      ]
+    },
+    {
+      "SPDXID": "SPDXRef-File-robot_boot_response",
+      "checksums": [
+        {
+          "algorithm": "SHA1",
+          "checksumValue": "fc47dd9cd31ca12478d792023e60367e5377fb17"
+        }
+      ],
+      "fileName": "./Cargo.lock",
+      "fileTypes": [
+        "SOURCE",
+        "TEXT"
+      ]
+    },
+    {
+      "SPDXID": "SPDXRef-File-robot_rdns_response",
+      "checksums": [
+        {
+          "algorithm": "SHA1",
+          "checksumValue": "fc47dd9cd31ca12478d792023e60367e5377fb17"
+        }
+      ],
+      "fileName": "./Cargo.lock",
+      "fileTypes": [
+        "SOURCE",
+        "TEXT"
+      ]
+    },
+    {
       "SPDXID": "SPDXRef-File-robot_traffic_response",
+      "checksums": [
+        {
+          "algorithm": "SHA1",
+          "checksumValue": "fc47dd9cd31ca12478d792023e60367e5377fb17"
+        }
+      ],
+      "fileName": "./Cargo.lock",
+      "fileTypes": [
+        "SOURCE",
+        "TEXT"
+      ]
+    },
+    {
+      "SPDXID": "SPDXRef-File-robot_ssh_key_response",
+      "checksums": [
+        {
+          "algorithm": "SHA1",
+          "checksumValue": "fc47dd9cd31ca12478d792023e60367e5377fb17"
+        }
+      ],
+      "fileName": "./Cargo.lock",
+      "fileTypes": [
+        "SOURCE",
+        "TEXT"
+      ]
+    },
+    {
+      "SPDXID": "SPDXRef-File-robot_firewall_response",
+      "checksums": [
+        {
+          "algorithm": "SHA1",
+          "checksumValue": "fc47dd9cd31ca12478d792023e60367e5377fb17"
+        }
+      ],
+      "fileName": "./Cargo.lock",
+      "fileTypes": [
+        "SOURCE",
+        "TEXT"
+      ]
+    },
+    {
+      "SPDXID": "SPDXRef-File-robot_vswitch_response",
+      "checksums": [
+        {
+          "algorithm": "SHA1",
+          "checksumValue": "fc47dd9cd31ca12478d792023e60367e5377fb17"
+        }
+      ],
+      "fileName": "./Cargo.lock",
+      "fileTypes": [
+        "SOURCE",
+        "TEXT"
+      ]
+    },
+    {
+      "SPDXID": "SPDXRef-File-robot_ordering_response",
       "checksums": [
         {
           "algorithm": "SHA1",
@@ -543,7 +487,63 @@
       ]
     },
     {
-      "SPDXID": "SPDXRef-File-robot_vswitch_response",
+      "SPDXID": "SPDXRef-File-metadata_response",
+      "checksums": [
+        {
+          "algorithm": "SHA1",
+          "checksumValue": "fc47dd9cd31ca12478d792023e60367e5377fb17"
+        }
+      ],
+      "fileName": "./Cargo.lock",
+      "fileTypes": [
+        "SOURCE",
+        "TEXT"
+      ]
+    },
+    {
+      "SPDXID": "SPDXRef-File-cratesio_targets",
+      "checksums": [
+        {
+          "algorithm": "SHA1",
+          "checksumValue": "fc47dd9cd31ca12478d792023e60367e5377fb17"
+        }
+      ],
+      "fileName": "./Cargo.lock",
+      "fileTypes": [
+        "SOURCE",
+        "TEXT"
+      ]
+    },
+    {
+      "SPDXID": "SPDXRef-File-cratesio_metadata",
+      "checksums": [
+        {
+          "algorithm": "SHA1",
+          "checksumValue": "fc47dd9cd31ca12478d792023e60367e5377fb17"
+        }
+      ],
+      "fileName": "./Cargo.lock",
+      "fileTypes": [
+        "SOURCE",
+        "TEXT"
+      ]
+    },
+    {
+      "SPDXID": "SPDXRef-File-cratesio_continuation",
+      "checksums": [
+        {
+          "algorithm": "SHA1",
+          "checksumValue": "fc47dd9cd31ca12478d792023e60367e5377fb17"
+        }
+      ],
+      "fileName": "./Cargo.lock",
+      "fileTypes": [
+        "SOURCE",
+        "TEXT"
+      ]
+    },
+    {
+      "SPDXID": "SPDXRef-File-cratesio_redirect",
       "checksums": [
         {
           "algorithm": "SHA1",

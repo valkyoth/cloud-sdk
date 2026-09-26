@@ -11,13 +11,13 @@ Sources:
 - Storage Boxes: <https://docs.hetzner.cloud/hetzner.spec.json>
 - Robot Webservice: <https://robot.hetzner.com/doc/webservice/en.html>
 
-OpenAPI sources retrieved: 2026-07-08.
+OpenAPI sources retrieved: 2026-09-26.
 Robot source retrieved: 2026-08-14.
-Total OpenAPI source-locked operations: 221 (`cloud`: 189, `hetzner`: 32).
-Request coverage: 208 non-deprecated operations implemented; 13 deprecated
+Total OpenAPI source-locked operations: 222 (`cloud`: 190, `hetzner`: 32).
+Request coverage: 209 non-deprecated operations implemented; 13 deprecated
 operations deferred.
-Parameter coverage: all 437 path/query declarations are inventoried; all 218
-active query declarations across 47 operations are executable through the
+Parameter coverage: all 444 path/query declarations are inventoried; all 224
+active query declarations across 48 operations are executable through the
 operation-bound source query, while four deprecated Data Center query rows are
 explicit exclusions. All 91 active request-body operations remain typed.
 
@@ -31,8 +31,8 @@ explicit exclusions. All 91 active request-body operations remain typed.
   complete repeated-value fallback when a convenience request exposes only a
   common single-value shortcut. Metrics `type` is the reviewed comma-separated
   prose exception; ordinary arrays use repeated form parameters.
-- Status records request-model coverage. Prepared endpoint coverage for all 208 active operations and body coverage for all 91 active operations with request bodies are independently enforced by `scripts/check_prepared_operation_coverage.py`.
-- Success status, response family, root key, required fields, and checked decoder coverage for all 208 active operations are independently enforced by `scripts/check_response_operation_coverage.py` and the fetched API drift gate.
+- Status records request-model coverage. Prepared endpoint coverage for all 209 active operations and body coverage for all 91 active operations with request bodies are independently enforced by `scripts/check_prepared_operation_coverage.py`.
+- Success status, response family, root key, required fields, and checked decoder coverage for all 209 active operations are independently enforced by `scripts/check_response_operation_coverage.py` and the fetched API drift gate.
 - Non-deprecated operations must have an `implemented` request status. The release gate rejects planned or deferred active operations.
 
 ## Owner Modules
@@ -172,6 +172,7 @@ explicit exclusions. All 91 active request-body operations remain typed.
 | cloud | Networks | POST | `/networks` | `create_network` | `cloud_sdk_hetzner::cloud::networks` | no | no | none | no | implemented-v0.10 |
 | cloud | Networks | DELETE | `/networks/{id}` | `delete_network` | `cloud_sdk_hetzner::cloud::networks` | no | no | none | no | implemented-v0.10 |
 | cloud | Networks | GET | `/networks/{id}` | `get_network` | `cloud_sdk_hetzner::cloud::networks` | no | no | none | no | implemented-v0.10 |
+| cloud | Networks | GET | `/networks/{id}/members` | `list_network_members` | `cloud_sdk_hetzner::cloud::networks` | yes | yes | none | no | implemented-v1.1 |
 | cloud | Networks | PUT | `/networks/{id}` | `update_network` | `cloud_sdk_hetzner::cloud::networks` | no | no | none | no | implemented-v0.10 |
 | cloud | Placement Groups | GET | `/placement_groups` | `list_placement_groups` | `cloud_sdk_hetzner::cloud::servers` | yes | yes | none | no | implemented-v0.7 |
 | cloud | Placement Groups | POST | `/placement_groups` | `create_placement_group` | `cloud_sdk_hetzner::cloud::servers` | no | no | none | no | implemented-v0.7 |

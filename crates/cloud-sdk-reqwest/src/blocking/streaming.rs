@@ -33,9 +33,7 @@ impl BlockingStreamSource for BlockingStreamingResponse {
             ));
         }
         let runtime = self.runtime.as_ref().ok_or_else(|| {
-            cloud_sdk::transport::TransportFailure::response_started(
-                RawHttpError::InvalidStreamState,
-            )
+            cloud_sdk::transport::TransportFailure::response_started(RawHttpError::RequestFailed)
         })?;
         runtime.block_on(self.response.read_chunk(output))
     }

@@ -133,7 +133,7 @@ impl EndpointWire for ChangingMethodEndpoint<'_> {
 
 #[test]
 fn registry_is_complete_unique_and_stably_sorted() {
-    assert_eq!(ALL_OPERATIONS.len(), 208);
+    assert_eq!(ALL_OPERATIONS.len(), 209);
     assert!(ALL_OPERATIONS.windows(2).all(|pair| {
         let Some(left) = pair.first() else {
             return false;
@@ -148,7 +148,7 @@ fn registry_is_complete_unique_and_stably_sorted() {
             .iter()
             .filter(|descriptor| descriptor.service_id() == CLOUD_SERVICE_ID)
             .count(),
-        139
+        140
     );
     assert_eq!(
         ALL_OPERATIONS

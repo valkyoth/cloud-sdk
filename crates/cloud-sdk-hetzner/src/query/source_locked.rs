@@ -138,16 +138,25 @@ pub enum SourceQueryValue<'a> {
 /// One typed source-query argument.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub struct SourceQueryArgument<'a> {
-    parameter: SourceQueryParameter,
+    parameter: &'static str,
     value: SourceQueryValue<'a>,
 }
 
 impl<'a> SourceQueryArgument<'a> {
+    /// Filters Network members by subnet; only admitted on the source-locked operation.
+    #[must_use]
+    pub const fn subnet(value: SourceQueryText<'a>) -> Self {
+        Self {
+            parameter: "subnet",
+            value: SourceQueryValue::Text(value),
+        }
+    }
+
     /// Creates an integer argument.
     #[must_use]
     pub const fn integer(parameter: SourceQueryParameter, value: u64) -> Self {
         Self {
-            parameter,
+            parameter: parameter.as_str(),
             value: SourceQueryValue::Integer(value),
         }
     }
@@ -156,7 +165,7 @@ impl<'a> SourceQueryArgument<'a> {
     #[must_use]
     pub const fn boolean(parameter: SourceQueryParameter, value: bool) -> Self {
         Self {
-            parameter,
+            parameter: parameter.as_str(),
             value: SourceQueryValue::Boolean(value),
         }
     }
@@ -165,7 +174,7 @@ impl<'a> SourceQueryArgument<'a> {
     #[must_use]
     pub const fn text(parameter: SourceQueryParameter, value: SourceQueryText<'a>) -> Self {
         Self {
-            parameter,
+            parameter: parameter.as_str(),
             value: SourceQueryValue::Text(value),
         }
     }
@@ -286,7 +295,7 @@ impl<'a> SourceLockedQuery<'a> {
                         continue;
                     }
                     for argument in query.arguments {
-                        if argument.parameter.as_str() == contract.name {
+                        if argument.parameter == contract.name {
                             write_argument(encoder, &mut first, *argument)?;
                         }
                     }
@@ -350,11 +359,11 @@ impl<'a> Contract<'a> {
 
 fn find_contract(
     operation: SourceQueryOperation,
-    parameter: SourceQueryParameter,
+    parameter: &str,
 ) -> Result<Option<Contract<'static>>, SourceQueryError> {
     for line in CONTRACTS.lines().skip(1) {
         let contract = Contract::parse(line)?;
-        if contract.operation == operation.as_str() && contract.name == parameter.as_str() {
+        if contract.operation == operation.as_str() && contract.name == parameter {
             return Ok(Some(contract));
         }
     }
@@ -366,7 +375,7 @@ fn write_argument(
     first: &mut bool,
     argument: SourceQueryArgument<'_>,
 ) -> Result<(), SourceQueryError> {
-    let name = argument.parameter.as_str();
+    let name = argument.parameter;
     match argument.value {
         SourceQueryValue::Integer(value) => encoder.query_u64(first, name, value),
         SourceQueryValue::Boolean(value) => {
@@ -384,7 +393,7 @@ fn write_comma_arguments(
 ) -> Result<(), SourceQueryError> {
     let mut values = arguments
         .iter()
-        .filter(|argument| argument.parameter.as_str() == contract.name);
+        .filter(|argument| argument.parameter == contract.name);
     let Some(initial) = values.next() else {
         return Ok(());
     };

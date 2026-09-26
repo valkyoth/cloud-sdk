@@ -49,6 +49,30 @@ is implemented.
 
 ## Completed Checkpoints
 
+### Commit 22 - Candidate Scope Freeze (Qualification In Progress)
+
+Commit 21 passed pentest/retest and GitHub at `cbcaf17f`. The candidate retains
+all 51 selected crates.io operations and their stable/experimental/deprecated
+classifications. See the [candidate qualification](../docs/CRATESIO_CANDIDATE.md)
+for the complete gate, compatibility review and full-service pentest boundary.
+
+- Resolves the September Hetzner drift: Network members requests, repeated
+  filters/sorting, bounded source-complete responses and all three client modes.
+  Coverage increases to 209 active operations, including 140 Cloud methods.
+- Refreshes Primary IP response schemas without changing request bodies or the
+  existing assignment-coherence checks; reviews upcoming deprecations.
+- Adds six-package byte reproduction from two clean clones, with dirty-tree,
+  mismatched-artifact and incomplete-set regression coverage.
+- Composes full qualification and live provider drift into the candidate/release
+  gate. Local success does not imply pentest acceptance or publication approval.
+- Restores the published exhaustive raw transport error enum after the final
+  SemVer review; streaming/URI failures reuse existing errors while retaining
+  delivery phase and cleanup. Adds external-consumer compatibility witnesses.
+
+The new API is additive: existing exhaustive endpoint/query enums are unchanged.
+The candidate remains unreleased and publication-blocked. Full-service pentest,
+GitHub CI and CodeQL acceptance must follow the exact committed candidate.
+
 ### Commit 1 - Source Lock And Finite Scope
 
 - Locked six bounded official source representations: the public OpenAPI

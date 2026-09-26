@@ -2,11 +2,29 @@
 
 Status: current source lock reviewed for the unreleased `1.1.0` candidate.
 
-Retrieved: 2026-09-10
+Retrieved: 2026-09-26
 Reference page: <https://docs.hetzner.cloud/reference/cloud>
 Changelog page: <https://docs.hetzner.cloud/changelog>
 
 ## Locked Specs
+
+### Reviewed Live Drift (2026-09-26)
+
+Commit 22 adds `GET /networks/{id}/members`: numbered pagination, repeated
+type/status/subnet filters, repeated sorting, a dedicated prepared endpoint,
+source-complete membership response model and all three client execution modes.
+The response does not echo the parent Network ID; association relies on the
+authenticated exchange, not an invented parent field. Member IDs refer to
+different resource types and must be interpreted with their `type` field.
+Unknown response type/status text is retained, as for other Cloud resources.
+Requests still reject unknown filter values against the pinned schema.
+
+Four Primary IP success schemas now admit `unassigned`. Existing cross-field
+validation already enforces null IDs for that value and positive IDs for
+`server`. Creation still sends `server`; no request body semantics changed.
+No standalone component schema changed. The inventory is now 222 operations,
+209 active, with 444 parameter declarations. Reviewed deprecations remain in
+the [changelog lock](HETZNER_CHANGELOG_LOCK.md); full candidate pentest is pending.
 
 ### Reviewed Live Drift (2026-09-10)
 
@@ -50,10 +68,10 @@ Commit 8's pentest range; it is not publication authorization.
 
 | API | URL | OpenAPI | Title | Spec Version | Paths | Operations | SHA-256 | Last-Modified | ETag | Content-Length |
 | --- | --- | --- | --- | --- | ---: | ---: | --- | --- | --- | ---: |
-| `cloud` | <https://docs.hetzner.cloud/cloud.spec.json> | `3.1.2` | `Hetzner Cloud API` | `1.0.0` | 151 | 189 | `7467483b455386dcff8db84b87bad3b7353ffabf08a82c020d7e053028670421` | `Tue, 08 Sep 2026 10:31:03 GMT` | `W/"3543ee-1a080923f94"` | 3490798 |
+| `cloud` | <https://docs.hetzner.cloud/cloud.spec.json> | `3.1.2` | `Hetzner Cloud API` | `1.0.0` | 152 | 190 | `592b22eb5a71b960d4d4b9cd13a026f8948828bf7ca7c5d88ea73ce9259b0fd5` | not recorded | not recorded | 3508428 |
 | `hetzner` | <https://docs.hetzner.cloud/hetzner.spec.json> | `3.1.2` | `Hetzner API` | `1.0.0` | 23 | 32 | `0afcd318330d18896104f6f99459e41692956665ce45c11b8b304391a651e0f8` | `Tue, 08 Sep 2026 10:31:03 GMT` | `W/"7ed90-1a080923f95"` | 519568 |
 
-Total source-locked operations: 221 (`cloud`: 189, `hetzner`: 32).
+Total source-locked operations: 222 (`cloud`: 190, `hetzner`: 32).
 
 The rendered documentation page configures these machine-readable specs for the
 client-side API reference. `cloud.spec.json` covers the Cloud and DNS API
@@ -65,7 +83,7 @@ Locked operation fingerprints live in `docs/API_FINGERPRINTS.tsv`. Locked
 component schema fingerprints live in `docs/API_SCHEMA_FINGERPRINTS.tsv`.
 The prose-only canonical Server Metadata routes and response fields live in
 `docs/METADATA_FINGERPRINTS.tsv`.
-The 437 effective path, query, header, and cookie parameter contracts live in
+The 444 effective path, query, header, and cookie parameter contracts live in
 `docs/API_PARAMETER_FINGERPRINTS.tsv`. Each row preserves operation ownership,
 requiredness, scalar/array and item types, format, effective OpenAPI
 style/explode encoding, enum values, bounds, and a semantic parameter digest.

@@ -2,7 +2,7 @@
 set -eu
 
 cloud_url="https://docs.hetzner.cloud/cloud.spec.json"
-cloud_sha256="7467483b455386dcff8db84b87bad3b7353ffabf08a82c020d7e053028670421"
+cloud_sha256="592b22eb5a71b960d4d4b9cd13a026f8948828bf7ca7c5d88ea73ce9259b0fd5"
 hetzner_url="https://docs.hetzner.cloud/hetzner.spec.json"
 hetzner_sha256="0afcd318330d18896104f6f99459e41692956665ce45c11b8b304391a651e0f8"
 
@@ -25,10 +25,10 @@ check_local_lock() {
     require_text docs/SPEC_LOCK.md "$cloud_sha256"
     require_text docs/SPEC_LOCK.md "$hetzner_url"
     require_text docs/SPEC_LOCK.md "$hetzner_sha256"
-    require_text docs/SPEC_LOCK.md "Total source-locked operations: 221"
-    require_text docs/SPEC_LOCK.md "2026-09-10"
+    require_text docs/SPEC_LOCK.md "Total source-locked operations: 222"
+    require_text docs/SPEC_LOCK.md "2026-09-26"
 
-    require_text docs/API_MATRIX.md "Total OpenAPI source-locked operations: 221"
+    require_text docs/API_MATRIX.md "Total OpenAPI source-locked operations: 222"
     require_text docs/API_MATRIX.md "| cloud | Actions | GET | \`/actions\` | \`get_actions\` |"
     require_text docs/API_MATRIX.md "| cloud | Data Centers | GET | \`/datacenters\` | \`list_datacenters\` |"
     require_text docs/API_MATRIX.md "| cloud | Zone RRSet Actions | POST | \`/zones/{id_or_name}/rrsets/{rr_name}/{rr_type}/actions/change_ttl\` |"

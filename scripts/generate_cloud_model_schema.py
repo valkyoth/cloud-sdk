@@ -58,6 +58,7 @@ MODEL_ROOTS = {
     "locations": "location",
     "network": "network",
     "networks": "network",
+    "members": "network_member",
     "placement_group": "placement_group",
     "placement_groups": "placement_group",
     "pricing": "pricing",

@@ -10,8 +10,8 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_MATRIX = ROOT / "docs" / "API_MATRIX.md"
-EXPECTED_TOTAL = 221
-EXPECTED_NON_DEPRECATED = 208
+EXPECTED_TOTAL = 222
+EXPECTED_NON_DEPRECATED = 209
 EXPECTED_DEPRECATED = 13
 MAX_MATRIX_BYTES = 2 * 1024 * 1024
 IMPLEMENTED_STATUS = re.compile(r"implemented(?:-v[0-9]+\.[0-9]+)?")

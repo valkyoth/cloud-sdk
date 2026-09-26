@@ -36,14 +36,14 @@ pub use models::{
     DnsRecord, DnsResource, DnsResourceKind, DnsRrset, DnsRrsetProtection, DnsRrsetType,
     DnsTsigAlgorithm, ExactDecimal, Firewall, FloatingIp, FolderList, HetznerSuccess, Image, Iso,
     Labels, LoadBalancer, LoadBalancerType, Location, LocationPage, MAX_ZONE_RECORD_COUNT,
-    MetricPoint, MetricSeries, Metrics, Money, NamedSensitiveText, Network, PlacementGroup, Price,
-    Pricing, PrimaryIp, PrimaryNameserver, Protection, Resource, ResourceIdentifier, ResourceKind,
-    ResponseModelError, SecurityResource, SecurityResourceKind, SensitiveText, Server, ServerType,
-    SnapshotPlan, SshKey, StorageBox, StorageBoxPage, StorageBoxResource, StorageBoxSnapshot,
-    StorageBoxSnapshotReference, StorageBoxSnapshotStats, StorageBoxStats, StorageBoxStatus,
-    StorageBoxSubaccount, StorageBoxSubaccountAccessSettings, StorageBoxSubaccountReference,
-    StorageBoxType, StorageBoxTypePage, UtcTimestamp, Volume, Zone, ZoneDelegationStatus, ZoneFile,
-    ZoneMode, ZoneProtection, ZoneRegistrar, ZoneStatus,
+    MetricPoint, MetricSeries, Metrics, Money, NamedSensitiveText, Network, NetworkMember,
+    PlacementGroup, Price, Pricing, PrimaryIp, PrimaryNameserver, Protection, Resource,
+    ResourceIdentifier, ResourceKind, ResponseModelError, SecurityResource, SecurityResourceKind,
+    SensitiveText, Server, ServerType, SnapshotPlan, SshKey, StorageBox, StorageBoxPage,
+    StorageBoxResource, StorageBoxSnapshot, StorageBoxSnapshotReference, StorageBoxSnapshotStats,
+    StorageBoxStats, StorageBoxStatus, StorageBoxSubaccount, StorageBoxSubaccountAccessSettings,
+    StorageBoxSubaccountReference, StorageBoxType, StorageBoxTypePage, UtcTimestamp, Volume, Zone,
+    ZoneDelegationStatus, ZoneFile, ZoneMode, ZoneProtection, ZoneRegistrar, ZoneStatus,
 };
 pub use pagination::PaginationEnvelope;
 pub use response::{

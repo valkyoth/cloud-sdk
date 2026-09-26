@@ -141,6 +141,7 @@ cloud	cloud	list_load_balancers	200	resource-page	load_balancers	load_balancers,
 cloud	cloud	list_load_balancers_actions	200	actions-page	-	actions,meta
 cloud	cloud	list_locations	200	resource-page	locations	locations,meta
 cloud	cloud	list_network_actions	200	actions-page	-	actions,meta
+cloud	cloud	list_network_members	200	resource-page	members	members,meta
 cloud	cloud	list_networks	200	resource-page	networks	meta,networks
 cloud	cloud	list_networks_actions	200	actions-page	-	actions,meta
 cloud	cloud	list_placement_groups	200	resource-page	placement_groups	meta,placement_groups

@@ -36,10 +36,10 @@ def main() -> int:
     generator = load_generator()
     operations = generator.load_operations()
     associations = generator.read_associations()
-    require(len(operations) == 208, "operation count changed")
-    require(len(associations) == 208, "association count changed")
+    require(len(operations) == 209, "operation count changed")
+    require(len(associations) == 209, "association count changed")
     require(
-        len({operation.operation_id for operation in operations}) == 208,
+        len({operation.operation_id for operation in operations}) == 209,
         "operation IDs are not unique",
     )
     require(
@@ -157,7 +157,7 @@ def main() -> int:
         generated.count("Association for Hetzner operation") == 1,
         "generated operation documentation changed",
     )
-    require(generated.count("        (") == 208, "generated row count changed")
+    require(generated.count("        (") == 209, "generated row count changed")
     fixed_associations = (
         "type AuthenticationScope = RequiredServiceScope;",
         "type RequestHeaders = body_headers!($body);",
@@ -188,7 +188,7 @@ def main() -> int:
         "must not run with Python optimization" in optimized.stderr,
         "optimized execution did not fail for the expected reason",
     )
-    print("208 exhaustive association rows and strict manifest failures checked.")
+    print("209 exhaustive association rows and strict manifest failures checked.")
     return 0
 
 

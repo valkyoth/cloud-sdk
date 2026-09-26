@@ -369,6 +369,7 @@ cloud_client_methods!(
     (ListLoadBalancersActions, prepare_list_load_balancers_actions, list_load_balancers_actions_blocking, list_load_balancers_actions_async, list_load_balancers_actions_local_async, none),
     (ListLocations, prepare_list_locations, list_locations_blocking, list_locations_async, list_locations_local_async, none),
     (ListNetworkActions, prepare_list_network_actions, list_network_actions_blocking, list_network_actions_async, list_network_actions_local_async, none),
+    (ListNetworkMembers, prepare_list_network_members, list_network_members_blocking, list_network_members_async, list_network_members_local_async, none),
     (ListNetworks, prepare_list_networks, list_networks_blocking, list_networks_async, list_networks_local_async, none),
     (ListNetworksActions, prepare_list_networks_actions, list_networks_actions_blocking, list_networks_actions_async, list_networks_actions_local_async, none),
     (ListPlacementGroups, prepare_list_placement_groups, list_placement_groups_blocking, list_placement_groups_async, list_placement_groups_local_async, none),

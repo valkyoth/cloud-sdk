@@ -72,7 +72,7 @@ fn upload_preflight_rejects_incoherent_requests_without_observing_source() {
                     if case == 0 {
                         RawHttpError::MissingContentType
                     } else {
-                        RawHttpError::InvalidStreamState
+                        RawHttpError::RequestFailed
                     }
                 ))
             );

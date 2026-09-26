@@ -39,7 +39,7 @@ provider-owned contract:
    execution permit required by state-changing metadata.
 
 The provider crate covers preparation, checked typed envelope decoding, and
-named client workflows for all 208 active operations: 139 Cloud, 24 DNS, 14
+named client workflows for all 209 active operations: 140 Cloud, 24 DNS, 14
 Security, and 31 Console Storage operations. Read-only methods prepare,
 execute, enforce response policy, and decode through one caller-owned
 workspace lease. State-changing methods retain separate named preparation and

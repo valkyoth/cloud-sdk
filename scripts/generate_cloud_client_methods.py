@@ -10,7 +10,7 @@ import generate_operation_associations as associations
 
 ROOT = Path(__file__).resolve().parents[1]
 OUTPUT = ROOT / "crates/cloud-sdk-hetzner/src/client/cloud.rs"
-EXPECTED_CLOUD_OPERATIONS = 139
+EXPECTED_CLOUD_OPERATIONS = 140
 
 
 HEADER = """//! Generated exhaustive methods for the official Hetzner Cloud client.

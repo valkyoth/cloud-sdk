@@ -44,6 +44,8 @@ impl SourceQueryOperation {
     pub const LIST_LOCATIONS: Self = Self("list_locations");
     /// Source-locked `list_network_actions` query operation.
     pub const LIST_NETWORK_ACTIONS: Self = Self("list_network_actions");
+    /// Source-locked `list_network_members` query operation.
+    pub const LIST_NETWORK_MEMBERS: Self = Self("list_network_members");
     /// Source-locked `list_networks` query operation.
     pub const LIST_NETWORKS: Self = Self("list_networks");
     /// Source-locked `list_networks_actions` query operation.

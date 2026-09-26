@@ -16,7 +16,7 @@ DEFAULT_OUTPUT = (
     ROOT / "crates" / "cloud-sdk-hetzner" / "src" / "serde" / "response_operations.tsv"
 )
 METHODS = ("get", "post", "put", "delete")
-EXPECTED_ACTIVE = 208
+EXPECTED_ACTIVE = 209
 ASSOCIATIONS = ROOT / "docs" / "OPERATION_ASSOCIATIONS.tsv"
 SPECIAL_KEYS = {
     "action",

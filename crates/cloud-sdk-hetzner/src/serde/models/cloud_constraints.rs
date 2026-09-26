@@ -25,6 +25,7 @@ pub(super) fn validate_format(value: &Value, format: &str) -> Result<(), Respons
             .ok_or(ResponseModelError::InvalidNumber),
         "date-time" => validate_text(value, valid_rfc3339),
         "decimal" => validate_text(value, valid_decimal),
+        "ipv4" => validate_text(value, |value| value.parse::<core::net::Ipv4Addr>().is_ok()),
         _ => Err(ResponseModelError::SchemaMismatch),
     }
 }

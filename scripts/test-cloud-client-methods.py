@@ -24,7 +24,7 @@ def main() -> int:
         for operation in generator.associations.load_operations()
         if operation.service == "cloud"
     ]
-    require(len(operations) == 139, "Cloud operation count changed")
+    require(len(operations) == 140, "Cloud operation count changed")
     operation_ids = [operation.operation_id for operation in operations]
     require(operation_ids == sorted(operation_ids), "Cloud operations are not sorted")
     require(len(operation_ids) == len(set(operation_ids)), "Cloud operations are not unique")
@@ -35,17 +35,17 @@ def main() -> int:
     }
     require(
         permit_counts
-        == {"none": 55, "mutation": 37, "destructive": 37, "cost": 10},
+        == {"none": 56, "mutation": 37, "destructive": 37, "cost": 10},
         "Cloud permit classes changed",
     )
     require(
-        sum(operation.pagination == "yes" for operation in operations) == 29,
+        sum(operation.pagination == "yes" for operation in operations) == 30,
         "Cloud pagination count changed",
     )
 
     rendered = generator.render()
     generated_rows = rendered.rsplit("cloud_client_methods!(", 1)[1]
-    require(generated_rows.count("    (") == 139, "generated row count changed")
+    require(generated_rows.count("    (") == 140, "generated row count changed")
     for operation in operations:
         row = generator.render_row(operation)
         name = operation.operation_id
@@ -106,7 +106,7 @@ def main() -> int:
         "must not run with Python optimization" in optimized.stderr,
         "optimized rejection was not explicit",
     )
-    print("139 Cloud client methods, policy classes, and eager cleanup paths tested.")
+    print("140 Cloud client methods, policy classes, and eager cleanup paths tested.")
     return 0
 
 

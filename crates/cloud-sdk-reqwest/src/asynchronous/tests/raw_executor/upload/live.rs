@@ -130,7 +130,7 @@ fn upload_is_live_and_early_reply_or_deadline_cancels_the_borrowed_producer() {
                 1 => assert_eq!(
                     result,
                     Err(cloud_sdk::transport::TransportFailure::response_started(
-                        RawHttpError::UploadIncomplete
+                        RawHttpError::RequestFailed
                     ))
                 ),
                 _ => assert_eq!(

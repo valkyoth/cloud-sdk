@@ -25,7 +25,7 @@ pub(super) fn compose(
         .map_err(|_| RawHttpError::TargetRejected)?;
     let prefix = if base.path() == "/" { "" } else { base.path() };
     let owner = SanitizedBody::copy_parts(prefix.as_bytes(), target.as_str().as_bytes())
-        .map_err(|_| RawHttpError::RequestTargetAllocationFailed)?;
+        .map_err(|_| RawHttpError::RequestBuildFailed)?;
     let bytes = owner.into_bytes();
     with_path(base, bytes)
 }

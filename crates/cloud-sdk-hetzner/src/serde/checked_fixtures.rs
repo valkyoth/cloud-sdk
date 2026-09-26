@@ -105,6 +105,7 @@ fn cloud_model_name(root: &str) -> Option<&'static str> {
         "load_balancer" | "load_balancers" => Some("load_balancer"),
         "load_balancer_type" | "load_balancer_types" => Some("load_balancer_type"),
         "network" | "networks" => Some("network"),
+        "members" => Some("network_member"),
         "placement_group" | "placement_groups" => Some("placement_group"),
         "pricing" => Some("pricing"),
         "primary_ip" | "primary_ips" => Some("primary_ip"),

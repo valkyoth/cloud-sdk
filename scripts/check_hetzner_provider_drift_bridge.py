@@ -113,7 +113,7 @@ def validate_bridge(lock: dict, observation: dict, root: Path = ROOT) -> None:
     _verify_evidence(schemas["openapi-schema-lock"], root)
     for policy in policies:
         evidence = {
-            "count": 208,
+            "count": 209,
             "path": policy["path"],
             "sha256": policy["sha256"],
         }
@@ -122,7 +122,7 @@ def validate_bridge(lock: dict, observation: dict, root: Path = ROOT) -> None:
     for evidence in headers["response-metadata-policy"]["evidence"]:
         _verify_digest_evidence(evidence, root)
     _verify_digest_evidence(headers["rate-limit-policy"]["evidence"], root)
-    if operations["active-operation-lock"]["active_count"] != 208:
+    if operations["active-operation-lock"]["active_count"] != 209:
         raise BridgeError("active Hetzner operation count is stale")
 
 

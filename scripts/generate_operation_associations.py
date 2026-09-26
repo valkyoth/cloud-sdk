@@ -20,7 +20,7 @@ ASSOCIATIONS = ROOT / "docs" / "OPERATION_ASSOCIATIONS.tsv"
 RESPONSE_IDENTITIES = ROOT / "docs" / "RESPONSE_IDENTITY_CLASSES.tsv"
 OUTPUT = ROOT / "crates" / "cloud-sdk-hetzner" / "src" / "association" / "markers.rs"
 PROVIDER_LOCK = ROOT / "provider-drift" / "providers" / "hetzner.lock.json"
-EXPECTED_OPERATIONS = 208
+EXPECTED_OPERATIONS = 209
 RESPONSE_IDENTITY_COLUMNS = ("operation_id", "response_identity")
 
 ASSOCIATION_COLUMNS = (

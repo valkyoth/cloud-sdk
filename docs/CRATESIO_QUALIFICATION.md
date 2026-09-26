@@ -1,9 +1,12 @@
 # crates.io Commit 21 Qualification
 
-Status: implementation stop reached; incremental pentest required.
+Status: Commit 21 accepted at `cbcaf17f`; Commit 22 qualification in progress.
 Commit 20 was accepted after user-confirmed pentest and
 GitHub green at `df5892e712281ac5d27aeae900d89b754aa60a49`.
-No Commit 21 pentest acceptance, tag, workspace publication or Commit 22 authorization.
+The user confirmed pentest/retest and GitHub green and authorized Commit 22.
+No tag or workspace publication is authorized.
+
+Final candidate status and gates: [Commit 22](CRATESIO_CANDIDATE.md).
 
 ## Read Harness Increment
 

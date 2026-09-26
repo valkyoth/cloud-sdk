@@ -11,7 +11,7 @@ pub(super) fn validate_contract_arguments(
 ) -> Result<usize, SourceQueryError> {
     let mut count = 0_usize;
     for (index, argument) in arguments.iter().enumerate() {
-        if argument.parameter.as_str() != contract.name {
+        if argument.parameter != contract.name {
             continue;
         }
         count = count
@@ -102,7 +102,7 @@ fn argument_text<'a>(
     parameter: SourceQueryParameter,
 ) -> Option<&'a str> {
     arguments.iter().find_map(|argument| {
-        if argument.parameter != parameter {
+        if argument.parameter != parameter.as_str() {
             return None;
         }
         match argument.value {

@@ -19,7 +19,7 @@ DEFAULT_ENDPOINTS = PREPARED / "endpoints"
 DEFAULT_BODIES = PREPARED / "bodies"
 DEFAULT_BODY_LOCK = ROOT / "docs" / "PREPARED_BODY_OPERATIONS.txt"
 CHECKER_MANIFEST = ROOT / "tools" / "prepared-coverage-check" / "Cargo.toml"
-EXPECTED_ACTIVE = 208
+EXPECTED_ACTIVE = 209
 EXPECTED_BODIES = 91
 ENDPOINT_ALIASES = {"get_image": 2, "list_images": 2}
 

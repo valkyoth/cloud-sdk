@@ -60,7 +60,7 @@ impl Body for UploadBody {
         cx: &mut Context<'_>,
     ) -> Poll<Option<Result<Frame<Bytes>, RawHttpError>>> {
         if self.state.load(Ordering::Acquire) == 2 {
-            return Poll::Ready(Some(Err(RawHttpError::UploadFailed)));
+            return Poll::Ready(Some(Err(RawHttpError::RequestFailed)));
         }
         match self.receiver.poll_recv(cx) {
             Poll::Pending => Poll::Pending,
@@ -69,7 +69,7 @@ impl Body for UploadBody {
                     .ok()
                     .and_then(|len| self.remaining.checked_sub(len))
                 else {
-                    return Poll::Ready(Some(Err(RawHttpError::UploadFailed)));
+                    return Poll::Ready(Some(Err(RawHttpError::RequestFailed)));
                 };
                 self.remaining = remaining;
                 Poll::Ready(Some(Ok(Frame::data(bytes))))
@@ -77,7 +77,7 @@ impl Body for UploadBody {
             Poll::Ready(None) if self.remaining == 0 && self.state.load(Ordering::Acquire) == 1 => {
                 Poll::Ready(None)
             }
-            Poll::Ready(None) => Poll::Ready(Some(Err(RawHttpError::UploadFailed))),
+            Poll::Ready(None) => Poll::Ready(Some(Err(RawHttpError::RequestFailed))),
         }
     }
     fn size_hint(&self) -> SizeHint {
@@ -95,10 +95,10 @@ impl AsyncStreamSink for UploadSink {
         let permit = self
             .sender
             .as_ref()
-            .ok_or(RawHttpError::UploadFailed)?
+            .ok_or(RawHttpError::RequestFailed)?
             .reserve()
             .await
-            .map_err(|_| RawHttpError::UploadFailed)?;
+            .map_err(|_| RawHttpError::RequestFailed)?;
         let bytes = SanitizedBody::copy_from(input)
             .map_err(|_| RawHttpError::RequestBodyAllocationFailed)?
             .into_bytes();
@@ -154,7 +154,7 @@ macro_rules! execute_upload {
                             Poll::Ready(Err(error)) => {
                                 let error = match error {
                                     cloud_sdk::transport::StreamExecutionError::Sink(error) => error,
-                                    _ => RawHttpError::UploadFailed,
+                                    _ => RawHttpError::RequestFailed,
                                 };
                                 return Poll::Ready(Err(upload_failure(&state, error)));
                             }
@@ -163,10 +163,10 @@ macro_rules! execute_upload {
                     }
                     let result = exchange.as_mut().poll(cx);
                     if !uploaded && state.final_started.load(Ordering::Acquire) {
-                        return Poll::Ready(Err(TransportFailure::response_started(RawHttpError::UploadIncomplete)));
+                        return Poll::Ready(Err(TransportFailure::response_started(RawHttpError::RequestFailed)));
                     }
                     match result {
-                        Poll::Ready(Ok(_)) if !uploaded => Poll::Ready(Err(TransportFailure::response_started(RawHttpError::UploadIncomplete))),
+                        Poll::Ready(Ok(_)) if !uploaded => Poll::Ready(Err(TransportFailure::response_started(RawHttpError::RequestFailed))),
                         other => other,
                     }
                 }).await
@@ -199,14 +199,14 @@ impl RawHyperClient {
             || upload.policy.kind() != StreamKind::FiniteUpload
             || upload.policy.sink_mode() != StreamSinkMode::Direct
         {
-            return Err(RawHttpError::InvalidStreamState);
+            return Err(RawHttpError::RequestFailed);
         }
         if request.headers().get("content-type").is_none() {
             return Err(RawHttpError::MissingContentType);
         }
         match upload.policy.framing() {
             StreamFraming::Declared(length) if length > 0 => Ok(length),
-            _ => Err(RawHttpError::InvalidStreamState),
+            _ => Err(RawHttpError::RequestFailed),
         }
     }
 }

@@ -7,6 +7,80 @@ use reqwest::header::{HeaderMap, HeaderValue};
 
 use super::{RawHttpError, inspect_response_head};
 
+#[test]
+fn published_raw_error_variants_and_discriminants_are_preserved() {
+    fn ordinal(error: RawHttpError) -> usize {
+        match error {
+            RawHttpError::ResponseAlreadyCommitted => 0,
+            RawHttpError::TargetRejected => 1,
+            RawHttpError::MethodRejected => 2,
+            RawHttpError::MissingContentType => 3,
+            RawHttpError::HeaderRejected => 4,
+            RawHttpError::RequestHeaderAllocationFailed => 5,
+            RawHttpError::RequestBodyAllocationFailed => 6,
+            RawHttpError::RequestBodyTooLarge => 7,
+            RawHttpError::RequestBuildFailed => 8,
+            RawHttpError::RuntimeInitializationFailed => 9,
+            RawHttpError::BlockingRuntimeContext => 10,
+            RawHttpError::ConnectFailed => 11,
+            RawHttpError::TimedOut => 12,
+            RawHttpError::RequestFailed => 13,
+            RawHttpError::ResponseOriginChanged => 14,
+            RawHttpError::InvalidStatus => 15,
+            RawHttpError::SwitchingProtocols => 16,
+            RawHttpError::TooManyInformationalResponses => 17,
+            RawHttpError::ResponseHeadTooLarge => 18,
+            RawHttpError::DuplicateResponseHeader => 19,
+            RawHttpError::ResponseTrailersRejected => 20,
+            RawHttpError::InvalidNoBodyFraming => 21,
+            RawHttpError::MissingResponseContentType => 22,
+            RawHttpError::InvalidResponseContentType => 23,
+            RawHttpError::UnexpectedResponseContentType => 24,
+            RawHttpError::ForbiddenResponseContentType => 25,
+            RawHttpError::InvalidResponseHeader => 26,
+            RawHttpError::ResponseTooLarge => 27,
+            RawHttpError::ResponseChunkLimitExceeded => 28,
+            RawHttpError::ResponseReadFailed => 29,
+            RawHttpError::ResponseCommitFailed => 30,
+        }
+    }
+    for error in [
+        RawHttpError::ResponseAlreadyCommitted,
+        RawHttpError::TargetRejected,
+        RawHttpError::MethodRejected,
+        RawHttpError::MissingContentType,
+        RawHttpError::HeaderRejected,
+        RawHttpError::RequestHeaderAllocationFailed,
+        RawHttpError::RequestBodyAllocationFailed,
+        RawHttpError::RequestBodyTooLarge,
+        RawHttpError::RequestBuildFailed,
+        RawHttpError::RuntimeInitializationFailed,
+        RawHttpError::BlockingRuntimeContext,
+        RawHttpError::ConnectFailed,
+        RawHttpError::TimedOut,
+        RawHttpError::RequestFailed,
+        RawHttpError::ResponseOriginChanged,
+        RawHttpError::InvalidStatus,
+        RawHttpError::SwitchingProtocols,
+        RawHttpError::TooManyInformationalResponses,
+        RawHttpError::ResponseHeadTooLarge,
+        RawHttpError::DuplicateResponseHeader,
+        RawHttpError::ResponseTrailersRejected,
+        RawHttpError::InvalidNoBodyFraming,
+        RawHttpError::MissingResponseContentType,
+        RawHttpError::InvalidResponseContentType,
+        RawHttpError::UnexpectedResponseContentType,
+        RawHttpError::ForbiddenResponseContentType,
+        RawHttpError::InvalidResponseHeader,
+        RawHttpError::ResponseTooLarge,
+        RawHttpError::ResponseChunkLimitExceeded,
+        RawHttpError::ResponseReadFailed,
+        RawHttpError::ResponseCommitFailed,
+    ] {
+        assert_eq!(error as usize, ordinal(error));
+    }
+}
+
 fn policy<'a>(headers: &[HeaderName<'a>]) -> Option<RawResponsePolicy<'a>> {
     RawResponsePolicy::new(
         8,

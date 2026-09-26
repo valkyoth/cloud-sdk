@@ -370,5 +370,5 @@ fn every_source_locked_operation_decodes_its_minimal_success_envelope() {
         assert!(decoded.is_ok(), "failed {operation}: {decoded:?}");
         checked = checked.saturating_add(1);
     }
-    assert_eq!(checked, 208);
+    assert_eq!(checked, 209);
 }

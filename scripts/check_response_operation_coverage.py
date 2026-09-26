@@ -13,7 +13,7 @@ MATRIX = ROOT / "docs" / "API_MATRIX.md"
 LOCK = (
     ROOT / "crates" / "cloud-sdk-hetzner" / "src" / "serde" / "response_operations.tsv"
 )
-EXPECTED_ACTIVE = 208
+EXPECTED_ACTIVE = 209
 SHAPES = {
     "empty",
     "action",

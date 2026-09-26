@@ -38,6 +38,7 @@ python3 scripts/test-cratesio-execution-coverage.py
 python3 scripts/check_cratesio_live_read.py
 python3 scripts/test-cratesio-drift-campaign.py
 python3 scripts/test-cratesio-archives.py
+python3 scripts/test-candidate-reproduction.py
 python3 scripts/check_cratesio_request_policy.py
 python3 scripts/test-cratesio-request-policy.py
 python3 scripts/test-cratesio-discovery-fixtures.py

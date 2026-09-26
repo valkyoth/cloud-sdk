@@ -11,45 +11,45 @@ ROOT = Path(__file__).resolve().parent.parent
 DEFAULT_README = ROOT / "crates" / "cloud-sdk-hetzner" / "README.md"
 HEADER = "| Capability | Current coverage | Release status |"
 EXPECTED = (
-    ("Request models", "Complete for all 208 non-deprecated operations", "Stable 1.0"),
-    ("Path/query encoding", "Complete for all 208 non-deprecated operations", "Stable 1.0"),
+    ("Request models", "Complete for all 209 non-deprecated operations", "1.1 candidate"),
+    ("Path/query encoding", "Complete for all 209 non-deprecated operations", "1.1 candidate"),
     (
         "Body serialization",
         "Complete for all 91 non-deprecated operations with request bodies",
-        "Stable 1.0",
+        "1.1 candidate",
     ),
     (
         "Success response models",
-        "Complete checked envelopes for all 208 operations; source-complete "
+        "Complete checked envelopes for all 209 operations; source-complete "
         "ordinary Cloud resources, DNS zones and RRSets, zonefiles, actions, "
         "metrics, composites, pricing, locations, certificates, SSH keys, "
         "and Console Storage Boxes, types, snapshots, subaccounts, and "
         "folders; operation-branded typed execution guards decode through "
         "`decode_associated_checked_response`",
-        "Stable 1.0",
+        "1.1 candidate",
     ),
     (
         "Error response models",
         "Complete checked typed API error decoding for all active operations",
-        "Stable 1.0",
+        "1.1 candidate",
     ),
     (
         "End-to-end client",
-        "Complete named workflows for all 208 active Cloud, DNS, Security, "
+        "Complete named workflows for all 209 active Cloud, DNS, Security, "
         "and Console Storage Box operations; custom-endpoint execution remains unavailable",
-        "Stable 1.0",
+        "1.1 candidate",
     ),
     (
         "Robot client",
         "Complete typed contracts for all 89 active Robot operations; 45 read-only "
         "routes execute directly and every state change remains permit-gated",
-        "Stable 1.0",
+        "1.1 candidate",
     ),
     (
         "Server Metadata",
         "Complete strict contracts for all seven canonical credential-free "
         "link-local reads",
-        "Stable 1.0",
+        "1.1 candidate",
     ),
 )
 

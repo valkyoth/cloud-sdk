@@ -2,7 +2,10 @@
 
 Status: Commit 20 **accepted after user-confirmed pentest and GitHub green**.
 Baseline: `f49b7712` (Commit 19, user-confirmed pentest and GitHub pass).
-Commit 21 is authorized. No tag, workspace publication or full-provider qualification claim.
+Commit 21 is also accepted; Commit 22 qualification is in progress. No tag or
+workspace publication is authorized. The dated implementation entries below
+are historical; their earlier stop/pending statements are superseded by this
+status and the [candidate ledger](CRATESIO_CANDIDATE.md).
 The increment sections below retain historical evidence. The final checkpoint
 section records implementation qualification. Acceptance is recorded in
 [the Commit 20 report](../security/pentest/cratesio-commit-20.md).

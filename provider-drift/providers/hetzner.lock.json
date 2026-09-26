@@ -85,8 +85,8 @@
         "id": "operation-policy",
         "values": {
           "path": "docs/OPERATION_ASSOCIATIONS.tsv",
-          "mutation_authority": "required",
-          "sha256": "444f671dcc1803ba22d593431db4b6399192f8bff1920b94479f36dfa98e0739"
+          "sha256": "8055983dce5b2007f917c0112999a1b66c1791d96db6adf2e3cb55f05beb4c27",
+          "mutation_authority": "required"
         }
       }
     ],
@@ -168,7 +168,7 @@
         "id": "operation-policy",
         "values": {
           "path": "docs/OPERATION_ASSOCIATIONS.tsv",
-          "sha256": "444f671dcc1803ba22d593431db4b6399192f8bff1920b94479f36dfa98e0739"
+          "sha256": "8055983dce5b2007f917c0112999a1b66c1791d96db6adf2e3cb55f05beb4c27"
         }
       }
     ],
@@ -176,18 +176,18 @@
       {
         "id": "active-operation-lock",
         "values": {
-        "active_count": 208,
-        "count": 221,
-        "path": "docs/API_FINGERPRINTS.tsv",
-          "sha256": "52837844e2e88c5bed789938d1e36c79f0289e465f83aa844d94fa286d328cc1"
+          "count": 222,
+          "path": "docs/API_FINGERPRINTS.tsv",
+          "sha256": "862dc00b0b80c8f319b0c56ae41d6fbd9c01bb935453ed90e08c2c10aa97fdcb",
+          "active_count": 209
         }
       },
       {
         "id": "response-binding-lock",
         "values": {
-          "count": 208,
+          "count": 209,
           "path": "crates/cloud-sdk-hetzner/src/serde/response_operations.tsv",
-          "sha256": "4cffc39416a7312c57aae906f598dd9482f4667a368b103bfdeacf37165513fe"
+          "sha256": "1f5bde6832ffa703e917a3d247c7fc5c25119621aaa8c3bd6965ab426733e84e"
         }
       }
     ],
@@ -195,20 +195,20 @@
       {
         "id": "cloud-numbered",
         "values": {
+          "operation_count": 39,
+          "operations_sha256": "b4508ed7a7e2a96671089163ecb7a5fe320a196159ba592f867cdbce696a84b7",
           "page": "page",
           "per_page": "per_page",
-          "operation_count": 38,
-          "operations_sha256": "7018ab18db7b858cc4baf1aba4d7af92451d3eb7e660a34a23a53818c571efdd",
           "provider_links": "same_authority"
         }
       },
       {
         "id": "storage-numbered",
         "values": {
-          "page": "page",
-          "per_page": "per_page",
           "operation_count": 4,
           "operations_sha256": "50c92054c913880f10ee72c094a4b6e6d7004f98194f8254a2ccde8fb3869be9",
+          "page": "page",
+          "per_page": "per_page",
           "provider_links": "same_authority"
         }
       }
@@ -217,13 +217,13 @@
       {
         "id": "operation-policy",
         "values": {
+          "path": "docs/OPERATION_ASSOCIATIONS.tsv",
+          "sha256": "8055983dce5b2007f917c0112999a1b66c1791d96db6adf2e3cb55f05beb4c27",
           "delivery_phases": [
             "not_sent",
             "possibly_sent",
             "response_started"
-          ],
-          "path": "docs/OPERATION_ASSOCIATIONS.tsv",
-          "sha256": "444f671dcc1803ba22d593431db4b6399192f8bff1920b94479f36dfa98e0739"
+          ]
         }
       }
     ],
@@ -232,7 +232,7 @@
         "id": "openapi-schema-lock",
         "values": {
           "count": 8,
-        "path": "docs/API_SCHEMA_FINGERPRINTS.tsv",
+          "path": "docs/API_SCHEMA_FINGERPRINTS.tsv",
           "sha256": "44c02f0f5538802165827855ad01df6da9a18c8b3789e0e14553cf0138403548"
         }
       }
@@ -253,7 +253,7 @@
     {
       "id": "cloud-openapi",
       "max_bytes": 33554432,
-      "sha256": "7467483b455386dcff8db84b87bad3b7353ffabf08a82c020d7e053028670421",
+      "sha256": "592b22eb5a71b960d4d4b9cd13a026f8948828bf7ca7c5d88ea73ce9259b0fd5",
       "url": "https://docs.hetzner.cloud/cloud.spec.json"
     },
     {

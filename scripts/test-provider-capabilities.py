@@ -30,7 +30,7 @@ def main() -> None:
     with tempfile.TemporaryDirectory() as temporary:
         path = Path(temporary) / "README.md"
         current_client = (
-            "End-to-end client | Complete named workflows for all 208 active "
+            "End-to-end client | Complete named workflows for all 209 active "
             "Cloud, DNS, Security, and Console Storage Box operations; "
             "custom-endpoint execution remains unavailable"
         )
@@ -55,7 +55,7 @@ def main() -> None:
 
         metadata = (
             "Server Metadata | Complete strict contracts for all seven canonical "
-            "credential-free link-local reads | Stable 1.0"
+            "credential-free link-local reads | 1.1 candidate"
         )
         path.write_text(
             source.replace(metadata, "Server Metadata | Planned | v0.98"),

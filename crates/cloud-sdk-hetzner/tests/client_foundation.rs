@@ -96,7 +96,7 @@ fn official_cloud_client_executes_and_decodes_one_read_only_operation() {
 
 #[test]
 fn cloud_client_registry_is_complete_sorted_and_policy_exact() {
-    assert_eq!(CLOUD_CLIENT_METHODS.len(), 139);
+    assert_eq!(CLOUD_CLIENT_METHODS.len(), 140);
     assert!(CLOUD_CLIENT_METHODS.windows(2).all(|pair| matches!(
         pair,
         [previous, next]
@@ -108,7 +108,7 @@ fn cloud_client_registry_is_complete_sorted_and_policy_exact() {
     }));
 
     let permits = [
-        (PermitClass::None, 55),
+        (PermitClass::None, 56),
         (PermitClass::Mutation, 37),
         (PermitClass::Destructive, 37),
         (PermitClass::Cost, 10),
@@ -127,7 +127,7 @@ fn cloud_client_registry_is_complete_sorted_and_policy_exact() {
             .iter()
             .filter(|method| method.pagination() == PaginationPolicy::Numbered)
             .count(),
-        29,
+        30,
     );
 }
 

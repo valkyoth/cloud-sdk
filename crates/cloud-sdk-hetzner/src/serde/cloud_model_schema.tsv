@@ -305,6 +305,13 @@ network	subnets[]/ip_range	no	string	-	-	-	-	-	-	-	-	-
 network	subnets[]/network_zone	yes	string	-	-	-	-	-	-	-	-	-
 network	subnets[]/type	yes	string	-	-	-	-	-	-	-	-	cloud|server|vswitch
 network	subnets[]/vswitch_id	no	integer|null	-	-	-	-	-	-	int64	-	-
+network_member	alias_ips	yes	array	-	-	-	-	-	-	-	-	-
+network_member	alias_ips[]	yes	string	-	-	-	-	-	-	ipv4	-	-
+network_member	id	yes	integer	1	9007199254740991	-	-	-	-	int64	-	-
+network_member	ip	yes	string	-	-	-	-	-	-	ipv4	-	-
+network_member	status	yes	string	-	-	-	-	-	-	-	-	ok|attaching|detaching|updating|error
+network_member	subnet	yes	string	-	-	-	-	-	-	-	-	-
+network_member	type	yes	string	-	-	-	-	-	-	-	-	server|load_balancer
 placement_group	created	yes	string	-	-	-	-	-	-	date-time	-	-
 placement_group	id	yes	integer	1	9007199254740991	-	-	-	-	int64	-	-
 placement_group	labels	yes	object	-	-	-	-	-	-	-	-	-
@@ -376,7 +383,7 @@ pricing	volume/price_per_gb_month	yes	object	-	-	-	-	-	-	-	-	-
 pricing	volume/price_per_gb_month/gross	yes	string	-	-	-	-	-	-	decimal	-	-
 pricing	volume/price_per_gb_month/net	yes	string	-	-	-	-	-	-	decimal	-	-
 primary_ip	assignee_id	yes	integer|null	-	-	-	-	-	-	int64	-	-
-primary_ip	assignee_type	yes	string	-	-	-	-	-	-	-	-	server
+primary_ip	assignee_type	yes	string	-	-	-	-	-	-	-	-	server|unassigned
 primary_ip	auto_delete	yes	boolean	-	-	-	-	-	-	-	-	-
 primary_ip	blocked	yes	boolean	-	-	-	-	-	-	-	-	-
 primary_ip	created	yes	string	-	-	-	-	-	-	date-time	-	-

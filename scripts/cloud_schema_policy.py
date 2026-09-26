@@ -5,7 +5,7 @@ from __future__ import annotations
 from typing import Any
 
 
-SUPPORTED_FORMATS = frozenset(("date-time", "decimal", "double", "int32", "int64"))
+SUPPORTED_FORMATS = frozenset(("date-time", "decimal", "double", "int32", "int64", "ipv4"))
 SUPPORTED_PATTERNS = frozenset(
     (
         r"^[a-z0-9]+(-?[a-z0-9]*)*$",

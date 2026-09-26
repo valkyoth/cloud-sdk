@@ -24,7 +24,7 @@ def require(condition: bool, message: str) -> None:
 
 def main() -> int:
     rows = bindings.binding_rows()
-    require(len(rows) == 208, "expected exactly 208 binding rows")
+    require(len(rows) == 209, "expected exactly 209 binding rows")
     require(
         [row["operation_id"] for row in rows]
         == sorted(row["operation_id"] for row in rows),
@@ -107,7 +107,7 @@ def main() -> int:
     require(optimized.returncode != 0, "optimized execution was accepted")
     require("must not run" in optimized.stderr, "optimized rejection was not explicit")
 
-    print("208 complete typed bindings and 13 deprecated exclusions tested.")
+    print("209 complete typed bindings and 13 deprecated exclusions tested.")
     return 0
 
 

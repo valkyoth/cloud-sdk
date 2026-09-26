@@ -141,6 +141,7 @@ list_load_balancers	cloud	bearer	optional	forbidden	explicit	none
 list_load_balancers_actions	cloud	bearer	optional	forbidden	explicit	none
 list_locations	cloud	bearer	optional	forbidden	explicit	none
 list_network_actions	cloud	bearer	optional	forbidden	explicit	none
+list_network_members	cloud	bearer	optional	forbidden	explicit	none
 list_networks	cloud	bearer	optional	forbidden	explicit	none
 list_networks_actions	cloud	bearer	optional	forbidden	explicit	none
 list_placement_groups	cloud	bearer	optional	forbidden	explicit	none

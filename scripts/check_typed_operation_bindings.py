@@ -11,7 +11,7 @@ import check_response_operation_coverage as responses
 import generate_operation_associations as associations
 import generate_typed_operation_bindings as bindings
 
-EXPECTED_ACTIVE = 208
+EXPECTED_ACTIVE = 209
 EXPECTED_DEPRECATED = 13
 EXPECTED_REJECTING_BODY_VARIANTS = {
     "detach_server_iso",

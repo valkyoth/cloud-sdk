@@ -4,8 +4,11 @@ use crate::EndpointGroup;
 
 pub mod actions;
 pub mod floating_ips;
+pub mod members;
 pub mod primary_ips;
 pub mod resources;
+
+pub use members::NetworkMembersEndpoint;
 
 pub use resources::{
     NetworkCreateRequest, NetworkEndpoint, NetworkId, NetworkLabels, NetworkListRequest,

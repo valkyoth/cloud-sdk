@@ -57,7 +57,7 @@ def main() -> None:
         stage(root)
         complete = run(root)
         assert complete.returncode == 0, complete
-        assert "208 active operations" in complete.stdout
+        assert "209 active operations" in complete.stdout
 
         mutations = [
             (

@@ -91,19 +91,20 @@ cloud	POST	/networks/{id}/actions/change_protection	Network Actions	change_netwo
 cloud	POST	/networks/{id}/actions/delete_route	Network Actions	delete_network_route	no	no	no	starts-action	0f16c615907d77ff45a2844c98194cf98f87af1293601ff5a9b8ecba52a5ea9e
 cloud	POST	/networks/{id}/actions/delete_subnet	Network Actions	delete_network_subnet	no	no	no	starts-action	64b2a49aa37e7d5531c1a926dd7cf3a56f91db02fc6bcdb72c6bea4dc85d9655
 cloud	GET	/networks/{id}/actions/{action_id}	Network Actions	get_network_action	yes	no	no	resource-action-get	c59cd2e83bf569b0f8b7127ea9b796b324b3ec6d3da3b32e973a9f0d3c3a6bf9
+cloud	GET	/networks/{id}/members	Networks	list_network_members	no	yes	yes	none	dc259f9d3fdf8346de98d66b73e299760339c578b51d978b5cd9b82983f1bf71
 cloud	GET	/placement_groups	Placement Groups	list_placement_groups	no	yes	yes	none	1e47605a9e4be97c2733606bb4d0eac9cd54db4d886dbebf263d059bd5f0dd0b
 cloud	POST	/placement_groups	Placement Groups	create_placement_group	no	no	no	none	42a8a1964ea6c09a60324b793958774dbad8edbdd041be11562a8d438f140e65
 cloud	DELETE	/placement_groups/{id}	Placement Groups	delete_placement_group	no	no	no	none	0ce7449cd474e470da170cd878a7e5a0189eb4990989568ce2a9c9367d1b540a
 cloud	GET	/placement_groups/{id}	Placement Groups	get_placement_group	no	no	no	none	471c725cf4badc0f97427dd4935048552b6ce2fbdf118a30168675a06ee2a66d
 cloud	PUT	/placement_groups/{id}	Placement Groups	update_placement_group	no	no	no	none	230228a82d682ec952499bdf158e0251c3c60bd8dc985038132c75d3d784cb44
 cloud	GET	/pricing	Pricing	get_pricing	no	no	no	none	34b707833028b852ff5b6b12368e21a1c49eb6d04e0c44d395cd436fe4b8f5f2
-cloud	GET	/primary_ips	Primary IPs	list_primary_ips	no	yes	yes	none	9d35184897a09d91c7ebbd1a099dd1c98073d2c539221ce9e6d4f547b649c89e
-cloud	POST	/primary_ips	Primary IPs	create_primary_ip	no	no	no	none	a5ca49233f54663479f4a94b7f59bc347a5fbe19746823a56949d264ff7a9b5e
+cloud	GET	/primary_ips	Primary IPs	list_primary_ips	no	yes	yes	none	50018312417b66836925d45b3282fcfd77ad1667a46a478b4c8de5ba2bf8216d
+cloud	POST	/primary_ips	Primary IPs	create_primary_ip	no	no	no	none	42a5efe6299d92f2944d2a72696cb6510cbdc40df12dbac983f2e64c6970474c
 cloud	GET	/primary_ips/actions	Primary IP Actions	list_primary_ips_actions	no	yes	yes	action-list	ab38ceb032421c940701475d94b83c81912c77034dfbdfa31f28306158a28607
 cloud	GET	/primary_ips/actions/{id}	Primary IP Actions	get_primary_ips_action	no	no	no	action-get	4f6650f762fd1527f965c53ffba55d4413a8bfbf0bf1de90f542106a3ca5f11d
 cloud	DELETE	/primary_ips/{id}	Primary IPs	delete_primary_ip	no	no	no	none	48867d1e4815882d7137fe886c6aaeb181a07a07084922dce57e7b249dd5507c
-cloud	GET	/primary_ips/{id}	Primary IPs	get_primary_ip	no	no	no	none	a182eb30468f11dc64acf597d7b5e64a0525a1cb22bd028d6d0fa4c3441f0ae3
-cloud	PUT	/primary_ips/{id}	Primary IPs	update_primary_ip	no	no	no	none	15de8a2696c6bf64463ade72f776e88f151a01a2082081686c7ce1cba8a8c2f7
+cloud	GET	/primary_ips/{id}	Primary IPs	get_primary_ip	no	no	no	none	b09737e9512b2a773cb096c1b5e975130c37db876ce07075a0b7a9e274fc5d11
+cloud	PUT	/primary_ips/{id}	Primary IPs	update_primary_ip	no	no	no	none	1cb626c88cadfb6fb8d87786b2b39be2daf23bec457bc0de1092c80d25945ad7
 cloud	GET	/primary_ips/{id}/actions	Primary IP Actions	list_primary_ip_actions	no	yes	yes	action-list	9e04db97569bc13ec4106877ec9fe1fd8808cdb48d3cedac6fbff798f441d2a9
 cloud	POST	/primary_ips/{id}/actions/assign	Primary IP Actions	assign_primary_ip	no	no	no	starts-action	46990f9942ca838fa0006e839af52e3d75590b552162e4803f15df232f184fb0
 cloud	POST	/primary_ips/{id}/actions/change_dns_ptr	Primary IP Actions	change_primary_ip_dns_ptr	no	no	no	starts-action	dd805061c6ca0bd756782e433574596d0f1aa57920bbadcdf0ebf8dc195eee6e

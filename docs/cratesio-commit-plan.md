@@ -17,8 +17,9 @@ Commit 17 passed incremental pentest and GitHub at `04f24c38`.
 Commit 18 passed incremental pentest and GitHub at `ddb12f74`.
 Commit 19 passed incremental pentest and GitHub at `f49b7712`.
 Commit 20 passed incremental pentest and GitHub at `df5892e7`.
-Commit 21 has reached its implementation stop; incremental pentest is required.
-Stop before Commit 22; do not tag or publish.
+Commit 21 passed incremental pentest/retest and GitHub at `cbcaf17f`.
+Commit 22 is in progress; full-service pentest and candidate qualification remain required.
+Do not tag or publish.
 
 ## Decision Summary
 
@@ -823,6 +824,11 @@ the new Network members endpoint and Primary IP unassigned-assignee semantics
 against the full live schemas; refresh generated models, tests and evidence.
 Also review the new deprecation notices. These are release blockers, not a
 permission to accept a changed hash without implementation review.
+
+Implementation and evidence: [candidate ledger](CRATESIO_CANDIDATE.md).
+The September 26 source refresh implements the Network members operation and
+records the already-validated Primary IP semantics; all live Hetzner source
+gates passed. Candidate-wide qualification and full-service pentest remain open.
 
 Goal: freeze and qualify the complete selected crates.io integration without
 adding features.

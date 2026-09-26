@@ -2,16 +2,24 @@
 
 Status: current operational source reviewed after stable `1.0.0`.
 
-Retrieved: 2026-09-10
+Retrieved: 2026-09-26
 
 Official source:
 <https://docs.hetzner.cloud/changelog/feed.rss>
 
 Normalized semantic SHA-256:
-`170fc4dbef43b82cb80562cc793aa8d38146c5641291609c07e8353906dff0c5`
+`4d90c175aa281e7254db8b4304c4e2afa306cbf7e90025cf65eed9733822e094`
 
 Latest reviewed entry:
-<https://docs.hetzner.cloud/changelog#2026-09-09-object-storage-new-delete-rule>
+<https://docs.hetzner.cloud/changelog#2026-09-23-primary-ips-unassigned>
+
+The September 26 candidate review adds Network members (September 15) through
+the prepared request, bounded response model and service client layers. The
+September 23 Primary IP rollout matches the existing cross-field checks:
+`unassigned` requires a null assignee ID and `server` requires a positive ID.
+Request bodies continue to use `server`; `unassigned` is a response value.
+The schema lock now records both response enum values. No API calls with
+credentials or mutations were needed for this source review.
 
 The normalization excludes only RSS `lastBuildDate`, which Hetzner regenerates
 without publishing a new entry. Element names, attributes, channel identity,
