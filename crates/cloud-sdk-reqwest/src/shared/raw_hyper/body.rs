@@ -5,6 +5,11 @@ use core::{
 };
 use http_body_util::Full;
 use hyper::body::{Body, Frame, SizeHint};
+#[cfg(test)]
+use std::sync::{
+    Arc,
+    atomic::{AtomicUsize, Ordering},
+};
 use std::vec::Vec;
 
 pub(super) enum RequestBody {
@@ -46,16 +51,32 @@ impl Body for RequestBody {
 
 pub(super) struct SanitizedBody {
     bytes: Vec<u8>,
+    #[cfg(test)]
+    drop_probe: Option<Arc<AtomicUsize>>,
 }
 impl SanitizedBody {
     pub(super) fn copy_from(source: &[u8]) -> Result<Self, ()> {
+        Self::copy_parts(source, &[])
+    }
+    pub(super) fn copy_parts(prefix: &[u8], suffix: &[u8]) -> Result<Self, ()> {
+        let length = prefix.len().checked_add(suffix.len()).ok_or(())?;
         let mut bytes = Vec::new();
-        bytes.try_reserve_exact(source.len()).map_err(|_| ())?;
-        bytes.extend_from_slice(source);
-        Ok(Self { bytes })
+        bytes.try_reserve_exact(length).map_err(|_| ())?;
+        bytes.extend_from_slice(prefix);
+        bytes.extend_from_slice(suffix);
+        Ok(Self {
+            bytes,
+            #[cfg(test)]
+            drop_probe: None,
+        })
     }
     pub(super) fn into_bytes(self) -> Bytes {
         Bytes::from_owner(self)
+    }
+    #[cfg(test)]
+    pub(super) fn with_drop_probe(mut self, probe: Arc<AtomicUsize>) -> Self {
+        self.drop_probe = Some(probe);
+        self
     }
 }
 impl AsRef<[u8]> for SanitizedBody {
@@ -66,5 +87,10 @@ impl AsRef<[u8]> for SanitizedBody {
 impl Drop for SanitizedBody {
     fn drop(&mut self) {
         cloud_sdk_sanitization::sanitize_bytes(&mut self.bytes);
+        #[cfg(test)]
+        if let Some(probe) = &self.drop_probe {
+            assert!(self.bytes.iter().all(|byte| *byte == 0));
+            probe.fetch_add(1, Ordering::SeqCst);
+        }
     }
 }

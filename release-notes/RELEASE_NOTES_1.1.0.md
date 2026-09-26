@@ -568,8 +568,11 @@ early responses, truncation, response policy and deadlines; no retries occur.
 Exhaustive Cargo/51-operation evidence and final integrated qualification
 remain open in [the implementation ledger](../docs/CRATESIO_UNIFIED_CLIENT.md).
 Commit 19 was accepted at `f49b7712`; no tag or publication is authorized.
-The new facade rejects email-confirmation and token-based invitation permits
-before dispatch pending qualification of secret-path URI storage.
+The facade now accepts consumed email-confirmation and invitation-token permits
+in all three modes. Raw URI paths use sanitization-owned bytes, with separate
+non-secret authority storage so origin keys cannot retain the token allocation.
+Pinned URI ownership and loopback wire tests cover exact composition and cleanup
+lifetimes. External HTTP/TLS buffers and access logs remain deployment boundaries.
 
 ### Maintenance Evidence (Earlier Checkpoints)
 

@@ -13,6 +13,7 @@ use core::{
 mod catalog;
 mod lifecycle;
 mod operations;
+mod secret_paths;
 
 pub(crate) const UA: &str = "unified-tests/1 (tests@example.org)";
 pub(crate) fn identity() -> IdentifyingUserAgent<'static> {

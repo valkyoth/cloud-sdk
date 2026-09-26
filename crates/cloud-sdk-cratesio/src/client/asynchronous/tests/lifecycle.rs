@@ -132,7 +132,7 @@ fn async_preflight_transport_and_wire_failures_cannot_leave_scratch_or_retry() {
     reset_test_gate();
 }
 #[test]
-fn invalid_material_and_unqualified_secret_paths_fail_before_admission() {
+fn wrong_origin_secret_paths_fail_before_admission() {
     use crate::{
         accounts::personal::PersonalPermit,
         credentials::{EmailConfirmationToken, OwnerInvitationToken},
@@ -150,17 +150,14 @@ fn invalid_material_and_unqualified_secret_paths_fail_before_admission() {
             ); 24];
             let permit = if invitation {
                 PersonalPermit::accept_invitation_token(
-                    OwnerInvitationToken::from_mut_bytes(CredentialOrigin::Production, &mut source)
+                    OwnerInvitationToken::from_mut_bytes(CredentialOrigin::Staging, &mut source)
                         .fixture("token"),
                     NumericId::new(42).fixture("id"),
                 )
             } else {
                 PersonalPermit::confirm_email(
-                    EmailConfirmationToken::from_mut_bytes(
-                        CredentialOrigin::Production,
-                        &mut source,
-                    )
-                    .fixture("token"),
+                    EmailConfirmationToken::from_mut_bytes(CredentialOrigin::Staging, &mut source)
+                        .fixture("token"),
                 )
             };
             let mut buffers = Buffers::new();

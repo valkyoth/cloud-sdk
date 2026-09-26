@@ -29,7 +29,7 @@ account/ownership operations have checked blocking, local-async and Send-async
 execution. Commit 19 is accepted; Commit 20 is in progress. Eight personal
 mutation operations now have single-attempt execution through an explicitly
 trusted blocking credential-adapter callback. The new `RegistryClient` facade
-supports their API-token variants; its two secret-path variants remain excluded.
+supports both API-token and consumed secret-path variants in all three modes.
 Three token-management operations now share that explicit adapter boundary.
 Two settings PATCH operations also use explicit permits and checked postconditions.
 Owner additions/removals use consumed consent, conservative acknowledgements
@@ -76,7 +76,7 @@ completed coverage or parity gate. This is not yet a complete crates.io provider
 | Cargo publish | bounded metadata, exact little-endian framing, borrowed/streaming archives, API or temporary token consent and checked warnings; opt-in bundled blocking/local-async/Send-async upload |
 | Trusted publishing | GitHub/GitLab list/create/delete, assertion exchange and temporary-token revocation; local deadline/crate restrictions, not a JWT authenticator; trusted blocking adapter |
 | Artifact streaming | opt-in bundled static-origin live body sources and SHA-256; caller-supplied transactional sink remains required |
-| Unified execution | blocking, local-async and Send-async typed reads and permits, plus separate bundled publish methods accepting a source; two secret-path personal operations and exhaustive qualification remain in progress |
+| Unified execution | blocking, local-async and Send-async typed reads and permits, including secret-path personal operations, plus separate bundled publish methods accepting a source; exhaustive qualification remains in progress |
 
 See the [Commit 20 implementation ledger](https://github.com/valkyoth/cloud-sdk/blob/main/docs/CRATESIO_UNIFIED_CLIENT.md)
 for exact remaining gates. Do not treat these foundations as full-provider qualification.
@@ -843,8 +843,11 @@ for exact input limits and source-verification commands.
 The provider will not support browser-session cookies or undocumented private
 routes. Operation-bound clients, consumed mutation permits, scheduling and
 bounded response admission are implemented. Bundled streaming publication is
-implemented; secret-path execution and final integration qualification remain open in the
-Commit 20 implementation ledger above.
+implemented, including secret-path execution. Final integration qualification
+remains open in the Commit 20 implementation ledger above. Custom adapters must
+not log targets or retain unprotected secret URI copies. Bundled raw adapters
+clear owned URI staging; upstream HTTP/TLS buffers and server/proxy logs remain
+deployment boundaries.
 
 Direct crates.io API use must follow the service's data-access policy. Prefer
 the sparse index, static downloads, RSS feeds, or database dumps when those

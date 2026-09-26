@@ -6,10 +6,12 @@ use std::string::String;
 #[cfg(test)]
 use std::string::ToString;
 
+#[cfg(test)]
+use cloud_sdk::transport::RequestTarget;
 use cloud_sdk::transport::{
     AcknowledgedCustomEndpoint, CustomEndpointAcknowledgement, EndpointIdentity,
     EndpointIdentityError, EndpointPolicy, EndpointScheme, MAX_ENDPOINT_BASE_PATH_BYTES,
-    MAX_ENDPOINT_HOST_BYTES, RequestTarget,
+    MAX_ENDPOINT_HOST_BYTES,
 };
 
 /// Maximum endpoint input accepted before URL parsing or allocation.
@@ -229,6 +231,7 @@ impl HttpsEndpoint {
         EndpointIdentity::new(scheme, host, port, self.base.path())
     }
 
+    #[cfg(test)]
     pub(crate) fn compose(&self, target: RequestTarget<'_>) -> Result<Url, EndpointError> {
         let mut absolute = self.prefix.clone();
         absolute
@@ -243,6 +246,11 @@ impl HttpsEndpoint {
         Ok(url)
     }
 
+    pub(super) fn raw_prefix(&self) -> &str {
+        &self.prefix
+    }
+
+    #[cfg(test)]
     pub(crate) fn verify_origin(&self, url: &Url) -> Result<(), EndpointError> {
         if url.scheme() != self.base.scheme()
             || url.host_str() != self.base.host_str()

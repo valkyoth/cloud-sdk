@@ -227,7 +227,7 @@ fn unified_reads_keep_anonymous_authority_and_shared_admission() {
 }
 
 #[test]
-fn secret_path_permits_fail_before_dispatch_and_clear_all_scratch() {
+fn wrong_origin_secret_path_permits_fail_before_dispatch_and_clear_all_scratch() {
     use crate::{
         accounts::personal::PersonalPermit,
         credentials::{EmailConfirmationToken, OwnerInvitationToken},
@@ -244,13 +244,13 @@ fn secret_path_permits_fail_before_dispatch_and_clear_all_scratch() {
         let mut source = [b'a'.saturating_add(NEXT.fetch_add(1, Ordering::Relaxed) % 26); 24];
         let permit = if invitation {
             PersonalPermit::accept_invitation_token(
-                OwnerInvitationToken::from_mut_bytes(CredentialOrigin::Production, &mut source)
+                OwnerInvitationToken::from_mut_bytes(CredentialOrigin::Staging, &mut source)
                     .fixture("invitation token"),
                 NumericId::new(42).fixture("crate ID"),
             )
         } else {
             PersonalPermit::confirm_email(
-                EmailConfirmationToken::from_mut_bytes(CredentialOrigin::Production, &mut source)
+                EmailConfirmationToken::from_mut_bytes(CredentialOrigin::Staging, &mut source)
                     .fixture("confirmation token"),
             )
         };

@@ -729,6 +729,8 @@ downloads, including cancellation and non-overwriting publication failure.
 The upload increment adds bundled blocking/local/Send Cargo publication with
 live bounded raw transport, without a caller HTTP callback. These increments
 do not close the final integrated 51-operation and Cargo-compatibility gates.
+The secret-path increment enables consumed confirmation and invitation tokens
+in all modes, with protected URI staging and exact-wire/lifetime regressions.
 
 Dependency follow-up detected during Commit 18 on 2026-09-25:
 `rustls-platform-verifier 0.7.1` supersedes the reviewed `0.7.0` pin and changes

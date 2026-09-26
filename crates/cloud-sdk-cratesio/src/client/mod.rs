@@ -2,6 +2,11 @@
 //!
 //! Mutations still require consumed permits. There are no implicit retries,
 //! sleeps, credentials, or custom destinations. Raw adapters remain trusted.
+//! Custom adapters must treat targets as potentially secret: never log them,
+//! never retain unprotected URI copies, and clear owned staging on completion
+//! or cancellation. This also applies to requests without Authorization headers.
+//! Bundled raw adapters protect their URI staging; external HTTP/TLS wire buffers
+//! and server/proxy access logs remain deployment boundaries.
 
 #[cfg(feature = "async")]
 mod asynchronous;
@@ -86,9 +91,9 @@ impl<T: BlockingAuthorizedRawHttpExecutor + BoundUserAgent + ?Sized> RegistryCli
     /// Executes a typed read or consumes a mutation permit without caller HTTP
     /// assembly. All scratch is cleared, including constructor/admission failures.
     /// No retry occurs; mutation errors can follow a committed upstream change.
-    /// Email confirmation and token-based invitation acceptance currently return
-    /// [`DiscoveryError::Binding`] before dispatch: URI-secret cleanup is not yet
-    /// qualified for this facade. Their existing trusted callback API is unchanged.
+    /// Email confirmation and invitation-token acceptance consume their path
+    /// credential and send no Authorization header. Custom executors must meet
+    /// this module's secret-target storage and logging obligations.
     pub fn execute<R: BlockingRegistryOperation>(
         &self,
         operation: R,

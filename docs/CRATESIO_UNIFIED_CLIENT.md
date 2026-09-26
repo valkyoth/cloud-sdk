@@ -19,10 +19,12 @@ No tag, publication, Commit 21 authorization or full-provider coverage claim.
   suspension. Public credential access remains callback-scoped. All guards are
   installed before the future is returned, so even unpolled drops clear scratch.
   Consumed temporary credentials remain owned by the future until completion/drop.
-- Email confirmation and token-based invitation acceptance are rejected before
-  dispatch with `DiscoveryError::Binding`. The adapter's ordinary URI storage
-  is not yet qualified for path secrets; these operations retain their existing
-  trusted callback API. Scratch clears even on this rejection.
+- Email confirmation and token-based invitation acceptance now execute in all
+  three modes, consuming protected credentials without an Authorization header.
+  Raw adapters stage URI paths in sanitization-owned Bytes; non-secret authority
+  storage is separate so retained origin keys cannot hold the token allocation.
+  Custom executors must not log targets or retain unprotected URI copies.
+  HTTP/TLS wire buffers and server/proxy logs remain deployment boundaries.
 - All four `RegistryBuffers` regions clear on errors and successful completion,
   including admission and endpoint-construction failures. Rate limiting remains
   process-wide and never sleeps or retries implicitly.
@@ -64,15 +66,15 @@ No tag, publication, Commit 21 authorization or full-provider coverage claim.
 
 1. Qualify unified async execution with the bundled adapters across the final
    operation matrix. Mock parity and cleanup tests pass for the currently
-   enabled families; this does not cover the excluded path-secret operations
-   or substitute for final integrated publish-operation evidence.
+   enabled families, including path-secret operations; this does not substitute
+   for final integrated publish-operation evidence.
 2. Retain the live authenticated streaming-upload qualification in the final
    gate. Transport loopback tests, Cargo framing tests and facade preflight/
    cancellation checks now exist; complete the final integrated operation matrix.
 3. Generate exact execution coverage against all 51 operation matrix rows;
    trait implementations alone do not prove each variant executes correctly.
-   First qualify secret-path URI storage and enable the two excluded personal
-   operations without unprotected SDK-owned token copies.
+   Retain the secret-path URI ownership, exact-wire and cancellation evidence
+   in that generated qualification.
 4. Complete higher-level Cargo publish/owner/yank/unyank/search workflows and
    independently verify all seven stable wire contracts byte-for-byte.
 5. Retain the real-filesystem qualification in the final integration gate.
@@ -164,3 +166,30 @@ Checked locally on 2026-09-26 after the storage increment:
 No manifests or lockfiles changed. No live registry mutation was performed;
 HTTP upload tests use loopback fixtures. This increment is not acceptance of
 Commit 20 or a substitute for the final integrated matrix and pentest.
+
+## Secret-Path Increment Verification
+
+Checked locally on 2026-09-26 after the upload increment:
+
+- Full `scripts/checks.sh`: passed, including workspace tests, feature isolation,
+  doctests, warning-denied Clippy, packaging and existing transport regressions.
+- Rust 1.92.0: provider secret-path tests, five URI ownership/composition tests,
+  and the loopback wire test passed. Async-rustls-only provider Clippy passed.
+- Both personal path-token operations have exact-method/target/no-authorization
+  fixtures for blocking/local/Send execution. Wrong origins, short scratch,
+  cleared tokens, malformed acknowledgements and invitation identity mismatches
+  fail closed. Unpolled/in-flight cancellation clears scratch without replay.
+- The pinned `http 1.5.0` PathAndQuery and `hyper-util 0.1.21` origin-form paths
+  retain shared Bytes storage. Tests verify pointer retention, zeroed bytes at
+  owner destruction, clone/rejection lifetimes, and authority independence.
+  Canonical, form and provider-link query composition is compared with the old
+  URL behavior, including empty queries and rejected raw query apostrophes.
+- Actual loopback requests preserve percent encoding and present-empty queries,
+  omit authorization, and keep public request diagnostics redacted. No live
+  email confirmation, invitation acceptance or registry mutation was performed.
+- All four SBOM graphs remain fresh; no manifests or lockfiles changed.
+
+These guarantees cover SDK-owned URI staging, not external HTTP/TLS wire
+buffers, process-abort cleanup or remote access logs. Custom executors must
+implement the documented secret-target storage/logging policy. Final integrated
+operation coverage and the Commit 20 pentest stop remain outstanding.

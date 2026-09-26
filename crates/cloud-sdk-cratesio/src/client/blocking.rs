@@ -123,17 +123,8 @@ impl BlockingRegistryOperation for crate::accounts::personal::PersonalPermit<'_>
         c: &RegistryClient<'_, T>,
         buffers: RegistryBuffers<'_>,
     ) -> Result<Self::Response, DiscoveryExecutionError<T::Error>> {
-        use crate::accounts::personal::{PersonalBuffers, PersonalClient, PersonalOperation};
+        use crate::accounts::personal::{PersonalBuffers, PersonalClient};
         let mut guard = super::buffers::Guard::new(buffers);
-        // Raw adapters do not yet promise cleanup of URI storage for path secrets.
-        if matches!(
-            self.operation(),
-            PersonalOperation::ConfirmEmail | PersonalOperation::AcceptInvitationToken
-        ) {
-            return Err(DiscoveryExecutionError::Model(
-                crate::discovery::DiscoveryError::Binding,
-            ));
-        }
         let buffers = guard.parts();
         let client = if c.staging {
             PersonalClient::staging(c.executor, c.identity, c.maximum)

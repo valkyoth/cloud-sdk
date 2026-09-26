@@ -179,6 +179,14 @@ occurs. An error/cancellation cannot roll back bytes already sent. Sources must
 cooperate: deadlines cannot preempt synchronous caller code or a non-returning
 future poll. Providers still own operation consent and credential-scope checks.
 
+Raw request paths and queries use sanitization-owned URI storage, preserving
+exact validated bytes without an intermediate URL/String copy. URI clones share
+that owner until the last request reference drops; non-secret origin keys use
+separate storage. This includes requests without Authorization headers, such as
+provider-owned path-token operations. It does not guarantee erasure of external
+Hyper/TLS wire buffers or server/proxy access logs. Do not enable sensitive wire
+logging; custom adapters must provide their own equivalent storage policy.
+
 Use the raw executor below provider authentication and typed client policy. It
 sends no bearer token or JSON `Accept`, performs no retry, and retains only
 response headers admitted by `RawResponsePolicy`:

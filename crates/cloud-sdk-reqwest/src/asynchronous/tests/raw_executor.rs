@@ -15,6 +15,7 @@ mod authorized;
 mod driver;
 mod precommitted;
 mod request_body;
+mod secret_target;
 mod streaming;
 mod upload;
 

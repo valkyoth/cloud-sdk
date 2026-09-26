@@ -37,6 +37,7 @@ mod streaming;
 pub use streaming::StreamingResponse;
 mod body;
 mod upload;
+mod uri;
 use body::{RequestBody, SanitizedBody};
 pub use upload::RawUpload;
 
@@ -262,16 +263,10 @@ impl RawHyperClient {
         authorization: Option<HeaderValue>,
     ) -> Result<http::Request<RequestBody>, RawTransportFailure> {
         validate_request_body_len(request.body()).map_err(TransportFailure::not_sent)?;
-        let url = self
-            .endpoint
-            .compose(request.target())
-            .map_err(|_| TransportFailure::not_sent(RawHttpError::TargetRejected))?;
+        let uri =
+            uri::compose(&self.endpoint, request.target()).map_err(TransportFailure::not_sent)?;
         let method = http::Method::from_bytes(request.method().as_str().as_bytes())
             .map_err(|_| TransportFailure::not_sent(RawHttpError::MethodRejected))?;
-        let uri = url
-            .as_str()
-            .parse::<http::Uri>()
-            .map_err(|_| TransportFailure::not_sent(RawHttpError::TargetRejected))?;
         let mut builder = http::Request::builder().method(method).uri(uri);
         let Some(headers) = builder.headers_mut() else {
             return Err(TransportFailure::not_sent(RawHttpError::RequestBuildFailed));

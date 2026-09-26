@@ -20,6 +20,8 @@ pub enum RawHttpError {
     ResponseAlreadyCommitted,
     /// Endpoint and request-target composition failed.
     TargetRejected,
+    /// Adapter-owned request-target staging allocation failed.
+    RequestTargetAllocationFailed,
     /// The validated method could not be represented by reqwest.
     MethodRejected,
     /// A non-empty request body omitted `Content-Type`.
@@ -89,6 +91,7 @@ pub enum RawHttpError {
 impl_static_error!(RawHttpError,
     Self::ResponseAlreadyCommitted => "response writer is already committed",
     Self::TargetRejected => "request target was rejected",
+    Self::RequestTargetAllocationFailed => "request-target allocation failed",
     Self::MethodRejected => "request method was rejected",
     Self::MissingContentType => "request body content type is missing",
     Self::HeaderRejected => "request header was rejected",
