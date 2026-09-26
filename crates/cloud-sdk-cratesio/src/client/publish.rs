@@ -3,10 +3,9 @@ use crate::{
     discovery::DiscoveryExecutionError,
     publishing::{PublishBuffers, PublishClient, PublishPermit, PublishResponse},
 };
-use cloud_sdk::transport::BlockingStreamSource;
-use cloud_sdk_reqwest::blocking::{RawBlockingClient, RawTransportFailure};
+use cloud_sdk::transport::{BlockingRawUploadExecutor, BlockingStreamSource, BoundUserAgent};
 
-impl RegistryClient<'_, RawBlockingClient> {
+impl<T: BlockingRawUploadExecutor + BoundUserAgent + ?Sized> RegistryClient<'_, T> {
     /// Consumes one publish permit and streams an already packaged archive.
     /// `buffers.body` is bounded upload scratch, not whole-archive storage.
     /// The caller must not replay an ambiguous publication or block indefinitely
@@ -16,7 +15,7 @@ impl RegistryClient<'_, RawBlockingClient> {
         permit: PublishPermit<'_>,
         source: &mut S,
         buffers: RegistryBuffers<'_>,
-    ) -> Result<PublishResponse, DiscoveryExecutionError<RawTransportFailure>> {
+    ) -> Result<PublishResponse, DiscoveryExecutionError<T::Error>> {
         let mut guard = Guard::new(buffers);
         let parts = guard.parts();
         let client = if self.staging {

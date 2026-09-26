@@ -731,19 +731,22 @@ live bounded raw transport, without a caller HTTP callback. These increments
 do not close the final integrated 51-operation and Cargo-compatibility gates.
 The secret-path increment enables consumed confirmation and invitation tokens
 in all modes, with protected URI staging and exact-wire/lifetime regressions.
-Generated runtime coverage now measures 50/51 operation rows in all three
-facade modes; publication still lacks its end-to-end witness. The strict checker
-is a release gate, not a coverage claim based on trait implementations.
+Generated runtime coverage now measures 51/51 operation rows in all three
+facade modes. Publication has integrated witnesses for both credential kinds;
+the strict checker passes. These are executable fixtures, not live mutations
+or a coverage claim based only on trait implementations. Final seven-contract
+qualification must retain the documented strict crates.io versus minimal Cargo
+publish-response distinction, not silently widen the response decoder.
 The Cargo cross-check now includes an explicit owner-list compatibility profile:
 its authenticated request and minimal response differ from the anonymous,
 website-schema account operation. Three-mode independent fixtures preserve that
 operation's existing security boundary; retain them in the final qualification.
 
-Dependency follow-up detected during Commit 18 on 2026-09-25:
-`rustls-platform-verifier 0.7.1` supersedes the reviewed `0.7.0` pin and changes
-the Android helper from `0.1.0` to `0.2.0`. Review/admit it with the transport
-work, including target-specific verification and refreshed lock/SBOM evidence;
-do not treat the current live freshness check as green until this is resolved.
+Dependency follow-up from Commit 18 was admitted in the Commit 20 foundation:
+`rustls-platform-verifier 0.7.1` and its Android helper `0.2.0` are recorded in
+the affected locks, dependency-review digest and SBOM evidence. This does not
+add Android bundled-transport qualification. Final freshness and platform
+checks remain required; an earlier admission is not evidence of current currency.
 
 Deliverables: official crates.io client constructors; operation-to-prepared
 request bindings for all 51 rows; automatic method, target, headers, body,

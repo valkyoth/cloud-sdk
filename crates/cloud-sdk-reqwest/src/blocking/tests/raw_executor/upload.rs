@@ -1,9 +1,8 @@
 use super::*;
-use crate::blocking::RawUpload;
 use cloud_sdk::transport::{
-    BlockingStreamSource, BoundTransport, HeaderValue, RequestHeader, RequestHeaders,
-    RequestTarget, StreamFraming, StreamKind, StreamLimits, StreamPolicy, StreamRead,
-    StreamReplayability, StreamSinkMode,
+    AuthorizedUpload, BlockingRawUploadExecutor, BlockingStreamSource, BoundTransport, HeaderValue,
+    RequestHeader, RequestHeaders, RequestTarget, StreamFraming, StreamKind, StreamLimits,
+    StreamPolicy, StreamRead, StreamReplayability, StreamSinkMode,
 };
 
 struct Source {
@@ -51,15 +50,15 @@ fn blocking_upload_accepts_non_send_sources_and_exact_framing() {
     )
     .unwrap_or_else(|_| unreachable!());
     let value = std::format!("fixture-{}", std::process::id());
-    let upload = RawUpload::new(
-        client
+    let upload = AuthorizedUpload {
+        expected: client
             .endpoint_identity()
             .unwrap_or_else(|_| unreachable!()),
-        HeaderValue::new(&value).unwrap_or_else(|_| unreachable!()),
-        &mut source,
-        stream_policy,
-        &mut scratch,
-    );
+        authorization: HeaderValue::new(&value).unwrap_or_else(|_| unreachable!()),
+        source: &mut source,
+        policy: stream_policy,
+        scratch: &mut scratch,
+    };
     let request_headers = [
         RequestHeader::new("content-type", "application/octet-stream")
             .unwrap_or_else(|_| unreachable!()),
@@ -70,7 +69,7 @@ fn blocking_upload_accepts_non_send_sources_and_exact_framing() {
     )
     .with_headers(RequestHeaders::new(&request_headers).unwrap_or_else(|_| unreachable!()));
     assert_eq!(
-        client.execute_upload(
+        client.upload(
             request,
             json_policy(&[]).unwrap_or_else(|| unreachable!()),
             upload,

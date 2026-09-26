@@ -1,6 +1,5 @@
 use super::*;
 use cloud_sdk::transport::AsyncStreamSource;
-#[cfg(feature = "async-rustls")]
 use cloud_sdk::transport::LocalAsyncStreamSource;
 
 impl AsyncStreamSource for SlicePackage<'_> {
@@ -32,15 +31,12 @@ impl<S: AsyncStreamSource + Send> AsyncStreamSource for Framed<'_, S> {
 }
 
 // A distinct wrapper avoids overlapping the blanket Send-to-local source impl.
-#[cfg(feature = "async-rustls")]
 pub(crate) struct LocalFramed<'a, S>(pub(super) Framed<'a, S>);
-#[cfg(feature = "async-rustls")]
 impl<'a, S> LocalFramed<'a, S> {
     pub(crate) fn new(request: &'a PublishRequest<'_>, source: &'a mut S) -> Result<Self, Error> {
         Framed::new(request, source).map(Self)
     }
 }
-#[cfg(feature = "async-rustls")]
 impl<S: LocalAsyncStreamSource> LocalAsyncStreamSource for LocalFramed<'_, S> {
     type Error = Error;
     fn replayability(&self) -> StreamReplayability<'_> {

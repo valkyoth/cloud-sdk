@@ -42,3 +42,26 @@ impl RawBlockingClient {
         })
     }
 }
+
+impl cloud_sdk::transport::BlockingRawUploadExecutor for RawBlockingClient {
+    fn upload<S: BlockingStreamSource>(
+        &self,
+        request: TransportRequest<'_>,
+        policy: RawResponsePolicy<'_>,
+        upload: cloud_sdk::transport::AuthorizedUpload<'_, S>,
+        response: &mut ResponseWriter<'_>,
+    ) -> Result<(), RawTransportFailure> {
+        self.execute_upload(
+            request,
+            policy,
+            RawUpload::new(
+                upload.expected,
+                upload.authorization,
+                upload.source,
+                upload.policy,
+                upload.scratch,
+            ),
+            response,
+        )
+    }
+}

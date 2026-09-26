@@ -206,6 +206,9 @@ def validate(root: Path) -> None:
         "client/asynchronous/tests/coverage.rs",
         "client/asynchronous/tests/coverage_routes.rs",
         "client/asynchronous/tests/cargo.rs",
+        "client/asynchronous/tests/publish.rs",
+        "client/asynchronous/tests/publish/adapter.rs",
+        "client/asynchronous/tests/publish/failures.rs",
         *(f"accounts/{name}.rs" for name in ("cargo", "cargo/execution", "cargo/tests")),
         *(f"{area}/unified.rs" for area in ("accounts/personal", "accounts/tokens", "settings", "ownership/changes", "publishing/yank", "trusted_publishing")),
         *(f"{area}/tests/unified.rs" for area in ("discovery", "catalog", "versions", "downloads", "accounts", "accounts/tokens", "settings", "trusted_publishing")),
@@ -279,7 +282,7 @@ def validate(root: Path) -> None:
     publish = (crate / "src/publishing/publish.rs").read_text(encoding="ascii")
     if '#[cfg(any(feature = "blocking", feature = "async"))]\nmod client;' not in publish:
         raise BoundaryError("publish client guard changed")
-    for feature, module in (("blocking-rustls", "bundled"), ("async-rustls", "bundled_async")):
+    for feature, module in (("blocking", "bundled"), ("async", "bundled_async")):
         if f'#[cfg(feature = "{feature}")]\nmod {module};' not in publish:
             raise BoundaryError("bundled publish transport guard changed")
     if '#[cfg(feature = "alloc")]\nmod yank;' not in publishing:

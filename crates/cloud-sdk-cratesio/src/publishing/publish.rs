@@ -1,6 +1,6 @@
-#[cfg(feature = "blocking-rustls")]
+#[cfg(feature = "blocking")]
 mod bundled;
-#[cfg(feature = "async-rustls")]
+#[cfg(feature = "async")]
 mod bundled_async;
 mod metadata;
 mod request;

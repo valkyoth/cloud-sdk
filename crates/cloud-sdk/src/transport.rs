@@ -11,6 +11,7 @@ mod request_target;
 mod response;
 mod retained;
 mod streaming;
+mod upload;
 mod user_agent;
 mod workspace;
 
@@ -72,6 +73,9 @@ pub use workspace::{
 
 use core::fmt;
 
+pub use upload::{
+    AsyncRawUploadExecutor, AuthorizedUpload, BlockingRawUploadExecutor, LocalRawUploadExecutor,
+};
 pub use user_agent::BoundUserAgent;
 
 use crate::Method;

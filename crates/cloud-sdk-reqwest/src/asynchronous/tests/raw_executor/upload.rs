@@ -1,9 +1,9 @@
 use super::*;
 use crate::asynchronous::RawUpload;
 use cloud_sdk::transport::{
-    AsyncStreamSource, BoundTransport, HeaderValue, RequestHeader, RequestHeaders, RequestTarget,
-    StreamFraming, StreamKind, StreamLimits, StreamPolicy, StreamRead, StreamReplayability,
-    StreamSinkMode,
+    AsyncRawUploadExecutor, AsyncStreamSource, AuthorizedUpload, BoundTransport, HeaderValue,
+    LocalRawUploadExecutor, RequestHeader, RequestHeaders, RequestTarget, StreamFraming,
+    StreamKind, StreamLimits, StreamPolicy, StreamRead, StreamReplayability, StreamSinkMode,
 };
 
 mod failures;
@@ -80,18 +80,18 @@ fn uploads_exact_bytes_with_explicit_authorization_in_both_async_modes() {
                 RequestHeader::new("content-type", "application/octet-stream")
                     .unwrap_or_else(|_| unreachable!()),
             ];
-            let upload = RawUpload::new(
-                client
+            let upload = AuthorizedUpload {
+                expected: client
                     .endpoint_identity()
                     .unwrap_or_else(|_| unreachable!()),
-                HeaderValue::new(&value).unwrap_or_else(|_| unreachable!()),
-                &mut source,
-                stream_policy(5),
-                &mut scratch,
-            );
+                authorization: HeaderValue::new(&value).unwrap_or_else(|_| unreachable!()),
+                source: &mut source,
+                policy: stream_policy(5),
+                scratch: &mut scratch,
+            };
             let result = if local {
                 client
-                    .execute_upload_local(
+                    .upload_local(
                         request(&request_headers),
                         policy(2).unwrap_or_else(|| unreachable!()),
                         upload,
@@ -99,7 +99,7 @@ fn uploads_exact_bytes_with_explicit_authorization_in_both_async_modes() {
                     )
                     .await
             } else {
-                send(client.execute_upload(
+                send(client.upload(
                     request(&request_headers),
                     policy(2).unwrap_or_else(|| unreachable!()),
                     upload,

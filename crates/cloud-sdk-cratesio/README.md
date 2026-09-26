@@ -38,13 +38,14 @@ Cargo yank/unyank uses bodyless single-attempt mutations, checked acknowledgemen
 and explicit version-state read-back.
 Publishing adds validated metadata, exact binary framing, single-use authority
 and bounded streaming through bundled blocking/local-async/Send-async adapters,
-or an explicitly trusted custom blocking adapter.
+or custom adapters implementing the neutral streaming contracts.
 Trusted publishing adds GitHub/GitLab configuration management, unverified OIDC
 preflight and exchange, and protected temporary-token revocation.
 Authentication preparation, endpoint, query and response foundations
 are available. The blocking/local/Send facade, official bundled constructors and
-anonymous artifact streaming are an initial Commit 20 increment, not its
-completed coverage or parity gate. This is not yet a complete crates.io provider.
+anonymous artifact streaming have three-mode fixture coverage for all 51 API
+operations. Final Cargo compatibility qualification and the Commit 20 pentest
+remain open. This is not yet a complete crates.io provider.
 
 ## Current Boundary
 

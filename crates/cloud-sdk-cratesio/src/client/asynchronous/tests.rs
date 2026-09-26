@@ -15,6 +15,7 @@ mod catalog;
 mod coverage;
 mod lifecycle;
 mod operations;
+mod publish;
 mod secret_paths;
 
 pub(crate) const UA: &str = "unified-tests/1 (tests@example.org)";

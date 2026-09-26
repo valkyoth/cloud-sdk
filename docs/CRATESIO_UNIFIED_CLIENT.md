@@ -9,7 +9,7 @@ No tag, publication, Commit 21 authorization or full-provider coverage claim.
 - `client::RegistryClient` binds production or staging and delegates blocking
   typed reads and consumed mutation permits to their existing checked runners.
   Request assembly and authorization dispatch no longer need a caller callback
-  on these paths. Separate bundled `publish`, `publish_local` and `publish_async`
+  on these paths. Separate streaming `publish`, `publish_local` and `publish_async`
   methods now accept a consumed permit and borrowed archive source.
 - `execute_local` and `execute_async` now cover those same read and permit
   families. API-token catalog requests have corresponding explicit methods.
@@ -64,16 +64,15 @@ No tag, publication, Commit 21 authorization or full-provider coverage claim.
 
 ## Remaining Commit 20 Gates
 
-1. Qualify unified async execution with the bundled adapters across the final
-   operation matrix. Mock parity and cleanup tests pass for the currently
-   enabled families, including path-secret operations; this does not substitute
-   for final integrated publish-operation evidence.
+1. Retain unified execution and bundled adapter qualification in the final
+   checkpoint. All 51 facade rows now have successful three-mode witnesses,
+   including publication with both API and trusted-publishing credentials.
+   This does not establish live mutation or per-operation TLS qualification.
 2. Retain the live authenticated streaming-upload qualification in the final
    gate. Transport loopback tests, Cargo framing tests and facade preflight/
-   cancellation checks now exist; complete the final integrated operation matrix.
-3. Close the generated execution gate against all 51 operation matrix rows;
-   the current measured result is 50/51, with publication missing. Trait
-   implementations alone do not prove each variant executes correctly.
+   cancellation checks now exist alongside integrated publication fixtures.
+3. Retain the passing generated execution gate against all 51 operation rows.
+   Trait implementations alone do not prove each variant executes correctly.
    Retain the secret-path URI ownership, exact-wire and cancellation evidence
    in that generated qualification.
 4. Complete higher-level Cargo publish/owner/yank/unyank/search workflows and
@@ -206,12 +205,13 @@ emitted after all three facade calls, decoded results, exact wire assertions,
 call counts and scratch-cleanup assertions pass. Only public operation IDs and
 execution modes are emitted, never targets, tokens or payloads.
 
-Current measured result: **50/51** operation rows have blocking/local/Send
-witnesses. `publish` is missing all three end-to-end witnesses. A framing-only
-test, rejected-origin call, trait implementation or duplicate witness cannot
-fill this gap. `--report` is explicitly progress-only and is not used by the
-release gate. Ordinary CI checks generated-route freshness and checker
-regressions while this checkpoint remains in progress.
+Current measured result: **51/51** operation rows have blocking/local/Send
+witnesses. Publication now executes through the same provider runners used by
+the bundled adapters, with independent Cargo framing bytes, exact raw/Bearer
+authorization checks, partial writes, checked crate/warning responses and
+scratch cleanup. Both credential kinds pass all three modes and three chunk
+sizes before the publication witness is recorded. The strict checker passes;
+`--report` remains progress-only and is not used by the release gate.
 
 This is measured facade fixture coverage, not proof of every parameter variant,
 all bundled TLS exchanges, every authentication mode or Cargo compatibility.
@@ -245,6 +245,61 @@ The characterization test preserves this distinction alongside the Cargo tests.
 Successful website owner tests must not be reported as exact Cargo owner-list
 compatibility. The source is the
 [Cargo Registry Web API](https://doc.rust-lang.org/cargo/reference/registry-web-api.html).
+
+Publication's binary framing and both authorization schemes are independently
+verified. Its response model still deliberately follows the pinned crates.io
+schema, requiring `crate` and `warnings`, whereas generic Cargo permits a
+minimal success with no warnings. A three-mode characterization test confirms
+that the strict decoder rejects both `{}` and warnings-only success. Complete
+the final seven-contract qualification with this distinction explicit; do not
+label the current response model a generic registry fallback. A separate Cargo
+response profile, if required, must not silently relax the strict model.
+
+## Neutral Upload Integration
+
+Core `AuthorizedUpload` and blocking/local/Send upload executor traits define
+the trusted, destination-bound finite upload contract without dependencies or
+allocation. The neutral reqwest adapter delegates these traits to its existing
+bounded live upload implementation. Provider publication is now generic over
+these contracts; `blocking`/`async` suffice for custom upload adapters, while
+bundled network/TLS/runtime features remain explicitly opt-in. No test-only
+endpoint override or credential-routing bypass was introduced.
+
+The integrated facade tests compare metadata-length/metadata/archive-length/
+archive bytes against an independently assembled Cargo frame. They cover both
+credential schemes, non-Send local/blocking sources, Send futures, partial
+writes, short/long archives, preflight rejection, provider/protocol/transport
+errors, no retry, and unpolled/in-flight cancellation. Real loopback upload
+tests now exercise the neutral traits as well as the underlying adapter.
+
+Custom executors remain trusted: the contract requires complete source framing
+and response admission before commitment, deadlines, no redirects/cookies or
+retries, sensitive authorization handling and cleanup. Provider tests do not
+prove that an arbitrary external executor honors these requirements.
+
+### Integration Verification
+
+Checked locally on 2026-09-26:
+
+- Full `scripts/checks.sh`: passed, including workspace tests, package
+  verification, doctests, feature-isolated checks and warning-denied Clippy.
+- Strict generated execution coverage: **51/51**, all three modes; passed
+  without the progress-only flag or weakening the expected inventory.
+- Four provider publication test groups passed, covering 18 successful
+  credential/mode/chunk combinations, 27 failure combinations, four future-drop
+  cases and six minimal-Cargo-response characterization cases.
+- The provider publication groups and all eight neutral loopback upload groups
+  passed on Rust 1.92.0. Allocation-only blocking/async publication tests passed
+  on the development compiler without enabling bundled networking features.
+- Core no-default-feature and provider allocation-only checks passed for
+  `thumbv7em-none-eabi`. This is compile evidence, not a TLS/platform claim.
+- AST fail-closed checks across core/provider/adapter, source/feature guard
+  regressions, documentation links, formatting, file-length/modularity policy,
+  whitespace and all four SBOM graphs passed.
+
+No manifest or lockfile changed, and no live mutation or publication ran.
+Commit 20 still needs final Cargo compatibility qualification and its pentest;
+this is a tested implementation increment, not acceptance of the checkpoint.
 
 ## Cargo Owner Increment Verification
 

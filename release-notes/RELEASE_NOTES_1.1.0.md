@@ -574,14 +574,19 @@ non-secret authority storage so origin keys cannot retain the token allocation.
 Pinned URI ownership and loopback wire tests cover exact composition and cleanup
 lifetimes. External HTTP/TLS buffers and access logs remain deployment boundaries.
 Generated execution evidence now links successful three-mode facade fixtures to
-the reviewed inventory: 50/51 rows are covered, with publication still pending.
+the reviewed inventory: 51/51 rows now have three-mode execution witnesses.
+Provider-neutral upload contracts connect the publication facade to both
+bundled adapters and deterministic fixtures without a test-only endpoint bypass.
+Both token schemes, exact Cargo bytes, partial writes and cleanup are covered.
 The release gate rejects missing witnesses. Independent Cargo search evidence
 and an owner-list characterization test distinguish website-schema coverage from
 the separately selected authenticated/minimal Cargo owner profile. Its typed
 request now executes through the unified blocking/local/Send client with explicit
 raw API-token authorization and bounded protected response decoding. Website
 validation and the generic token route allowlist remain unchanged. Commit 20
-remains open, including the integrated publication witness.
+remains open for final Cargo compatibility qualification and pentest. The strict
+publish response still requires the pinned crates.io `crate`/`warnings` fields;
+generic Cargo minimal replies are not silently accepted.
 
 ### Maintenance Evidence (Earlier Checkpoints)
 

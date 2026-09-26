@@ -1,5 +1,5 @@
 use super::PublishError as Error;
-#[cfg(any(feature = "blocking", feature = "async-rustls", test))]
+#[cfg(any(feature = "blocking", feature = "async", test))]
 use super::PublishRequest;
 use cloud_sdk::transport::{
     BlockingStreamSink, BlockingStreamSource, StreamCompletion, StreamOutcome, StreamPolicy,
@@ -62,11 +62,6 @@ impl<'a, S: BlockingStreamSource> PublishUpload<'a, S> {
             _ => 0,
         }
     }
-    #[cfg(feature = "blocking-rustls")]
-    pub(super) fn take_framed(&mut self) -> Result<(Framed<'a, S>, StreamPolicy), Error> {
-        self.complete = false;
-        Ok((self.body.take().ok_or(Error::Binding)?, self.policy))
-    }
     /// Stream once with bounded progress and direct sink abort semantics. Any
     /// failure, cancellation signalled by the source/sink, or unwinding aborts
     /// the sink and clears scratch. Partial remote publication cannot roll back.
@@ -121,7 +116,7 @@ impl<S: BlockingStreamSource> BlockingStreamSource for Framed<'_, S> {
 }
 
 impl<'a, S> Framed<'a, S> {
-    #[cfg(any(feature = "blocking", feature = "async-rustls", test))]
+    #[cfg(any(feature = "blocking", feature = "async", test))]
     pub(super) fn new(request: &'a PublishRequest<'_>, source: &'a mut S) -> Result<Self, Error> {
         Ok(Self {
             metadata: request.metadata.bytes,

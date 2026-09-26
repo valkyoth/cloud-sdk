@@ -34,3 +34,48 @@ impl RawAsyncClient {
         LocalAsyncStreamSource
     );
 }
+
+impl cloud_sdk::transport::AsyncRawUploadExecutor for RawAsyncClient {
+    fn upload<'a, 'b: 'a, S: AsyncStreamSource + Send + 'a>(
+        &'a self,
+        request: TransportRequest<'a>,
+        policy: RawResponsePolicy<'a>,
+        upload: cloud_sdk::transport::AuthorizedUpload<'a, S>,
+        response: &'a mut ResponseWriter<'b>,
+    ) -> impl Future<Output = Result<(), RawTransportFailure>> + Send + 'a {
+        self.execute_upload(
+            request,
+            policy,
+            RawUpload::new(
+                upload.expected,
+                upload.authorization,
+                upload.source,
+                upload.policy,
+                upload.scratch,
+            ),
+            response,
+        )
+    }
+}
+impl cloud_sdk::transport::LocalRawUploadExecutor for RawAsyncClient {
+    fn upload_local<'a, 'b: 'a, S: LocalAsyncStreamSource + 'a>(
+        &'a self,
+        request: TransportRequest<'a>,
+        policy: RawResponsePolicy<'a>,
+        upload: cloud_sdk::transport::AuthorizedUpload<'a, S>,
+        response: &'a mut ResponseWriter<'b>,
+    ) -> impl Future<Output = Result<(), RawTransportFailure>> + 'a {
+        self.execute_upload_local(
+            request,
+            policy,
+            RawUpload::new(
+                upload.expected,
+                upload.authorization,
+                upload.source,
+                upload.policy,
+                upload.scratch,
+            ),
+            response,
+        )
+    }
+}
