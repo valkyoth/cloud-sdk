@@ -18,6 +18,7 @@ scripts/check_native_build_boundary.py
 scripts/test-native-build-boundary.py
 scripts/check_release_governance.py
 scripts/test-release-governance.py
+python3 scripts/test-release-ownership.py
 scripts/test-release-provenance.py
 scripts/test-latest-tools.py
 scripts/test-rustsec-advisories.py

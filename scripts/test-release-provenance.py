@@ -99,6 +99,15 @@ def test_policy_names_all_six_publishable_packages() -> None:
 
 def test_every_publishable_package_has_explicit_patch_policy() -> None:
     assert set(checker.packages_from_policy()) == set(checker.PACKAGE_PATCHES)
+    import tomllib
+    for package, patches in checker.PACKAGE_PATCHES.items():
+        manifest = tomllib.loads((ROOT / "crates" / package / "Cargo.toml").read_text())
+        dependencies = dict(manifest.get("dependencies", {}))
+        dependencies.update(manifest.get("dev-dependencies", {}))
+        for target in manifest.get("target", {}).values():
+            dependencies.update(target.get("dependencies", {}))
+        for dependency in dependencies.keys() & checker.PACKAGE_PATCHES.keys():
+            assert f'patch.crates-io.{dependency}.path="crates/{dependency}"' in patches, (package, dependency)
 
 
 def repository() -> tuple[Path, str]:

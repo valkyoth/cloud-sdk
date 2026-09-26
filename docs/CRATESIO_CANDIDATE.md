@@ -15,6 +15,11 @@ independently retested at `96ae9a2c`, with no new confirmed finding. The
 [permanent release report](../security/pentest/v1.1.0.md) distinguishes the
 full assessment from its focused remediation retest. Release preparation now
 reruns `scripts/release_1_1_gate.sh` on the committed publication metadata.
+Final tooling qualification also covers all workspace patches in the legacy
+archive/SBOM reproducer. Live governance checks require existing crate ownership;
+only an explicitly initial package with Cargo's exact namespace-absent 404 is
+reported as awaiting first publication. Any other retrieval or ownership failure
+remains fatal. Recheck the new package's owner immediately after its first upload.
 
 ## Frozen Scope
 

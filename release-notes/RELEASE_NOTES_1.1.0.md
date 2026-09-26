@@ -75,6 +75,10 @@ for the complete gate, compatibility review and full-service pentest boundary.
   retrieval deadline even during a slow buffered read. Regression tests cover
   all four blocking request paths, cancellation, saturation, unwind and child
   termination. Independent retest accepted both fixes without new findings.
+- Final qualification fixes the provenance tool's local dependency patches for
+  the new provider and distinguishes an absent initial namespace from ownership
+  or network failures. Regression tests cover both pre-publication cases; the
+  release gate includes live governance and two-clone package/SBOM reproduction.
 
 The new API is additive: existing exhaustive endpoint/query enums are unchanged.
 The release remains untagged and unpublished until final local and GitHub checks

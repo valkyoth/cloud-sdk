@@ -50,6 +50,8 @@ PACKAGE_PATCHES = {
     ),
     "cloud-sdk-cratesio": (
         'patch.crates-io.cloud-sdk.path="crates/cloud-sdk"',
+        'patch.crates-io.cloud-sdk-reqwest.path="crates/cloud-sdk-reqwest"',
+        'patch.crates-io.cloud-sdk-sanitization.path="crates/cloud-sdk-sanitization"',
     ),
 }
 

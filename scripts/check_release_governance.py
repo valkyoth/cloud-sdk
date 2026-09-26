@@ -346,10 +346,22 @@ def check_live_github(config: dict, query=gh_json) -> None:
 
 def check_live_crates_io(config: dict) -> None:
     required = config["ownership"]["required_crates_io_owner"]
+    entries = load_toml(ROOT / "release-crates.toml")["crates"]
     for package in config["packages"]["publishable"]:
-        output = subprocess.check_output(
-            ["cargo", "owner", "--list", package], cwd=ROOT, text=True
-        )
+        try:
+            output = subprocess.check_output(
+                ["cargo", "owner", "--list", package], cwd=ROOT, text=True,
+                stderr=subprocess.PIPE,
+            )
+        except subprocess.CalledProcessError as error:
+            missing = (
+                "the remote server responded with an error (status 404 Not Found): "
+                f"crate `{package}` does not exist"
+            )
+            if entries.get(package, {}).get("previous_version") == "none" and missing in (error.stderr or ""):
+                print(f"{package}: initial publication; namespace absent, verify owner immediately after upload")
+                continue
+            raise
         owners = tuple(line.strip().split()[0] for line in output.splitlines() if line)
         if required not in owners:
             raise GovernanceError(f"{package}: required crates.io owner is absent")
