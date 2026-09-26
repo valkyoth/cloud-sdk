@@ -35,6 +35,9 @@ use super::{
     inspect_response_head,
 };
 
+mod streaming;
+pub use streaming::StreamingResponse;
+
 type HttpClient = Client<HttpsConnector<HttpConnector>, Full<Bytes>>;
 
 pub(crate) trait RawResponseSink<'buffer> {

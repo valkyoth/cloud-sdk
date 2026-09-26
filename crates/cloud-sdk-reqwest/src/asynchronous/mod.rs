@@ -6,6 +6,7 @@ mod client;
 mod config;
 mod raw;
 
+pub use crate::shared::StreamingResponse;
 pub use crate::shared::{
     AuthenticatedTransportFailure, BasicCredential, BasicCredentialError, BasicCredentialScope,
     BasicCredentialScopeError, BasicPassword, BasicPasswordError, BasicUsername,

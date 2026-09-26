@@ -11,9 +11,11 @@ use super::{run_async_test, test_timeouts};
 use crate::asynchronous::{RawAsyncClient, RawAsyncClientBuilder, RawHttpError, UserAgent};
 use crate::test_server::{spawn, spawn_concurrent_pair, spawn_raw_response, spawn_raw_split};
 
+mod authorized;
 mod driver;
 mod precommitted;
 mod request_body;
+mod streaming;
 
 pub(super) use driver::RawAsyncTestExt;
 

@@ -4,7 +4,11 @@ mod artifact;
 mod request;
 pub use crate::discovery::DiscoveryError as DownloadError;
 pub use artifact::*;
+#[cfg(feature = "artifact-sha256")]
+mod sha256;
 pub use request::{DownloadOperation, DownloadRequest};
+#[cfg(feature = "artifact-sha256")]
+pub use sha256::Sha256Checksum;
 #[cfg(feature = "alloc")]
 mod decode;
 #[cfg(feature = "alloc")]

@@ -267,6 +267,21 @@ No resolved dependency, feature, target, build-script, or default edge changed f
 | `ovhcloud-v2-probe` | `0.100.0` | `1.0.0` | Excluded inherited identity only. |
 ## v1.1.0
 The unreleased candidate aligns every workspace crate at 1.1.0. Reviewed compatible maintenance patches retain their existing features, targets, sources, licenses, and default graph; the isolated policy checker remains separately gated.
+### crates.io Commit 20 Transport Foundation (In Progress)
+Reviewed 2026-09-26: platform-verifier 0.7.1 and Android helper 0.2.0;
+source, checksum, license and target details are in [transport admission](dependency-admission-reqwest.md#commit-20-platform-verifier-review).
+The provider adds opt-in neutral reqwest and exact default-disabled RustCrypto `sha2 0.11.0` edges, not new third-party packages.
+`artifact-sha256` is no_std; `blocking-rustls`/`async-rustls` select existing native transports. Default/alloc/Serde stay transport-free.
+SHA-256 checks public archive integrity against trusted metadata. This is not completion of Commit 20.
+
+| Lockfile | Package | Previous identity SHA-256 | Current identity SHA-256 | Review |
+| --- | --- | --- | --- | --- |
+| `Cargo.lock` | `rustls-platform-verifier` | `53a0f83b723cfcf3b3c2abbeb683b6e88f8d0b2d1709ec7b18e5e46441f3b29e` | `1bef3bb99591b6dbca5d63bbf9f69ddfda691149f94358c1ffbd793187dc7860` | Reviewed 0.7.1 platform hostname normalization patch above. |
+| `Cargo.lock` | `rustls-platform-verifier-android` | `a87abad424ba64baaf2881991bc52edaec90e9867834075fa1c6c3e063643128` | `3515ff003b8390990edf742cda7cdf44c8aaab27ef3ba2d34098dc7d0b211f94` | Matching 0.2.0 helper; no new supported target. |
+| `fuzz/Cargo.lock` | `rustls-platform-verifier` | `53a0f83b723cfcf3b3c2abbeb683b6e88f8d0b2d1709ec7b18e5e46441f3b29e` | `1bef3bb99591b6dbca5d63bbf9f69ddfda691149f94358c1ffbd793187dc7860` | Same reviewed exact graph in isolated fuzzing. |
+| `fuzz/Cargo.lock` | `rustls-platform-verifier-android` | `a87abad424ba64baaf2881991bc52edaec90e9867834075fa1c6c3e063643128` | `3515ff003b8390990edf742cda7cdf44c8aaab27ef3ba2d34098dc7d0b211f94` | Same target-only helper in isolated fuzzing. |
+| `tests/reqwest-feature-unification/Cargo.lock` | `rustls-platform-verifier` | `ac8b7c98d3e1d9cb79d4995adff6284922b325b688d4b08eb8fdb20b4feb4495` | `2d16bae586acef58c174334cf3488b51dd2d83b9d3ddf03523f1b97b7fc222d2` | Same patch under adversarial feature unification. |
+| `tests/reqwest-feature-unification/Cargo.lock` | `rustls-platform-verifier-android` | `a87abad424ba64baaf2881991bc52edaec90e9867834075fa1c6c3e063643128` | `3515ff003b8390990edf742cda7cdf44c8aaab27ef3ba2d34098dc7d0b211f94` | Same target-only helper under feature unification. |
 ### crates.io Commit 13 Maintenance
 Reviewed 2026-09-24. All direct pins were queried against crates.io, all four
 lockfiles were refreshed, and the native build-script inventory was compared.
@@ -309,7 +324,7 @@ The nine additional same-version rows record macro dependencies moving from
 | `Cargo.lock` | `cfg-if` | `7edd0c296b0151d16294a4c57cc739d6b78f975542abadea569aa792fcf8e0da` | `436e75fbcf83f7f848114cad6f7fb5528738542b4c8bea7c4a183db25578f7b9` | Transitive compile-time configuration macro patch. |
 | `Cargo.lock` | `chacha20` | `2f9b94a68a291d63e22ada7fa4bbe0f9047fffab482f080644fef15f39d41fcb` | `4ce58df346aa18fd4198dcc368768c22ae4902064f14ba135612984fc361cae1` | Compatible transitive patch in the existing rustls platform graph. |
 | `Cargo.lock` | `cloud-sdk` | `99bde992b3044533cd754c81d1c51856de4a8c9bbb2bc7a91b898be136d76d4d` | `7441c5963af8bc2d86e4b322b10e51c9fa85e94da557e119872860d7bf87d8ea` | Advance the unreleased facade candidate. |
-| `Cargo.lock` | `cloud-sdk-cratesio` | `-` | `453fe85a03ba5a0e21d2509d62b259db4942d80f48b2b02c909f593482fad240` | First-party provider with optional Serde/sanitization, fixture oracles, publish parsers and base64-ng for bounded OIDC preflight; see Commit 18/19 admissions above. Defaults remain transport-free. |
+| `Cargo.lock` | `cloud-sdk-cratesio` | `-` | `bc9a46046c4dfffe20a7d6cd8e68400345a8214cc9b7856d9a08e8fbff5bd1fc` | First-party provider; optional neutral transport and archive SHA-256 edges join the Commit 18/19 admissions. Defaults remain transport-free. |
 | `Cargo.lock` | `spdx` | `-` | `e0700d2c26cd1af408d92ed97a3510339d488536f77143a982e36edb444e8fb3` | Exact 0.13.5 no_std license-expression parser with default features disabled; bounded public inputs, existing smallvec dependency, no native code or build script; see Commit 18 admission above. |
 | `Cargo.lock` | `cloud-sdk-hetzner` | `b2f69f76469a98e21ae5e0313473480bf35e226a79722f2f5858dd8b6e116f7f` | `6122bad0afc7f54a085c63752a2c5f5656813849b0fbf48ef5af2a4dbc69e732` | Align the provider with the candidate train. |
 | `Cargo.lock` | `cloud-sdk-reqwest` | `2cab423ab02c5e03c855c958ae9c6ef74e31be02124d29946d917d6657f4a648` | `bd0c6d54c0825894a5c6b02544e6c084188a888307b857e6371e958dcfdeb205` | Align the transport adapter with the candidate train. |

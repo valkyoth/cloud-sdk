@@ -304,6 +304,7 @@ def test_packaged_candidate_uses_both_local_dependency_patches() -> None:
         assert provider_calls == [[
             "package", "--locked", "-p", "cloud-sdk-cratesio", "--allow-dirty", "--all-features",
             "--config", 'patch.crates-io.cloud-sdk.path="crates/cloud-sdk"',
+            "--config", 'patch.crates-io.cloud-sdk-reqwest.path="crates/cloud-sdk-reqwest"',
             "--config", 'patch.crates-io.cloud-sdk-sanitization.path="crates/cloud-sdk-sanitization"',
         ]], provider_calls
 

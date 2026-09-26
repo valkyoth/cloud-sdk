@@ -25,6 +25,9 @@ serde = ["alloc", "dep:serde"]
 std = ["alloc", "cloud-sdk/std"]
 blocking = ["serde", "std"]
 async = ["serde", "std"]
+artifact-sha256 = ["dep:sha2"]
+blocking-rustls = ["blocking", "artifact-sha256", "dep:cloud-sdk-reqwest", "cloud-sdk-reqwest/blocking-rustls"]
+async-rustls = ["async", "artifact-sha256", "dep:cloud-sdk-reqwest", "cloud-sdk-reqwest/async-rustls"]
 
 [dependencies]
 cloud-sdk.workspace = true
@@ -33,6 +36,8 @@ serde = { workspace = true, optional = true }
 semver = { workspace = true, optional = true }
 spdx = { workspace = true, optional = true }
 base64-ng = { workspace = true, optional = true }
+sha2 = { workspace = true, optional = true }
+cloud-sdk-reqwest = { workspace = true, optional = true, default-features = false }
 
 [dev-dependencies]
 semver.workspace = true

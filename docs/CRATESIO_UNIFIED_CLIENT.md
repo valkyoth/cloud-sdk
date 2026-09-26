@@ -1,0 +1,79 @@
+# crates.io Unified Client Work
+
+Status: Commit 20 **in progress**, not an accepted implementation checkpoint.
+Baseline: `f49b7712` (Commit 19, user-confirmed pentest and GitHub pass).
+No tag, publication, Commit 21 authorization or full-provider coverage claim.
+
+## Implemented Foundation
+
+- `client::RegistryClient` binds production or staging and delegates blocking
+  typed reads and consumed mutation permits to their existing checked runners.
+  Request assembly and authorization dispatch no longer need a caller callback
+  on these paths. Publish still requires the existing streaming callback.
+- Email confirmation and token-based invitation acceptance are rejected before
+  dispatch with `DiscoveryError::Binding`. The adapter's ordinary URI storage
+  is not yet qualified for path secrets; these operations retain their existing
+  trusted callback API. Scratch clears even on this rejection.
+- All four `RegistryBuffers` regions clear on errors and successful completion,
+  including admission and endpoint-construction failures. Rate limiting remains
+  process-wide and never sleeps or retries implicitly.
+- Core authorized raw contracts keep credentials separate from anonymous raw
+  requests. The neutral bundled adapters compare the expected destination
+  before credential copying/I/O and preserve the complete header value without
+  adding a Bearer prefix. Owned header staging uses sanitization.
+- Bundled production/staging factories accept identifying user agent and
+  deadlines, never a caller-controlled URL or implicit credential.
+- `bundled::ArtifactTransport` wraps a separate fixed static-CDN adapter.
+  Blocking and async bodies are live sources, not whole-archive buffers. Async
+  sources also implement local-async execution. The source enforces a finite
+  byte limit, 4,096 upstream frame observations and the original total deadline.
+  It accepts only status 200 and identity coding, rejects duplicate headers and
+  declared/observed trailers, and never follows redirects. Dropping a pending
+  read invalidates the source and closes its unpooled body.
+- `downloads::Sha256Checksum` uses the already admitted `sha2 0.11.0` with
+  defaults disabled and a single-use state. Expected hashes must originate from
+  trusted registry metadata; hashing alone does not authenticate that metadata.
+- Optional `blocking-rustls`, `async-rustls` and `artifact-sha256` features do
+  not change the default, alloc-only or Serde-only dependency boundary.
+- Platform-verifier 0.7.1 and its Android helper 0.2.0 are recorded in all
+  affected locks and the dependency-review digest. Android bundled transport
+  support is not added by this dependency refresh.
+
+## Remaining Commit 20 Gates
+
+1. Add unified local-async and Send-async credential/permit execution, with
+   unpolled and in-flight cleanup and no blocking bridge inside an executor.
+2. Add real bundled authenticated streaming publication, including partial
+   writes, early rejection, truncation, deadlines and no implicit replay.
+3. Generate exact execution coverage against all 51 operation matrix rows;
+   trait implementations alone do not prove each variant executes correctly.
+   First qualify secret-path URI storage and enable the two excluded personal
+   operations without unprotected SDK-owned token copies.
+4. Complete higher-level Cargo publish/owner/yank/unyank/search workflows and
+   independently verify all seven stable wire contracts byte-for-byte.
+5. Qualify actual transactional filesystem/storage behavior on cancellation,
+   checksum failure and commit failure. Existing in-memory sink tests do not
+   satisfy that qualification.
+6. Complete adapter/provider integration, compile-checked examples, complete
+   repository/MSRV/platform/dependency/SBOM checks, and the incremental pentest.
+
+Do not mark Commit 20 complete or advance the accepted baseline until all six
+items and the original commit-plan exit criteria have executable evidence.
+
+## Foundation Verification
+
+Checked locally on 2026-09-26, before the foundation commit:
+
+- `scripts/checks.sh`: passed, including workspace all-feature tests,
+  doctests, warning-denied Clippy, isolated provider feature checks, packaging,
+  default dependency boundary, fuzz metadata and fixture regressions.
+- Rust 1.92.0 checks for the crates.io provider and neutral reqwest adapter,
+  with all features: passed. This is not a complete platform-matrix claim.
+- SHA-256-only provider tests and the AST fail-closed test policy: passed.
+- Fresh `cargo audit` and `cargo deny check`: passed.
+- `scripts/check_sbom_freshness.sh`: all four locked graphs passed.
+- Formatting, documentation links, file-length policy and `git diff --check`:
+  passed. Secret-path rejection tests also prove zero dispatch, untouched rate
+  admission and cleanup of all four scratch buffers.
+
+These are implementation checks, not a pentest or acceptance of Commit 20.

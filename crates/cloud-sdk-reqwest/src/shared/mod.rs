@@ -60,6 +60,7 @@ pub use raw::{
 #[cfg(feature = "fuzzing")]
 pub use raw_fuzz::fuzz_raw_response_parser;
 pub(crate) use raw_hyper::RawHyperClient;
+pub use raw_hyper::StreamingResponse;
 #[cfg(any(
     feature = "async-rustls",
     all(

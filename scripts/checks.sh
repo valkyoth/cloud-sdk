@@ -204,6 +204,7 @@ cargo package -p cloud-sdk-hetzner --allow-dirty --features serde \
     --config 'patch.crates-io.cloud-sdk-testkit.path="crates/cloud-sdk-testkit"'
 cargo package -p cloud-sdk-cratesio --allow-dirty --all-features \
     --config 'patch.crates-io.cloud-sdk.path="crates/cloud-sdk"' \
+    --config 'patch.crates-io.cloud-sdk-reqwest.path="crates/cloud-sdk-reqwest"' \
     --config 'patch.crates-io.cloud-sdk-sanitization.path="crates/cloud-sdk-sanitization"'
 CARGO_TARGET_DIR=/dev/null scripts/check_packaged_reqwest_tests.sh
 cargo package -p cloud-sdk-sanitization --allow-dirty
@@ -212,7 +213,7 @@ cargo package -p cloud-sdk-testkit --allow-dirty \
 cargo clippy --workspace --all-targets --all-features -- -D warnings
 # Check isolated provider features: all-features can hide unused gated fields.
 cargo clippy -p cloud-sdk-cratesio --locked --no-default-features --lib -- -D warnings
-for features in alloc serde std blocking async; do
+for features in alloc serde std blocking async artifact-sha256 blocking-rustls async-rustls; do
     cargo clippy -p cloud-sdk-cratesio --locked --no-default-features \
         --features "$features" --lib -- -D warnings
 done

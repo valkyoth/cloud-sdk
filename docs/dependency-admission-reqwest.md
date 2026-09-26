@@ -6,7 +6,7 @@ and `cloud-sdk-reqwest/async-rustls`,
 with reqwest default features disabled. The internal `fuzzing` feature aliases
 `blocking-rustls` only for the isolated fuzz workspace.
 
-Checked: 2026-09-09.
+Checked: 2026-09-26 for the platform verifier; prior admissions below retain their review dates.
 
 ## Decision
 
@@ -23,7 +23,7 @@ Checked: 2026-09-09.
 | `tokio` | `1.53.1` | opt-in reqwest and raw executor runtime | disabled |
 | `url` | `2.5.8` | authority-preserving endpoint parsing | transitive |
 | `rustls` | `0.23.45` | TLS implementation | transitive |
-| `rustls-platform-verifier` | `0.7.0` | platform trust-store verification | transitive |
+| `rustls-platform-verifier` | `0.7.1` | platform trust-store verification | transitive |
 | `webpki-roots` | `1.0.9` | deterministic Mozilla trust-root snapshot | disabled |
 | `aws-lc-rs` | `1.18.1` | rustls cryptographic provider | transitive |
 | `aws-lc-sys` | `0.45.0` | bundled native AWS-LC implementation | disabled |
@@ -82,6 +82,22 @@ while tightening high-assurance target gating. The Hyper patch preserves the
 HTTP/1 features and dependency boundary used by the raw executor. The AWS-LC
 pair adds fail-closed AEAD/cipher/digest contract checks, secret cleanup, and
 native-build environment hardening; the SDK still enables no FIPS feature.
+
+## Commit 20 Platform Verifier Review
+
+Reviewed 2026-09-26. `rustls-platform-verifier 0.7.1` retains MIT OR Apache-2.0,
+MSRV 1.85 and no build script. Its production source diff normalizes a trailing
+DNS dot consistently on Windows, Apple and Android and removes an unnecessary
+provider Arc clone on other targets. Trust-store selection and verification
+policy remain enabled. Upstream tests refresh certificates and add the trailing
+dot case. Sources: [release source](https://docs.rs/crate/rustls-platform-verifier/0.7.1/source/)
+and [Android helper](https://docs.rs/crate/rustls-platform-verifier-android/0.2.0/source/).
+The Android helper moves 0.1.1 to 0.2.0, with no runtime dependencies or build
+script; it remains an all-target lock entry, not a newly supported bundled
+Android transport. Android continues to require a target-native adapter.
+Registry archive SHA-256 values are
+`1167586491e2b18b8bfbb293e8180ec17c201c4f076d7cb3070ca964e7598f98`
+and `eec689c0bc40ff2458a5977b6619cb718087084a18e02a131c599b62d05e1a5f`.
 
 ## Feature Boundary
 

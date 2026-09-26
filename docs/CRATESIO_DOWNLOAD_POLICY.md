@@ -62,11 +62,13 @@ and an empty GET body prevent API token/cookie forwarding. There is no custom
 URL argument, URL follow, automatic retry or staging-to-static credential path.
 
 Execution accepts a caller-supplied `BlockingArtifactTransport`,
-`LocalArtifactTransport` or `AsyncArtifactTransport`. The existing bundled
-raw reqwest adapter buffers responses and does not implement these streaming
-traits. Commit 20 explicitly requires bundled adapter/hash integration before
-the complete provider can be qualified. Do not substitute a buffered adapter
-and claim bounded streaming. A live adapter must
+`LocalArtifactTransport` or `AsyncArtifactTransport`. Commit 20's in-progress
+foundation adds `bundled::ArtifactTransport` over neutral live HTTP/1 sources
+and `Sha256Checksum` over the already admitted RustCrypto implementation.
+These optional features leave default/alloc/Serde graphs transport-free.
+The remaining integration, transactional-storage and complete-client gates are
+listed in [the implementation ledger](CRATESIO_UNIFIED_CLIENT.md).
+Do not substitute a buffered adapter and claim bounded streaming. A live adapter must
 open the exact request on its immutable bound origin, without authentication,
 redirects, retries, decompression or whole-body buffering, and enforce TLS,
 framing/header correctness and connect/read deadlines. This trusted adapter
@@ -86,7 +88,8 @@ bytes and must return SHA-256 over them. Mismatch/error prevents commit. This
 is a required hook, not an in-house hash implementation or optional bypass.
 Expected checksums must come from trusted registry/index metadata; deriving an
 expected checksum from the downloaded body does not authenticate it. Tests
-use an exact-input hook, not a cryptographic implementation claim.
+include an exact-input hook for transfer accounting and an independent public
+SHA-256 known-answer vector for the opt-in implementation.
 
 Blocking errors and local/Send cancellation, including dropping an unpolled
 future, clear scratch and abort the sink. Process abort, allocator exhaustion,

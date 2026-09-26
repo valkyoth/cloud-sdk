@@ -7,6 +7,8 @@ mod body;
 mod client;
 mod config;
 mod raw;
+mod streaming;
+pub use streaming::BlockingStreamingResponse;
 
 pub use crate::shared::{
     AuthenticatedTransportFailure, BasicCredential, BasicCredentialError, BasicCredentialScope,

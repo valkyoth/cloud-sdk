@@ -151,6 +151,22 @@ metadata access.
 
 ## Raw Blocking Executor
 
+Anonymous `execute` remains credential-free. The separate
+`BlockingAuthorizedRawHttpExecutor` and `AsyncAuthorizedRawHttpExecutor`
+contracts accept a provider-validated complete Authorization value plus its
+expected endpoint. The bundled implementations check the actual destination
+before copying credentials or doing I/O, add no implicit prefix, and sanitize
+their owned header storage. Providers still own credential-kind, scope and
+operation-consent policy; endpoint values must not come from tenant input.
+
+`RawBlockingClient::open_stream` and `RawAsyncClient::open_stream` instead open
+anonymous finite GET responses as live sources. They admit only status 200 and
+identity coding, reject redirects and trailers, retain bounded frames, and
+enforce the original total deadline through EOF. The caller supplies the body
+byte cap; an additional 4,096 upstream frame cap bounds work. Async read
+cancellation invalidates the source. These are download sources, not a bundled
+streaming-upload API or transactional filesystem implementation.
+
 Use the raw executor below provider authentication and typed client policy. It
 sends no bearer token or JSON `Accept`, performs no retry, and retains only
 response headers admitted by `RawResponsePolicy`:

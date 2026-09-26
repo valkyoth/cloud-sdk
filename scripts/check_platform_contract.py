@@ -42,6 +42,9 @@ FEATURES = {
         "std",
         "blocking",
         "async",
+        "artifact-sha256",
+        "blocking-rustls",
+        "async-rustls",
     },
     "cloud-sdk-reqwest": {
         "default",

@@ -19,6 +19,9 @@ EXPECTED_FEATURES = {
     "std": ["alloc", "cloud-sdk/std"],
     "blocking": ["serde", "std"],
     "async": ["serde", "std"],
+    "artifact-sha256": ["dep:sha2"],
+    "blocking-rustls": ["blocking", "artifact-sha256", "dep:cloud-sdk-reqwest", "cloud-sdk-reqwest/blocking-rustls"],
+    "async-rustls": ["async", "artifact-sha256", "dep:cloud-sdk-reqwest", "cloud-sdk-reqwest/async-rustls"],
 }
 EXPECTED_AUTO_TARGETS = {
     "build": False,
@@ -35,6 +38,8 @@ EXPECTED_DEPENDENCIES = {
     "semver": {"workspace": True, "optional": True},
     "spdx": {"workspace": True, "optional": True},
     "base64-ng": {"workspace": True, "optional": True},
+    "sha2": {"workspace": True, "optional": True},
+    "cloud-sdk-reqwest": {"workspace": True, "optional": True, "default-features": False},
 }
 EXPECTED_LIBRARY = {"path": "src/lib.rs"}
 EXPECTED_TESTS = [
@@ -196,6 +201,9 @@ def validate(root: Path) -> None:
 
     expected_sources = {
         "lib.rs",
+        *(f"client/{name}.rs" for name in ("mod", "blocking", "buffers", "tests")),
+        *(f"bundled/{name}.rs" for name in ("mod", "artifacts", "tests")),
+        "downloads/sha256.rs",
         "identity.rs",
         "ownership.rs",
         "publishing.rs",

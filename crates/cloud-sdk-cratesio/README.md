@@ -26,9 +26,9 @@ provider-neutral execution contracts from `cloud-sdk`.
 The crate is an unreleased `1.1.0` candidate. Seven discovery, three catalog
 and five version operations, four download/statistics operations and six public
 account/ownership operations have checked blocking, local-async and Send-async
-execution. Commit 18 is accepted; Commit 19 requires pentest. Eight personal
+execution. Commit 19 is accepted; Commit 20 is in progress. Eight personal
 mutation operations now have single-attempt execution through an explicitly
-trusted blocking credential-adapter callback, not a bundled token transport.
+trusted blocking credential-adapter callback or the new `RegistryClient` facade.
 Three token-management operations now share that explicit adapter boundary.
 Two settings PATCH operations also use explicit permits and checked postconditions.
 Owner additions/removals use consumed consent, conservative acknowledgements
@@ -40,8 +40,9 @@ and bounded streaming through an explicitly trusted blocking adapter.
 Trusted publishing adds GitHub/GitLab configuration management, unverified OIDC
 preflight and exchange, and protected temporary-token revocation.
 Authentication preparation, endpoint, query and response foundations
-are available, but bundled authenticated adapters and other API workflows remain
-assigned to later checkpoints. This is not yet a complete crates.io provider.
+are available. The new blocking facade, official bundled constructors and
+anonymous artifact streaming are an initial Commit 20 increment, not its
+completed coverage or parity gate. This is not yet a complete crates.io provider.
 
 ## Current Boundary
 
@@ -72,13 +73,49 @@ assigned to later checkpoints. This is not yet a complete crates.io provider.
 | Cargo yank/unyank | exact bodyless DELETE/PUT, consumed consent, checked acknowledgements and explicit state observation; trusted blocking adapter |
 | Cargo publish | bounded metadata, exact little-endian framing, borrowed/streaming archives, API or temporary token consent and checked warnings; trusted blocking streaming adapter |
 | Trusted publishing | GitHub/GitLab list/create/delete, assertion exchange and temporary-token revocation; local deadline/crate restrictions, not a JWT authenticator; trusted blocking adapter |
-| Artifact streaming | static-origin transport and SHA-256 hooks, transactional sink, bounded scratch and cancellation cleanup; caller-supplied streaming adapter required |
-| Unified execution | bundled authenticated/streaming adapters and execution parity remain Commit 20 |
+| Artifact streaming | opt-in bundled static-origin live body sources and SHA-256; caller-supplied transactional sink remains required |
+| Unified execution | blocking typed reads and permits except publish and the two secret-path personal operations; authenticated async parity, secret-path storage, streaming publish and exhaustive coverage remain in progress |
 
-Bundled authenticated transports and unified async execution remain later checkpoints.
+See the [Commit 20 implementation ledger](https://github.com/valkyoth/cloud-sdk/blob/main/docs/CRATESIO_UNIFIED_CLIENT.md)
+for exact remaining gates. Do not treat these foundations as full-provider qualification.
 Public ownership reads do not grant mutation authority.
 The complete 51-operation scope is maintained in the
 [crates.io source lock](https://github.com/valkyoth/cloud-sdk/blob/main/docs/CRATESIO_SOURCE_LOCK.md).
+
+## Official Blocking Client
+
+Enable `blocking-rustls` for the opt-in bundled transport. The default crate
+still has no network dependency. Mutation calls take the existing consumed
+permits, not unconfirmed requests. A schedule error asks the caller to schedule
+a later attempt; the client never sleeps or retries a mutation automatically.
+
+```rust,no_run
+# #[cfg(feature = "blocking-rustls")]
+# fn example() -> Result<(), Box<dyn std::error::Error>> {
+use cloud_sdk_cratesio::{
+    bundled::{RequestTimeouts, production_blocking},
+    client::{RegistryBuffers, RegistryClient},
+    discovery::DiscoveryRequest,
+    wire::IdentifyingUserAgent,
+};
+use std::time::Duration;
+
+let identity = IdentifyingUserAgent::new("my-tool/1 (ops@example.org)")?;
+let timeouts = RequestTimeouts::new(Duration::from_secs(30), Duration::from_secs(5))?;
+let transport = production_blocking(identity, timeouts)?;
+let client = RegistryClient::production(&transport, identity, 65_536)?;
+let mut response = vec![0; 65_536];
+let mut headers = [0; 1024];
+let metadata = client.execute(DiscoveryRequest::site_metadata(), RegistryBuffers {
+    credential: &mut [],
+    body: &mut [],
+    response: &mut response,
+    headers: &mut headers,
+})?;
+# let _ = metadata;
+# Ok(())
+# }
+```
 
 ## Trusted Publishing Intent
 
@@ -321,8 +358,10 @@ assert_eq!(request.write_target(&mut storage)?.as_str(),
 
 Use `DownloadClient::production` with the same checked executor, identifying
 user-agent and caller response buffers shown for the version client below.
-Artifact streaming is separate from JSON response execution and requires an
-anonymous streaming adapter plus a reviewed SHA-256 hook; see the
+Artifact streaming is separate from JSON response execution. The optional
+`bundled::ArtifactTransport` supplies anonymous live streaming and
+`downloads::Sha256Checksum` supplies the reviewed hash implementation. A
+caller-owned transactional sink is still required; see the
 [download contract](https://github.com/valkyoth/cloud-sdk/blob/main/docs/CRATESIO_DOWNLOAD_POLICY.md).
 Prefer static CDN downloads and database dumps for bulk work.
 
@@ -512,6 +551,9 @@ documented in the [crates.io endpoint policy](https://github.com/valkyoth/cloud-
 | `serde` | no | Enables the Serde boundary for later serialization; discovery decoding reuses core JSON events. |
 | `std` | no | Enables `alloc` and the shared monotonic API gate. |
 | `blocking` | no | Enables checked discovery/catalog execution and an explicit token adapter hook; no transport dependency is added. |
+| `artifact-sha256` | no | Adds the reviewed no_std SHA-256 implementation for archive integrity. |
+| `blocking-rustls` | no | Adds official blocking constructors, neutral authorized execution, live artifact reads and SHA-256. |
+| `async-rustls` | no | Adds official async constructors, live artifact reads and SHA-256; unified authenticated async workflows are not yet complete. |
 | `async` | no | Enables checked anonymous local/Send async discovery/catalog; no runtime or transport dependency is added. |
 
 Networking and TLS remain opt-in provider-neutral concerns. This crate does

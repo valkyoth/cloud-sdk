@@ -8,7 +8,11 @@ extern crate std;
 extern crate alloc;
 
 pub mod accounts;
+#[cfg(any(feature = "blocking-rustls", feature = "async-rustls"))]
+pub mod bundled;
 pub mod catalog;
+#[cfg(feature = "blocking")]
+pub mod client;
 #[cfg(feature = "alloc")]
 pub mod credentials;
 pub mod discovery;

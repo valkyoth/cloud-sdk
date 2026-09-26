@@ -1,21 +1,21 @@
 {
   "SPDXID": "SPDXRef-DOCUMENT",
   "creationInfo": {
-    "created": "2026-09-26T07:01:24Z",
+    "created": "2026-09-26T08:37:31Z",
     "creators": [
       "Tool: cargo-sbom-v0.10.0",
       "Tool: cloud-sdk-complete-spdx-v1"
     ]
   },
   "dataLicense": "CC0-1.0",
-  "documentNamespace": "https://spdx.org/spdxdocs/cloud-sdk-17a896be-6d1b-4dd7-8e70-b9f6522dd503",
+  "documentNamespace": "https://spdx.org/spdxdocs/cloud-sdk-0b48b8b5-f6ae-46bd-bfef-9d0af0390c79",
   "files": [
     {
       "SPDXID": "SPDXRef-File-cloud_sdk",
       "checksums": [
         {
           "algorithm": "SHA1",
-          "checksumValue": "81b640bf8c4659bb88ebf20cb8c76bd02da2cc78"
+          "checksumValue": "225ce8255d71115767a3e3af43f4615bba2190ab"
         }
       ],
       "fileName": "./Cargo.lock",
@@ -29,7 +29,7 @@
       "checksums": [
         {
           "algorithm": "SHA1",
-          "checksumValue": "81b640bf8c4659bb88ebf20cb8c76bd02da2cc78"
+          "checksumValue": "225ce8255d71115767a3e3af43f4615bba2190ab"
         }
       ],
       "fileName": "./Cargo.lock",
@@ -43,7 +43,7 @@
       "checksums": [
         {
           "algorithm": "SHA1",
-          "checksumValue": "81b640bf8c4659bb88ebf20cb8c76bd02da2cc78"
+          "checksumValue": "225ce8255d71115767a3e3af43f4615bba2190ab"
         }
       ],
       "fileName": "./Cargo.lock",
@@ -57,7 +57,7 @@
       "checksums": [
         {
           "algorithm": "SHA1",
-          "checksumValue": "81b640bf8c4659bb88ebf20cb8c76bd02da2cc78"
+          "checksumValue": "225ce8255d71115767a3e3af43f4615bba2190ab"
         }
       ],
       "fileName": "./Cargo.lock",
@@ -71,7 +71,7 @@
       "checksums": [
         {
           "algorithm": "SHA1",
-          "checksumValue": "81b640bf8c4659bb88ebf20cb8c76bd02da2cc78"
+          "checksumValue": "225ce8255d71115767a3e3af43f4615bba2190ab"
         }
       ],
       "fileName": "./Cargo.lock",
@@ -85,7 +85,7 @@
       "checksums": [
         {
           "algorithm": "SHA1",
-          "checksumValue": "81b640bf8c4659bb88ebf20cb8c76bd02da2cc78"
+          "checksumValue": "225ce8255d71115767a3e3af43f4615bba2190ab"
         }
       ],
       "fileName": "./Cargo.lock",
@@ -99,7 +99,7 @@
       "checksums": [
         {
           "algorithm": "SHA1",
-          "checksumValue": "81b640bf8c4659bb88ebf20cb8c76bd02da2cc78"
+          "checksumValue": "225ce8255d71115767a3e3af43f4615bba2190ab"
         }
       ],
       "fileName": "./Cargo.lock",
@@ -1662,36 +1662,36 @@
       "versionInfo": "1.15.1"
     },
     {
-      "SPDXID": "SPDXRef-Package-rustls-platform-verifier-0.7.0",
+      "SPDXID": "SPDXRef-Package-rustls-platform-verifier-0.7.1",
       "description": "rustls-platform-verifier supports verifying TLS certificates in rustls with the operating system verifier",
       "downloadLocation": "registry+https://github.com/rust-lang/crates.io-index",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
-          "referenceLocator": "pkg:cargo/rustls-platform-verifier@0.7.0",
+          "referenceLocator": "pkg:cargo/rustls-platform-verifier@0.7.1",
           "referenceType": "purl"
         }
       ],
       "licenseConcluded": "MIT OR Apache-2.0",
       "licenseDeclared": "MIT OR Apache-2.0",
       "name": "rustls-platform-verifier",
-      "versionInfo": "0.7.0"
+      "versionInfo": "0.7.1"
     },
     {
-      "SPDXID": "SPDXRef-Package-rustls-platform-verifier-android-0.1.1",
+      "SPDXID": "SPDXRef-Package-rustls-platform-verifier-android-0.2.0",
       "description": "The internal JVM support component of the rustls-platform-verifier crate. You shouldn't depend on this directly.",
       "downloadLocation": "registry+https://github.com/rust-lang/crates.io-index",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
-          "referenceLocator": "pkg:cargo/rustls-platform-verifier-android@0.1.1",
+          "referenceLocator": "pkg:cargo/rustls-platform-verifier-android@0.2.0",
           "referenceType": "purl"
         }
       ],
       "licenseConcluded": "MIT OR Apache-2.0",
       "licenseDeclared": "MIT OR Apache-2.0",
       "name": "rustls-platform-verifier-android",
-      "versionInfo": "0.1.1"
+      "versionInfo": "0.2.0"
     },
     {
       "SPDXID": "SPDXRef-Package-rustls-webpki-0.103.15",
@@ -3186,6 +3186,11 @@
     {
       "spdxElementId": "SPDXRef-Package-cloud-sdk-cratesio-1.1.0",
       "relationshipType": "DEPENDS_ON",
+      "relatedSpdxElement": "SPDXRef-Package-cloud-sdk-reqwest-1.1.0"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-cloud-sdk-cratesio-1.1.0",
+      "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-cloud-sdk-sanitization-1.1.0"
     },
     {
@@ -3202,6 +3207,11 @@
       "spdxElementId": "SPDXRef-Package-cloud-sdk-cratesio-1.1.0",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-serde-1.0.229"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-cloud-sdk-cratesio-1.1.0",
+      "relationshipType": "DEPENDS_ON",
+      "relatedSpdxElement": "SPDXRef-Package-sha2-0.11.0"
     },
     {
       "spdxElementId": "SPDXRef-Package-cloud-sdk-cratesio-1.1.0",
@@ -3326,7 +3336,7 @@
     {
       "spdxElementId": "SPDXRef-Package-cloud-sdk-reqwest-1.1.0",
       "relationshipType": "DEPENDS_ON",
-      "relatedSpdxElement": "SPDXRef-Package-rustls-platform-verifier-0.7.0"
+      "relatedSpdxElement": "SPDXRef-Package-rustls-platform-verifier-0.7.1"
     },
     {
       "spdxElementId": "SPDXRef-Package-cloud-sdk-reqwest-1.1.0",
@@ -3671,7 +3681,7 @@
     {
       "spdxElementId": "SPDXRef-Package-hyper-rustls-0.27.10",
       "relationshipType": "DEPENDS_ON",
-      "relatedSpdxElement": "SPDXRef-Package-rustls-platform-verifier-0.7.0"
+      "relatedSpdxElement": "SPDXRef-Package-rustls-platform-verifier-0.7.1"
     },
     {
       "spdxElementId": "SPDXRef-Package-hyper-rustls-0.27.10",
@@ -4401,7 +4411,7 @@
     {
       "spdxElementId": "SPDXRef-Package-reqwest-0.13.5",
       "relationshipType": "DEPENDS_ON",
-      "relatedSpdxElement": "SPDXRef-Package-rustls-platform-verifier-0.7.0"
+      "relatedSpdxElement": "SPDXRef-Package-rustls-platform-verifier-0.7.1"
     },
     {
       "spdxElementId": "SPDXRef-Package-reqwest-0.13.5",
@@ -4584,67 +4594,67 @@
       "relatedSpdxElement": "SPDXRef-Package-zeroize-1.9.0"
     },
     {
-      "spdxElementId": "SPDXRef-Package-rustls-platform-verifier-0.7.0",
+      "spdxElementId": "SPDXRef-Package-rustls-platform-verifier-0.7.1",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-core-foundation-0.10.1"
     },
     {
-      "spdxElementId": "SPDXRef-Package-rustls-platform-verifier-0.7.0",
+      "spdxElementId": "SPDXRef-Package-rustls-platform-verifier-0.7.1",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-core-foundation-sys-0.8.7"
     },
     {
-      "spdxElementId": "SPDXRef-Package-rustls-platform-verifier-0.7.0",
+      "spdxElementId": "SPDXRef-Package-rustls-platform-verifier-0.7.1",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-jni-0.22.4"
     },
     {
-      "spdxElementId": "SPDXRef-Package-rustls-platform-verifier-0.7.0",
+      "spdxElementId": "SPDXRef-Package-rustls-platform-verifier-0.7.1",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-log-0.4.34"
     },
     {
-      "spdxElementId": "SPDXRef-Package-rustls-platform-verifier-0.7.0",
+      "spdxElementId": "SPDXRef-Package-rustls-platform-verifier-0.7.1",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-once--cell-1.21.4"
     },
     {
-      "spdxElementId": "SPDXRef-Package-rustls-platform-verifier-0.7.0",
+      "spdxElementId": "SPDXRef-Package-rustls-platform-verifier-0.7.1",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-rustls-0.23.45"
     },
     {
-      "spdxElementId": "SPDXRef-Package-rustls-platform-verifier-0.7.0",
+      "spdxElementId": "SPDXRef-Package-rustls-platform-verifier-0.7.1",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-rustls-native-certs-0.8.4"
     },
     {
-      "spdxElementId": "SPDXRef-Package-rustls-platform-verifier-0.7.0",
+      "spdxElementId": "SPDXRef-Package-rustls-platform-verifier-0.7.1",
       "relationshipType": "DEPENDS_ON",
-      "relatedSpdxElement": "SPDXRef-Package-rustls-platform-verifier-android-0.1.1"
+      "relatedSpdxElement": "SPDXRef-Package-rustls-platform-verifier-android-0.2.0"
     },
     {
-      "spdxElementId": "SPDXRef-Package-rustls-platform-verifier-0.7.0",
+      "spdxElementId": "SPDXRef-Package-rustls-platform-verifier-0.7.1",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-rustls-webpki-0.103.15"
     },
     {
-      "spdxElementId": "SPDXRef-Package-rustls-platform-verifier-0.7.0",
+      "spdxElementId": "SPDXRef-Package-rustls-platform-verifier-0.7.1",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-security-framework-3.7.0"
     },
     {
-      "spdxElementId": "SPDXRef-Package-rustls-platform-verifier-0.7.0",
+      "spdxElementId": "SPDXRef-Package-rustls-platform-verifier-0.7.1",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-security-framework-sys-2.17.0"
     },
     {
-      "spdxElementId": "SPDXRef-Package-rustls-platform-verifier-0.7.0",
+      "spdxElementId": "SPDXRef-Package-rustls-platform-verifier-0.7.1",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-webpki-root-certs-1.0.9"
     },
     {
-      "spdxElementId": "SPDXRef-Package-rustls-platform-verifier-0.7.0",
+      "spdxElementId": "SPDXRef-Package-rustls-platform-verifier-0.7.1",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-windows-sys-0.61.2"
     },

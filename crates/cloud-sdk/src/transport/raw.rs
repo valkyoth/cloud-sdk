@@ -1,6 +1,12 @@
 //! Provider-neutral raw HTTP execution and response-wire policy.
 
+mod authorized;
 mod local_async;
+
+pub use authorized::{
+    AsyncAuthorizedRawHttpExecutor, BlockingAuthorizedRawHttpExecutor,
+    LocalAuthorizedRawHttpExecutor, drive_async_authorized_raw, drive_local_authorized_raw,
+};
 
 pub use local_async::{LocalAsyncRawHttpExecutor, drive_local_raw};
 

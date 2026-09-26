@@ -548,6 +548,20 @@ see [the report](../security/pentest/cratesio-commit-15.md).
   Commit 18 was accepted at `ddb12f74`; that is the Commit 19 incremental pentest
   baseline. Stop before Commit 20. Do not tag or publish.
 
+### Commit 20 Foundation (In Progress)
+
+Commit 20 is in progress, not yet a pentest checkpoint. Its first working
+increment adds destination-bound raw authorization contracts, a blocking
+registry facade over existing checked operations, official bundled transport
+constructors, live anonymous artifact sources, and opt-in SHA-256. It updates
+platform-verifier to 0.7.1 and the Android helper to 0.2.0 without adding bundled
+Android support. Authenticated async parity, actual bundled streaming publish,
+transactional-storage qualification and exhaustive Cargo/51-operation evidence
+remain open in [the implementation ledger](../docs/CRATESIO_UNIFIED_CLIENT.md).
+Commit 19 was accepted at `f49b7712`; no tag or publication is authorized.
+The new facade rejects email-confirmation and token-based invitation permits
+before dispatch pending qualification of secret-path URI storage.
+
 ### Maintenance Evidence (Earlier Checkpoints)
 
 - Advanced the complete development and compatibility gate to stable Rust

@@ -15,8 +15,9 @@ Commit 15 passed incremental pentest and GitHub at `42e534bd`.
 Commit 16 passed incremental pentest and GitHub at `9fabe832`.
 Commit 17 passed incremental pentest and GitHub at `04f24c38`.
 Commit 18 passed incremental pentest and GitHub at `ddb12f74`.
-Commit 19 implements trusted publishing; pentest is required.
-Stop before Commit 20; do not tag or publish.
+Commit 19 passed incremental pentest and GitHub at `f49b7712`.
+Commit 20 is authorized and in progress; its exit gate has not been met.
+Stop before Commit 21; do not tag or publish.
 
 ## Decision Summary
 
@@ -715,6 +716,12 @@ publishing surface.
 ## Commit 20 - Unified Client And Cargo Compatibility
 
 Goal: make the checked path the easiest path for every admitted operation.
+
+Implementation status: in progress. The first working increment adds the
+blocking registry facade, explicit destination-bound raw authorization,
+official transport constructors, live anonymous artifact reads and SHA-256.
+See [the implementation ledger](CRATESIO_UNIFIED_CLIENT.md) for tested pieces
+and remaining work. This is not the completed Commit 20 pentest checkpoint.
 
 Dependency follow-up detected during Commit 18 on 2026-09-25:
 `rustls-platform-verifier 0.7.1` supersedes the reviewed `0.7.0` pin and changes

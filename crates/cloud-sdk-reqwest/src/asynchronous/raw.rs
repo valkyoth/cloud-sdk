@@ -18,6 +18,17 @@ pub struct RawAsyncClient {
 }
 
 impl RawAsyncClient {
+    /// Opens one credential-free finite GET without buffering its body. Only
+    /// status 200 with identity encoding is admitted. The original total
+    /// deadline remains active until EOF; no redirect or retry is attempted.
+    pub async fn open_stream(
+        &self,
+        request: TransportRequest<'_>,
+        maximum_body_bytes: u64,
+    ) -> Result<crate::shared::StreamingResponse, RawTransportFailure> {
+        self.inner.open_stream(request, maximum_body_bytes).await
+    }
+
     pub(super) const fn new(inner: RawHyperClient, endpoint: HttpsEndpoint) -> Self {
         Self { inner, endpoint }
     }
@@ -57,6 +68,34 @@ impl AsyncRawHttpExecutor for RawAsyncClient {
 impl ResponseStorageSanitizer for RawAsyncClient {
     fn sanitize_response_storage(&self, response_storage: &mut [u8]) {
         sanitize_bytes(response_storage);
+    }
+}
+
+impl cloud_sdk::transport::AsyncAuthorizedRawHttpExecutor for RawAsyncClient {
+    async fn execute_authorized<'executor, 'request, 'policy, 'writer, 'buffer>(
+        &'executor self,
+        expected: EndpointIdentity<'request>,
+        authorization: cloud_sdk::transport::HeaderValue<'request>,
+        request: TransportRequest<'request>,
+        policy: RawResponsePolicy<'policy>,
+        response: AsyncResponseStaging<'writer, 'buffer>,
+    ) -> Result<ResponseCompletion, Self::Error>
+    where
+        'executor: 'writer,
+        'request: 'writer,
+        'policy: 'writer,
+        'buffer: 'writer,
+    {
+        use crate::shared::RawHttpError;
+        use cloud_sdk::transport::TransportFailure;
+        if self.endpoint_identity().ok() != Some(expected) {
+            return Err(TransportFailure::not_sent(RawHttpError::TargetRejected));
+        }
+        let authorization =
+            crate::shared::sensitive_header_value(authorization.as_str().as_bytes())
+                .map_err(|_| TransportFailure::not_sent(RawHttpError::HeaderRejected))?;
+        self.execute_authenticated(request, policy, authorization, response)
+            .await
     }
 }
 

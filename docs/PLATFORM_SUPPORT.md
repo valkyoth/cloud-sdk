@@ -18,6 +18,12 @@ runtime integration. A portable provider model
 compiling for a target does not imply that this optional adapter is supported
 on that target.
 
+The crates.io provider's opt-in `blocking-rustls` and `async-rustls` features
+select this same neutral native transport boundary. Its independent
+`artifact-sha256` feature remains no_std; default, alloc and Serde selections
+do not enable an operating-system transport. Enabling every provider feature
+is therefore a native build, not a portable-target claim.
+
 ## Support Terms
 
 - **Native CI**: the complete workspace and every feature compile on a native

@@ -19,6 +19,7 @@ cargo package --locked -p cloud-sdk-hetzner --allow-dirty --all-features \
     --config 'patch.crates-io.cloud-sdk-testkit.path="crates/cloud-sdk-testkit"'
 cargo package --locked -p cloud-sdk-cratesio --allow-dirty --all-features \
     --config 'patch.crates-io.cloud-sdk.path="crates/cloud-sdk"' \
+    --config 'patch.crates-io.cloud-sdk-reqwest.path="crates/cloud-sdk-reqwest"' \
     --config 'patch.crates-io.cloud-sdk-sanitization.path="crates/cloud-sdk-sanitization"'
 scripts/check_packaged_reqwest_tests.sh
 

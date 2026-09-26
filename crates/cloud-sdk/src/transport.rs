@@ -38,10 +38,12 @@ pub use header::{
     ResponseHeaders,
 };
 pub use raw::{
-    AsyncRawHttpExecutor, BlockingRawHttpExecutor, InformationalResponseError,
-    InformationalResponseTracker, LocalAsyncRawHttpExecutor, MAX_INFORMATIONAL_RESPONSES,
+    AsyncAuthorizedRawHttpExecutor, AsyncRawHttpExecutor, BlockingAuthorizedRawHttpExecutor,
+    BlockingRawHttpExecutor, InformationalResponseError, InformationalResponseTracker,
+    LocalAsyncRawHttpExecutor, LocalAuthorizedRawHttpExecutor, MAX_INFORMATIONAL_RESPONSES,
     MAX_RAW_RESPONSE_BODY_BYTES, MAX_RESPONSE_CHUNKS, RawResponsePolicy, RawResponsePolicyError,
-    ResponseMediaPolicy, TrailerPolicy, drive_async_raw, drive_local_raw,
+    ResponseMediaPolicy, TrailerPolicy, drive_async_authorized_raw, drive_async_raw,
+    drive_local_authorized_raw, drive_local_raw,
 };
 pub use request_target::{
     CanonicalQuery, FormQuery, MAX_REQUEST_TARGET_BYTES, ProviderLinkQuery, QueryPair, QueryPairs,
