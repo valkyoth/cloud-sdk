@@ -2,6 +2,7 @@
 """Offline adversarial tests for Scaleway discovery, parsing, and retrieval."""
 
 import copy
+from decimal import Decimal
 import gzip
 import io
 import json
@@ -14,7 +15,7 @@ import unittest
 from unittest.mock import patch
 
 from check_scaleway_inventory import DIRECTORY, Sources, build_parser, observe, qualify, unresolved
-from scaleway_discovery import INDEX, discover, index_sources
+from scaleway_discovery import INDEX, bounded_discovery, discover, index_sources, registry_inputs
 from scaleway_inventory import check_references, load_json, operations, parse_schema, sdk_candidates
 from scaleway_source_fetch import InventoryError, MAX_SOURCE, MAX_TOTAL, NoRedirects, SDK_TREE, approved_url, fetch, read_bounded
 
@@ -29,6 +30,49 @@ paths:
 
 
 class DiscoveryTests(unittest.TestCase):
+    def test_unterminated_registry_is_rejected_within_subprocess_budget(self):
+        probe = '''
+import sys
+from scaleway_discovery import parse_catalog
+from scaleway_source_fetch import InventoryError
+try:
+    parse_catalog(sys.stdin.buffer.read(), {"/api/instance"})
+except InventoryError:
+    sys.exit(0)
+sys.exit(1)
+'''
+        payload = CATALOG + b"type:`file`,input:[" * 100_000
+        result = subprocess.run([sys.executable, "-c", probe], input=payload,
+                                cwd=Path(__file__).parent, timeout=5, check=False)
+        self.assertEqual(result.returncode, 0)
+
+    def test_registry_scanner_bounds_and_nested_markers(self):
+        for value in [b"type:`file`,input:[", REGISTRY[:-5],
+                      REGISTRY.replace(b"{path:", b"type:`file`,input:[{path:"),
+                      REGISTRY.replace(b"/api/instance", b"//attacker.invalid"),
+                      REGISTRY.replace(b"{path:", b"x" * (1024 * 1024) + b"{path:")]:
+            with self.subTest(length=len(value)), self.assertRaises(InventoryError):
+                list(registry_inputs(value.decode()))
+
+    def test_discovery_stalled_worker_is_terminated(self):
+        original = subprocess.run
+        def stalled(command, **kwargs):
+            return original([sys.executable, "-c", "import time; time.sleep(60)"], **kwargs)
+        for kind in ["index", "catalog"]:
+            with self.subTest(kind=kind), patch("scaleway_discovery.subprocess.run", side_effect=stalled):
+                with self.assertRaisesRegex(InventoryError, "deadline"):
+                    bounded_discovery(kind, b"", set(), timeout=0.05)
+
+    def test_discovery_input_and_output_limits(self):
+        with self.assertRaises(InventoryError):
+            discover(b"x" * (MAX_SOURCE + 1), set())
+        with self.assertRaises(InventoryError):
+            discover(b"", {str(i) for i in range(257)})
+        with patch("scaleway_discovery.subprocess.run") as run:
+            run.return_value.stdout = b"x" * (MAX_SOURCE * 6 + 1)
+            with self.assertRaises(InventoryError):
+                discover(b"", set())
+
     def test_catalog_and_independent_registry(self):
         rows = discover(CATALOG + REGISTRY, {"/api/instance"})
         self.assertEqual(rows[0]["version"], "v1")
@@ -58,6 +102,39 @@ class DiscoveryTests(unittest.TestCase):
 
 
 class SchemaTests(unittest.TestCase):
+    def test_numeric_values_survive_the_complete_bridge(self):
+        for number in ["9223372036854775808", "-9223372036854775809",
+                       "18446744073709551615", "0.12345678901234567890123456789",
+                       "1e400", "1e-400", "-0.0", "1.00E+02"]:
+            with self.subTest(number=number):
+                schema = parse_schema(SCHEMA + f"constraint: {number}\n".encode())
+                self.assertEqual(schema["constraint"], Decimal(number))
+                if any(char in number for char in ".eE"):
+                    self.assertIsInstance(schema["constraint"], Decimal)
+                    self.assertEqual(schema["constraint"].as_tuple(), Decimal(number).as_tuple())
+        for number in ["+1", ".5", "1.", "01", "0x10", "0o10", ".nan", ".inf"]:
+            with self.subTest(number=number), self.assertRaises(InventoryError):
+                parse_schema(SCHEMA + f"constraint: {number}\n".encode())
+
+    def test_operation_paths_use_canonical_template_policy(self):
+        schema = parse_schema(SCHEMA)
+        entry = {"family": "instance", "version": "v1"}
+        item = schema["paths"]["/example"]
+        for path in ["/", "/example/{project_id}", "/v1/{zone}/thing:action",
+                     "/encoded%20space", "/" + "a" * 8191]:
+            with self.subTest(path=path):
+                schema["paths"] = {path: item}
+                self.assertEqual(operations(entry, schema)[0]["path"], path)
+        for path in ["", None, 7, "//attacker.invalid/x", "/ok?admin=true", "/../admin",
+                     "/path\\segment", "/contains space", "/a//b", "/a/./b", "/a#b",
+                     "/a\x00b", "/a\x7fb", "/cafe\u00e9", "/%", "/%0", "/%GG",
+                     "/%2F", "/%5C", "/%3F", "/%23", "/%25", "/%00", "/%7F",
+                     "/%2E%2E/a", "/%41", "/%3a", "/{name", "/name}", "/{}",
+                     "/{bad-name}", "/{{name}}", "/" + "a" * 8192]:
+            with self.subTest(path=path), self.assertRaises(InventoryError):
+                schema["paths"] = {path: item}
+                operations(entry, schema)
+
     def test_valid_schema_and_operations(self):
         schema = parse_schema(SCHEMA)
         rows = operations({"family": "instance", "version": "v1"}, schema)

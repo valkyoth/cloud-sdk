@@ -51,6 +51,9 @@ anchors, aliases, explicit tags, non-string mapping keys and multiple documents,
 and emits JSON only after successful parsing. The caller imposes a subprocess
 deadline; the parser never fetches references. No dependencies or features were
 added for this use. Raw upstream sources remain separate digest-bound evidence.
+Numeric values retain their raw JSON-compatible spelling without machine-number
+rounding; YAML-only numeric syntax is rejected. The inventory caller retains
+decimal precision with Python's standard-library `Decimal` decoder.
 
 ## Security Decision
 

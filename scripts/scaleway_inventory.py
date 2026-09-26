@@ -3,11 +3,13 @@
 from __future__ import annotations
 
 import json
+from decimal import Decimal
 from pathlib import Path
 import re
 import subprocess
 
 from scaleway_source_fetch import InventoryError, MAX_SOURCE
+from scaleway_path import validate_operation_path
 
 ROOT = Path(__file__).resolve().parents[1]
 YAML_TOOL = ROOT / "tools/prepared-coverage-check/target/debug/source-yaml-json"
@@ -38,7 +40,7 @@ SDK_ALIASES = {"applesilicon": "apple_silicon", "container": "containers",
                "tem": "transactional_email", "vpcgw": "vpc_gw"}
 
 
-def load_json(raw: bytes) -> object:
+def load_json(raw: bytes, *, exact_numbers: bool = False) -> object:
     def pairs(entries: list) -> dict:
         result = {}
         for key, value in entries:
@@ -48,7 +50,8 @@ def load_json(raw: bytes) -> object:
         return result
     def invalid(value: str) -> None:
         raise InventoryError("non-finite JSON value")
-    return json.loads(raw, object_pairs_hook=pairs, parse_constant=invalid)
+    return json.loads(raw, object_pairs_hook=pairs, parse_constant=invalid,
+                      parse_float=Decimal if exact_numbers else float)
 
 
 def parse_schema(raw: bytes) -> dict:
@@ -61,7 +64,7 @@ def parse_schema(raw: bytes) -> dict:
         raise InventoryError("bounded YAML parsing failed") from None
     if len(result.stdout) > MAX_SOURCE * 6:
         raise InventoryError("converted schema size exceeded")
-    schema = load_json(result.stdout)
+    schema = load_json(result.stdout, exact_numbers=True)
     if not isinstance(schema, dict) or schema.get("openapi") not in {"3.0.0", "3.0.1", "3.0.2", "3.0.3", "3.1.0"}:
         raise InventoryError("unreviewed OpenAPI dialect")
     check_references(schema)
@@ -102,8 +105,10 @@ def operations(entry: dict, schema: dict) -> list[dict]:
         raise InventoryError(f"unassigned schema family: {entry['family']}")
     identifiers = set()
     result = []
+    for path in paths:
+        validate_operation_path(path)
     for path, item in sorted(paths.items()):
-        if not path.startswith("/") or any(ord(c) < 32 for c in path) or not isinstance(item, dict):
+        if not isinstance(item, dict):
             raise InventoryError("invalid operation path")
         for method, operation in sorted(item.items()):
             if method not in METHODS:

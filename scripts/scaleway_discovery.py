@@ -1,9 +1,13 @@
 """Non-executing, fail-closed discovery of the reviewed Scaleway docs layout."""
 
 from html.parser import HTMLParser
+import json
+from pathlib import Path
 import re
+import subprocess
+import sys
 
-from scaleway_source_fetch import InventoryError
+from scaleway_source_fetch import InventoryError, MAX_SOURCE
 
 ORIGIN = "https://www.scaleway.com"
 INDEX = ORIGIN + "/en/developers/api"
@@ -38,7 +42,35 @@ class IndexParser(HTMLParser):
                 self.routes.add("/api/" + href.removeprefix(prefix).split("#")[0].rstrip("/"))
 
 
+def bounded_discovery(kind: str, raw: bytes, navigation: set[str], timeout: float = 30):
+    if len(raw) > MAX_SOURCE or len(navigation) > 256:
+        raise InventoryError("discovery input exceeds bounds")
+    payload = json.dumps([kind, raw.decode("utf-8"), sorted(navigation)]).encode()
+    if len(payload) > MAX_SOURCE * 6 + 65536:
+        raise InventoryError("discovery message exceeds bounds")
+    try:
+        result = subprocess.run(
+            [sys.executable, str(Path(__file__).with_name("scaleway_discovery_worker.py"))],
+            input=payload, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL,
+            timeout=timeout, check=True,
+        )
+    except (OSError, subprocess.SubprocessError):
+        raise InventoryError("bounded discovery failed or exceeded deadline") from None
+    if len(result.stdout) > MAX_SOURCE * 6:
+        raise InventoryError("discovery output exceeds bounds")
+    return json.loads(result.stdout)
+
+
 def index_sources(raw: bytes) -> tuple[str, set[str], str]:
+    script, routes, build = bounded_discovery("index", raw, set())
+    return script, set(routes), build
+
+
+def discover(raw: bytes, navigation: set[str]) -> list[dict]:
+    return bounded_discovery("catalog", raw, navigation)
+
+
+def parse_index(raw: bytes) -> tuple[str, set[str], str]:
     text = raw.decode("utf-8")
     parser = IndexParser()
     parser.feed(text)
@@ -50,7 +82,29 @@ def index_sources(raw: bytes) -> tuple[str, set[str], str]:
     return parser.scripts[0], parser.routes, builds.pop()
 
 
-def discover(raw: bytes, navigation: set[str]) -> list[dict]:
+def registry_inputs(text: str):
+    marker, trailer = "type:`file`,input:[", "],path:`"
+    cursor = 0
+    while True:
+        start = text.find(marker, cursor)
+        if start == -1:
+            return
+        start += len(marker)
+        end = text.find(trailer, start, start + 1024 * 1024)
+        if end == -1 or marker in text[start:end]:
+            raise InventoryError("incomplete or oversized schema input registry")
+        route_start = end + len(trailer)
+        route_end = text.find("`", route_start, route_start + 1024)
+        if route_end == -1:
+            raise InventoryError("incomplete schema input route")
+        route = text[route_start:route_end]
+        if not re.fullmatch(r"/api/[a-z0-9_/-]+", route):
+            raise InventoryError("invalid schema input route")
+        yield text[start:end], route
+        cursor = route_end + 1
+
+
+def parse_catalog(raw: bytes, navigation: set[str]) -> list[dict]:
     text = raw.decode("utf-8")
     # Only accept the flat literal catalog grammar; never evaluate JavaScript.
     starts = list(re.finditer(r"=\[\{category:`[^`]*`,label:`", text))
@@ -91,7 +145,7 @@ def discover(raw: bytes, navigation: set[str]) -> list[dict]:
     if missing:
         raise InventoryError(f"navigation routes absent from catalog: {sorted(missing)}")
     # The independent file-input registry must agree on every schema version.
-    inputs = re.findall(r"type:`file`,input:\[(.*?)\],path:`(/api/[^`]+)`", text)
+    inputs = registry_inputs(text)
     discovered = set()
     for values, route in inputs:
         versions = re.findall(rf"path:`({VERSION})`,label:`[^`]+`,input:`({SPEC.pattern})`", values)

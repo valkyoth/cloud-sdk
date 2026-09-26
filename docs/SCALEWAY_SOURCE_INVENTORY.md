@@ -84,11 +84,26 @@ sequentially with a 60-second whole-fetch deadline and a 30-minute overall
 retrieval budget. Timeout handling kills and reaps the worker, including during
 stalled DNS, TLS or buffered reads. No fetched code is executed.
 
+Index and catalog discovery each run in a killable subprocess with a 30-second
+deadline. Registry scanning advances forward through bounded blocks (1 MiB per
+block and 1,024 characters for the route terminator search), rejecting incomplete
+or nested registry markers rather than repeatedly scanning the remaining bundle.
+
 The already-admitted isolated Rust YAML parser rejects expansion, duplicate and
 merge keys, explicit tags, excessive depth/events, multiple documents and
-non-finite values. Parsing has a separate 30-second subprocess deadline. Schema
+non-finite YAML values. Numeric scalars must use JSON number syntax; their original
+lexemes are emitted without conversion through `i64` or `f64`. Python preserves
+integers exactly and uses `Decimal` for decimal/exponent values. YAML-only numeric
+spellings are rejected rather than rounded or silently turned into strings.
+Parsing has a separate 30-second subprocess deadline. Schema
 references must resolve inside the same document; no external references are
 fetched. Every generated inventory is rebuilt and compared from raw sources.
+
+Operation paths follow the runtime canonical origin-path policy with an
+8,192-byte limit, extended only for `{parameter_name}` placeholders. Authority,
+query/fragment delimiters, dot segments, doubled slashes, invalid template syntax,
+non-ASCII literals and non-canonical percent encodings fail before admission.
+This is source validation, not permission to execute an operation.
 
 These files are public-source evidence, not runtime dependencies or credentials.
 The capture uses no PyYAML dependency and changes no published crate graph.
@@ -147,8 +162,10 @@ Local verification passed on 2026-09-26:
 - Full `scripts/checks.sh` (including packaging, feature checks, Clippy,
   doctests, and default/all-feature workspace tests).
 - Offline inventory reconstruction and exact live comparison of all 94 sources.
-- 21 Python regression tests, including actual worker timeout termination.
-- Two Rust parser test groups on the development toolchain and Rust 1.92.0.
+- 27 Python regression tests, including actual fetch/discovery worker timeout
+  termination, 100,000 unterminated registry markers, exact numeric preservation
+  across the complete parser bridge, and canonical operation-path admission.
+- Four Rust parser test groups on the development toolchain and Rust 1.92.0.
 - Isolated tool Clippy with warnings denied and formatting checks.
 - SBOM freshness/completeness, documentation links, workflow governance,
   release-plan regressions, whitespace, and 500-line code-file policy.
@@ -157,6 +174,10 @@ Local verification passed on 2026-09-26:
 
 No published manifest or lockfile changed. The isolated tooling SBOM now includes
 the additional parser binary. This verification is not a pentest result.
+
+The initial Commit 1 pentest reported registry-scan complexity, numeric rounding,
+and unsafe path admission. The remediations above preserve the accepted inventory
+and its follow-up digest unchanged. Independent remediation retest remains pending.
 
 CodeQL Default Setup was verified through GitHub's API as configured for Rust,
 Python and Actions. No advanced workflow is introduced. GitHub documents that

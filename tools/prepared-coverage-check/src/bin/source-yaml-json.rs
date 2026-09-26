@@ -5,11 +5,50 @@ use std::fmt::Write;
 use std::io::{Read, Write as IoWrite};
 
 use saphyr::Scalar;
-use saphyr_parser::{Event, Parser};
+use saphyr_parser::{Event, Parser, ScalarStyle};
 
 const MAX_BYTES: u64 = 10 * 1024 * 1024;
 const MAX_EVENTS: usize = 500_000;
 const MAX_DEPTH: usize = 64;
+
+// Validate the original lexeme without resolving through machine-sized numbers.
+fn json_number(value: &str) -> bool {
+    let mut bytes = value.bytes().peekable();
+    if bytes.peek() == Some(&b'-') {
+        bytes.next();
+    }
+    match bytes.next() {
+        Some(b'0') => {}
+        Some(b'1'..=b'9') => {
+            while bytes.peek().is_some_and(u8::is_ascii_digit) {
+                bytes.next();
+            }
+        }
+        _ => return false,
+    }
+    if bytes.peek() == Some(&b'.') {
+        bytes.next();
+        if !bytes.next().is_some_and(|byte| byte.is_ascii_digit()) {
+            return false;
+        }
+        while bytes.peek().is_some_and(u8::is_ascii_digit) {
+            bytes.next();
+        }
+    }
+    if matches!(bytes.peek(), Some(b'e' | b'E')) {
+        bytes.next();
+        if matches!(bytes.peek(), Some(b'+' | b'-')) {
+            bytes.next();
+        }
+        if !bytes.next().is_some_and(|byte| byte.is_ascii_digit()) {
+            return false;
+        }
+        while bytes.peek().is_some_and(u8::is_ascii_digit) {
+            bytes.next();
+        }
+    }
+    bytes.next().is_none()
+}
 
 fn quote(value: &str, output: &mut String) -> Result<(), String> {
     output.push('"');
@@ -37,19 +76,25 @@ fn node<'a>(
     }
     match event {
         Event::Scalar(value, style, 0, None) => {
+            if style == ScalarStyle::Plain {
+                if json_number(&value) {
+                    output.push_str(&value);
+                    return Ok(());
+                }
+                let unsigned = value.trim_start_matches(['+', '-']);
+                if unsigned.starts_with("0x") || unsigned.starts_with("0o") {
+                    return Err("YAML number is not losslessly JSON-compatible".into());
+                }
+            }
             let scalar =
                 Scalar::parse_from_cow_and_metadata(value, style, None).ok_or("invalid scalar")?;
             match scalar {
                 Scalar::String(text) => quote(&text, output)?,
                 Scalar::Null => output.push_str("null"),
                 Scalar::Boolean(value) => output.push_str(if value { "true" } else { "false" }),
-                Scalar::Integer(value) => {
-                    write!(output, "{value}").map_err(|_| "integer encoding failed")?;
+                Scalar::Integer(_) | Scalar::FloatingPoint(_) => {
+                    return Err("YAML number is not losslessly JSON-compatible".into());
                 }
-                Scalar::FloatingPoint(value) if value.is_finite() => {
-                    write!(output, "{value}").map_err(|_| "float encoding failed")?;
-                }
-                _ => return Err("non-finite scalar".into()),
             }
         }
         Event::MappingStart(0, None) => {
@@ -175,6 +220,53 @@ fn main() {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn preserves_numeric_lexemes_without_machine_precision_limits() {
+        for number in [
+            "9223372036854775808",
+            "-9223372036854775809",
+            "18446744073709551615",
+            "0.12345678901234567890123456789",
+            "1e400",
+            "1e-400",
+            "-0",
+            "1.00E+02",
+        ] {
+            assert_eq!(
+                convert(&format!("a: {number}")),
+                Ok(format!("{{\"a\":{number}}}"))
+            );
+            assert_eq!(
+                convert(&format!("a: '{number}'")),
+                Ok(format!("{{\"a\":\"{number}\"}}"))
+            );
+        }
+    }
+
+    #[test]
+    fn rejects_yaml_only_numbers_and_invalid_json_number_grammar() {
+        for number in [
+            "+1",
+            ".5",
+            "1.",
+            "01",
+            "0x10",
+            "0o10",
+            ".inf",
+            "-.inf",
+            ".nan",
+            "0xFFFFFFFFFFFFFFFFFFFFFFFFFFFF",
+        ] {
+            assert!(
+                convert(&format!("a: {number}")).is_err(),
+                "accepted {number}"
+            );
+        }
+        for value in ["", "-", "00", "1e", "1e+", "1.e2", "1 2", "1x", "--1"] {
+            assert!(!json_number(value), "accepted {value}");
+        }
+    }
 
     #[test]
     fn preserves_json_values_and_escaping() {
