@@ -85,6 +85,18 @@ impl<K: CredentialKind> Credential<K> {
         apply: impl for<'a> FnOnce(&T, ScopedCredentialMaterial<'a>) -> R,
     ) -> Result<R, CredentialError> {
         let mut output = SecretBuffer::new(output);
+        let material = self.stage_for_adapter(context, transport, &mut output)?;
+        Ok(apply(transport, material))
+    }
+
+    // Internal async runners own the guard across suspension. Public callers
+    // retain the stricter callback-only API; no unguarded borrowed secret escapes.
+    pub(crate) fn stage_for_adapter<'a, T: BoundTransport + ?Sized>(
+        &self,
+        context: &CredentialContext<'a, K>,
+        transport: &T,
+        output: &'a mut SecretBuffer<'_>,
+    ) -> Result<ScopedCredentialMaterial<'a>, CredentialError> {
         sanitize_bytes(output.as_mut_slice());
         if self.origin != context.origin {
             return Err(CredentialError::DestinationMismatch);
@@ -96,7 +108,8 @@ impl<K: CredentialKind> Credential<K> {
         let identity = endpoint
             .identity()
             .map_err(|_| CredentialError::DestinationMismatch)?;
-        self.secret
+        let length = self
+            .secret
             .try_with_secret(|text| {
                 super::kind::validate::<K>(text.as_bytes())?;
                 let (prefix, suffix) = match K::KIND {
@@ -119,32 +132,34 @@ impl<K: CredentialKind> Credential<K> {
                 start.copy_from_slice(prefix.as_bytes());
                 secret.copy_from_slice(text.as_bytes());
                 end.copy_from_slice(suffix.as_bytes());
-                let wire =
-                    core::str::from_utf8(wire).map_err(|_| CredentialError::StorageUnavailable)?;
-                let target = if K::KIND >= 3 { wire } else { context.target };
-                let target =
-                    RequestTarget::new(target).map_err(|_| CredentialError::InvalidSyntax)?;
-                let authorization = if K::KIND <= 1 {
-                    Some(HeaderValue::new(wire).map_err(|_| CredentialError::InvalidSyntax)?)
-                } else {
-                    None
-                };
-                let json = if K::KIND == 2 {
-                    Some(wire.as_bytes())
-                } else {
-                    None
-                };
-                Ok(apply(
-                    transport,
-                    ScopedCredentialMaterial {
-                        endpoint: identity,
-                        method: context.method,
-                        target,
-                        authorization,
-                        json,
-                    },
-                ))
+                Ok(length)
             })
-            .map_err(|_| CredentialError::StorageUnavailable)?
+            .map_err(|_| CredentialError::StorageUnavailable)??;
+        let wire = core::str::from_utf8(
+            output
+                .as_slice()
+                .get(..length)
+                .ok_or(CredentialError::OutputTooSmall)?,
+        )
+        .map_err(|_| CredentialError::StorageUnavailable)?;
+        let target = if K::KIND >= 3 { wire } else { context.target };
+        let target = RequestTarget::new(target).map_err(|_| CredentialError::InvalidSyntax)?;
+        let authorization = if K::KIND <= 1 {
+            Some(HeaderValue::new(wire).map_err(|_| CredentialError::InvalidSyntax)?)
+        } else {
+            None
+        };
+        let json = if K::KIND == 2 {
+            Some(wire.as_bytes())
+        } else {
+            None
+        };
+        Ok(ScopedCredentialMaterial {
+            endpoint: identity,
+            method: context.method,
+            target,
+            authorization,
+            json,
+        })
     }
 }

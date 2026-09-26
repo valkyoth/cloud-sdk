@@ -17,3 +17,5 @@ mod tests;
 
 /// Local upper bound for each returned scope list; never silently truncated.
 pub const MAX_TOKEN_SCOPES: usize = 128;
+#[cfg(feature = "async")]
+mod unified;

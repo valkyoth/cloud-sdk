@@ -16,6 +16,8 @@ mod configurations;
 #[cfg(feature = "blocking")]
 mod execution;
 mod tokens;
+#[cfg(all(feature = "blocking", feature = "async"))]
+mod unified;
 #[cfg(feature = "blocking")]
 mod workflow;
 fn config(p: Publisher) -> PublisherConfig<'static> {

@@ -121,8 +121,10 @@ target and shared gate, and clears secret scratch and response/header storage
 on every exit. The callback must apply raw `Authorization` once as sensitive,
 honor the supplied response policy and execute only the supplied request.
 This is not a Bearer token. Ordinary anonymous raw reqwest executors do not
-inject it. Built-in token transport and async authenticated-client integration
-remain later work. The `following` filter fails before anonymous dispatch;
+inject it. Commit 20 adds explicit `RegistryClient::catalog_with_token`,
+`catalog_with_token_local` and `catalog_with_token_async` methods using the
+neutral authorization contract, without a caller callback. They install cleanup
+before polling and share the same gate. The `following` filter fails before anonymous dispatch;
 metadata and the minimal Cargo profile cannot opt into token execution.
 
 ## Verification

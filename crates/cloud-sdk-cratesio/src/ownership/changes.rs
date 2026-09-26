@@ -20,3 +20,5 @@ mod tests;
 pub const MAX_OWNER_CHANGES: usize = 10;
 /// Bounded JSON body storage for ten validated selectors.
 pub const MAX_OWNER_CHANGE_BODY_BYTES: usize = 4096;
+#[cfg(feature = "async")]
+mod unified;

@@ -18,8 +18,11 @@ operations. Production and staging remain isolated.
 The blocking adapter callback is a trusted boundary, as with authenticated
 catalog execution. It must enforce the bound origin, exact request, sensitive
 authorization, response policy, TLS, deadlines, no cookies, no redirects and
-no retries. This checkpoint does not supply a bundled credential adapter or
-async credential execution. Unified client qualification remains later work.
+no retries. Commit 20 adds unified blocking/local/Send execution for API-token
+personal operations, with guards installed before future creation. The two
+secret-path operations still require the trusted callback and are rejected by
+the facade pending URI-storage qualification. See the
+[implementation ledger](CRATESIO_UNIFIED_CLIENT.md) for remaining gates.
 All four scratch buffers are cleared on every exit, including pre-dispatch
 rejections and unwinding. Caller-owned email input, adapter copies, process
 abort and deliberately leaked allocations remain outside cleanup guarantees.

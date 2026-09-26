@@ -11,6 +11,8 @@ use cloud_sdk::{
 };
 #[cfg(feature = "blocking")]
 mod execution;
+#[cfg(all(feature = "blocking", feature = "async"))]
+mod unified;
 fn id(n: u64) -> NumericId {
     NumericId::new(n).fixture("id")
 }

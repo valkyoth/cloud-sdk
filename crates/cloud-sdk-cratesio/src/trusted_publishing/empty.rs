@@ -7,7 +7,7 @@ use cloud_sdk::{
     transport::{HeaderName, MediaType, RawResponsePolicy, ResponseBuffer, ResponseMediaPolicy},
 };
 
-pub(super) fn policy(maximum: usize) -> Result<RawResponsePolicy<'static>, Error> {
+pub(crate) fn policy(maximum: usize) -> Result<RawResponsePolicy<'static>, Error> {
     RawResponsePolicy::new(
         0,
         maximum,
@@ -22,7 +22,7 @@ pub(super) fn policy(maximum: usize) -> Result<RawResponsePolicy<'static>, Error
     )
     .map_err(|_| Error::Value)
 }
-pub(super) fn admit<E>(
+pub(crate) fn admit<E>(
     response: &ResponseBuffer<'_>,
     now: u64,
 ) -> Result<Option<RetryAfter>, Failure<E>> {

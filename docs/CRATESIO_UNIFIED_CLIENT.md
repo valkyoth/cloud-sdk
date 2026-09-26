@@ -10,6 +10,14 @@ No tag, publication, Commit 21 authorization or full-provider coverage claim.
   typed reads and consumed mutation permits to their existing checked runners.
   Request assembly and authorization dispatch no longer need a caller callback
   on these paths. Publish still requires the existing streaming callback.
+- `execute_local` and `execute_async` now cover those same read and permit
+  families. API-token catalog requests have corresponding explicit methods.
+  Local execution accepts non-Send transports; Send execution has compile-checked
+  Send futures. There is no blocking bridge inside production async execution.
+- Credential staging is crate-private and borrows cleanup-owned scratch across
+  suspension. Public credential access remains callback-scoped. All guards are
+  installed before the future is returned, so even unpolled drops clear scratch.
+  Consumed temporary credentials remain owned by the future until completion/drop.
 - Email confirmation and token-based invitation acceptance are rejected before
   dispatch with `DiscoveryError::Binding`. The adapter's ordinary URI storage
   is not yet qualified for path secrets; these operations retain their existing
@@ -41,8 +49,9 @@ No tag, publication, Commit 21 authorization or full-provider coverage claim.
 
 ## Remaining Commit 20 Gates
 
-1. Add unified local-async and Send-async credential/permit execution, with
-   unpolled and in-flight cleanup and no blocking bridge inside an executor.
+1. Qualify unified async execution with the bundled adapters across the final
+   operation matrix. Mock parity and cleanup tests pass for the currently
+   enabled families; this does not cover the excluded path-secret or publish paths.
 2. Add real bundled authenticated streaming publication, including partial
    writes, early rejection, truncation, deadlines and no implicit replay.
 3. Generate exact execution coverage against all 51 operation matrix rows;
@@ -77,3 +86,24 @@ Checked locally on 2026-09-26, before the foundation commit:
   admission and cleanup of all four scratch buffers.
 
 These are implementation checks, not a pentest or acceptance of Commit 20.
+
+## Async Increment Verification
+
+The continuation after `97c8e0cb` adds unified local/Send execution for the
+currently enabled reads and permits. Checked locally on 2026-09-26:
+
+- Full `scripts/checks.sh`, including workspace tests, warning-denied Clippy,
+  isolated features, packaging, doctests and fuzz metadata: passed.
+- Rust 1.92.0 provider tests with `blocking,async`, including compile-fail
+  credential/permit tests: passed. Async-only Clippy also passed.
+- All 25 anonymous fixtures, six permit families, and explicit token catalog
+  execution have facade tests. Send futures are statically checked; the local
+  fixture holds `Rc` and cannot satisfy the Send executor contract.
+- Unpolled/in-flight cancellation, shared admission, wrong/changed origins,
+  cleared credentials, short scratch, strict empty acknowledgements, malformed
+  replies and oversized delays fail closed and clear supplied scratch.
+- Documentation links, source-length/modularity policy, AST fail-closed test
+  policy, response cleanup, SBOM freshness and whitespace checks: passed.
+
+No manifests or lockfiles changed in this increment. These tests do not replace
+the outstanding generated matrix, bundled integration, storage and pentest gates.

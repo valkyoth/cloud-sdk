@@ -360,3 +360,5 @@ fn put(root: &mut Value, parent: &str, key: &str, value: Value) {
         .fixture("fixture object")
         .insert(key.into(), value);
 }
+#[cfg(all(feature = "blocking", feature = "async"))]
+mod unified;

@@ -202,6 +202,9 @@ def validate(root: Path) -> None:
     expected_sources = {
         "lib.rs",
         *(f"client/{name}.rs" for name in ("mod", "blocking", "buffers", "tests")),
+        *(f"client/{name}.rs" for name in ("prepared", "asynchronous", "asynchronous/runner", "asynchronous/catalog", "asynchronous/tests", "asynchronous/tests/lifecycle", "asynchronous/tests/operations", "asynchronous/tests/catalog")),
+        *(f"{area}/unified.rs" for area in ("accounts/personal", "accounts/tokens", "settings", "ownership/changes", "publishing/yank", "trusted_publishing")),
+        *(f"{area}/tests/unified.rs" for area in ("discovery", "catalog", "versions", "downloads", "accounts", "accounts/tokens", "settings", "trusted_publishing")),
         *(f"bundled/{name}.rs" for name in ("mod", "artifacts", "tests")),
         "downloads/sha256.rs",
         "identity.rs",

@@ -20,3 +20,5 @@ mod tests;
 pub const MAX_NOTIFICATION_UPDATES: usize = 64;
 /// Local serialized request bound, including escaped email text.
 pub const MAX_PERSONAL_BODY_BYTES: usize = 4096;
+#[cfg(feature = "async")]
+mod unified;

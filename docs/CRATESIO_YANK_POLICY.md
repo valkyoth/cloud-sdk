@@ -40,7 +40,10 @@ honor the raw response policy, attach sensitive Authorization exactly once,
 send through the supplied bound executor, and disable redirects/cookies/retries.
 Credential, response-body and header scratch are cleared on every exit. No
 request-body scratch is needed because these Cargo requests are bodyless.
-Bundled authenticated and async integration remains Commit 20.
+Commit 20 adds unified blocking/local/Send execution with consumed permits,
+matching bodyless requests and strict acknowledgements. Cancellation clears
+scratch but does not prove the upstream mutation failed. Complete bundled
+qualification remains in the [implementation ledger](CRATESIO_UNIFIED_CLIENT.md).
 
 Both operations are state-convergent only in the absence of intervening writes.
 Neither has compare-and-swap semantics, an idempotency key, or automatic retry.

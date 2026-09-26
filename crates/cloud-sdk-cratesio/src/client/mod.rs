@@ -3,18 +3,32 @@
 //! Mutations still require consumed permits. There are no implicit retries,
 //! sleeps, credentials, or custom destinations. Raw adapters remain trusted.
 
+#[cfg(feature = "async")]
+mod asynchronous;
+#[cfg(feature = "blocking")]
 mod blocking;
 mod buffers;
-#[cfg(test)]
+#[cfg(feature = "async")]
+pub(crate) mod prepared;
+#[cfg(all(test, feature = "blocking"))]
 mod tests;
+#[cfg(all(test, feature = "blocking", feature = "async"))]
+pub(crate) use asynchronous::tests as async_test_support;
+#[cfg(feature = "async")]
+pub use asynchronous::{AsyncRegistryOperation, LocalRegistryOperation};
+#[cfg(feature = "blocking")]
 pub use blocking::BlockingRegistryOperation;
 pub use buffers::RegistryBuffers;
 
+#[cfg(feature = "blocking")]
+use crate::discovery::DiscoveryExecutionError;
 use crate::{
-    discovery::{DiscoveryClient, DiscoveryError, DiscoveryExecutionError},
+    discovery::{DiscoveryClient, DiscoveryError},
     wire::IdentifyingUserAgent,
 };
-use cloud_sdk::transport::{BlockingAuthorizedRawHttpExecutor, BoundTransport, BoundUserAgent};
+#[cfg(feature = "blocking")]
+use cloud_sdk::transport::BlockingAuthorizedRawHttpExecutor;
+use cloud_sdk::transport::{BoundTransport, BoundUserAgent};
 
 /// One fixed-origin registry client. Cloning the underlying transport never
 /// bypasses the process-wide crates.io admission gate.
@@ -63,6 +77,7 @@ impl<'a, T: BoundTransport + BoundUserAgent + ?Sized> RegistryClient<'a, T> {
     }
 }
 
+#[cfg(feature = "blocking")]
 impl<T: BlockingAuthorizedRawHttpExecutor + BoundUserAgent + ?Sized> RegistryClient<'_, T> {
     /// Executes a typed read or consumes a mutation permit without caller HTTP
     /// assembly. All scratch is cleared, including constructor/admission failures.

@@ -722,6 +722,8 @@ blocking registry facade, explicit destination-bound raw authorization,
 official transport constructors, live anonymous artifact reads and SHA-256.
 See [the implementation ledger](CRATESIO_UNIFIED_CLIENT.md) for tested pieces
 and remaining work. This is not the completed Commit 20 pentest checkpoint.
+The next increment adds guarded local/Send async execution for the currently
+enabled reads and permits, including explicit API-token catalog requests.
 
 Dependency follow-up detected during Commit 18 on 2026-09-25:
 `rustls-platform-verifier 0.7.1` supersedes the reviewed `0.7.0` pin and changes

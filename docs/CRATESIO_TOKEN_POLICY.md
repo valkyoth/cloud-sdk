@@ -48,8 +48,10 @@ rejects any encoding header, including identity.
 
 The callback is trusted to add sensitive Authorization exactly once, enforce
 raw framing/body limits, send only to the bound executor, and disable redirects,
-cookies and retries. Bundled authenticated and async adapters remain Commit 20
-work. This checkpoint does not claim those integrations are implemented.
+cookies and retries. Commit 20 adds unified blocking/local/Send execution for
+all three token operations, with identical JSON/empty response policies. Async
+guards also clear unpolled/cancelled futures. Final bundled integration
+qualification remains tracked in the [implementation ledger](CRATESIO_UNIFIED_CLIENT.md).
 Credential and response scratch are cleared on success, errors and unwinding.
 Process abort and caller-made copies remain outside that cleanup guarantee.
 

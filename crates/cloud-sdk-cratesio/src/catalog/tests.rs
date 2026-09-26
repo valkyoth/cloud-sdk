@@ -189,3 +189,5 @@ fn required_fields_duplicates_and_wrong_types_fail_closed() {
     put(&mut v, "/meta", "total", json!(-1));
     assert!(changed(CatalogRequest::list(&[]).fixture("list"), &v).is_err());
 }
+#[cfg(all(feature = "blocking", feature = "async"))]
+mod unified;

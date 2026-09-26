@@ -256,3 +256,5 @@ fn date_window_and_crate_version_limits_are_exact() {
     put(&mut value, "/versions/0/id", json!(43));
     assert!(changed(with_versions, &value).is_err());
 }
+#[cfg(all(feature = "blocking", feature = "async"))]
+mod unified;

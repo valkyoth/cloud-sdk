@@ -11,6 +11,8 @@ use cloud_sdk::{
 };
 #[cfg(feature = "blocking")]
 mod execution;
+#[cfg(all(feature = "blocking", feature = "async"))]
+mod unified;
 fn name() -> CrateName<'static> {
     CrateName::new("serde").fixture("crate")
 }

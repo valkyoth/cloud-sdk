@@ -287,3 +287,5 @@ fn duplicate_json_and_unknown_field_limits_apply_to_every_operation() {
 }
 
 mod pagination;
+#[cfg(all(feature = "blocking", feature = "async"))]
+mod unified;

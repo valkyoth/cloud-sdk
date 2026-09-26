@@ -25,8 +25,10 @@ pub use request::{TrustedPublishingOperation, TrustedPublishingPermit};
 pub use temporary::TemporaryToken;
 #[cfg(feature = "blocking")]
 mod client;
-#[cfg(feature = "blocking")]
-mod empty;
+#[cfg(any(feature = "blocking", feature = "async"))]
+pub(crate) mod empty;
+#[cfg(feature = "async")]
+mod unified;
 #[cfg(feature = "blocking")]
 pub use client::{TrustedPublishingBuffers, TrustedPublishingClient};
 #[cfg(all(test, feature = "alloc"))]

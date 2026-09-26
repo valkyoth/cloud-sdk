@@ -11,3 +11,5 @@ pub use crate::discovery::DiscoveryExecutionError as YankExecutionError;
 pub use client::{YankBuffers, YankClient};
 #[cfg(test)]
 mod tests;
+#[cfg(feature = "async")]
+mod unified;

@@ -55,8 +55,10 @@ The callback is a trusted integration boundary: it must send exactly once to
 the bound executor, add sensitive Authorization exactly once, enforce the raw
 policy and body limits, and disable cookies, redirects and retries. Content-Type,
 Content-Encoding and Retry-After are retained for provider validation. All four
-caller scratch buffers clear on every exit. Bundled authenticated and async
-integration remains Commit 20, not claimed complete here.
+caller scratch buffers clear on every exit. Commit 20 adds unified local/Send
+execution with the same checked postconditions and pre-poll cleanup guards.
+Complete bundled qualification remains in the
+[implementation ledger](CRATESIO_UNIFIED_CLIENT.md).
 
 The API exposes no revision/ETag compare-and-swap contract. Desired-state
 postconditions describe only the returned snapshot; another writer can change

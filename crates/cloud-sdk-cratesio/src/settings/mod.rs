@@ -18,3 +18,5 @@ mod tests;
 pub const MAX_YANK_MESSAGE_BYTES: usize = 4096;
 /// Worst-case escaped JSON plus envelope; caller storage is bounded and cleared.
 pub const MAX_SETTINGS_BODY_BYTES: usize = 25_000;
+#[cfg(feature = "async")]
+mod unified;

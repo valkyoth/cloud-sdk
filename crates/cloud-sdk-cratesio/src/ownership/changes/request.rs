@@ -158,11 +158,8 @@ impl core::fmt::Debug for OwnerChangeRequest<'_> {
 pub struct OwnerChangePermit<'a> {
     pub(super) request: OwnerChangeRequest<'a>,
     #[cfg_attr(
-        not(feature = "blocking"),
-        expect(
-            dead_code,
-            reason = "retained for authenticated execution; currently consumed by blocking integration"
-        )
+        not(any(feature = "blocking", feature = "async")),
+        expect(dead_code, reason = "retained for authenticated execution")
     )]
     pub(super) credential: &'a ApiToken,
 }

@@ -555,7 +555,10 @@ increment adds destination-bound raw authorization contracts, a blocking
 registry facade over existing checked operations, official bundled transport
 constructors, live anonymous artifact sources, and opt-in SHA-256. It updates
 platform-verifier to 0.7.1 and the Android helper to 0.2.0 without adding bundled
-Android support. Authenticated async parity, actual bundled streaming publish,
+Android support. A follow-up adds guarded local/Send async execution for the
+enabled read/permit families and explicit token catalog calls. Guards precede
+future creation; cancellation clears scratch without authorizing replay.
+Actual bundled streaming publish,
 transactional-storage qualification and exhaustive Cargo/51-operation evidence
 remain open in [the implementation ledger](../docs/CRATESIO_UNIFIED_CLIENT.md).
 Commit 19 was accepted at `f49b7712`; no tag or publication is authorized.

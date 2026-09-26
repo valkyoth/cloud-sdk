@@ -17,7 +17,10 @@ The default graph stays no_std and allocation-free. Models, protected JSON and
 credentials require `alloc`; the single-attempt client requires `blocking`.
 The existing trusted callback must enforce TLS, fixed origin, identifying user
 agent, raw response bounds/media, deadlines and no cookies/redirects/retries.
-Bundled authenticated and async adapters remain Commit 20. CI uses fixtures,
+Commit 20 adds unified blocking/local/Send execution for these permits, preserving
+OIDC preflight and strict empty acknowledgements. Guards precede future creation;
+owned temporary credentials drop with the future. Complete bundled qualification
+remains in the [implementation ledger](CRATESIO_UNIFIED_CLIENT.md). CI uses fixtures,
 never real assertion exchange, configuration mutation, publication or revocation.
 
 Config routes use an API token (no cookie support). Exchange is anonymous JSON:

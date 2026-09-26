@@ -28,7 +28,8 @@ and five version operations, four download/statistics operations and six public
 account/ownership operations have checked blocking, local-async and Send-async
 execution. Commit 19 is accepted; Commit 20 is in progress. Eight personal
 mutation operations now have single-attempt execution through an explicitly
-trusted blocking credential-adapter callback or the new `RegistryClient` facade.
+trusted blocking credential-adapter callback. The new `RegistryClient` facade
+supports their API-token variants; its two secret-path variants remain excluded.
 Three token-management operations now share that explicit adapter boundary.
 Two settings PATCH operations also use explicit permits and checked postconditions.
 Owner additions/removals use consumed consent, conservative acknowledgements
@@ -40,7 +41,7 @@ and bounded streaming through an explicitly trusted blocking adapter.
 Trusted publishing adds GitHub/GitLab configuration management, unverified OIDC
 preflight and exchange, and protected temporary-token revocation.
 Authentication preparation, endpoint, query and response foundations
-are available. The new blocking facade, official bundled constructors and
+are available. The blocking/local/Send facade, official bundled constructors and
 anonymous artifact streaming are an initial Commit 20 increment, not its
 completed coverage or parity gate. This is not yet a complete crates.io provider.
 
@@ -74,7 +75,7 @@ completed coverage or parity gate. This is not yet a complete crates.io provider
 | Cargo publish | bounded metadata, exact little-endian framing, borrowed/streaming archives, API or temporary token consent and checked warnings; trusted blocking streaming adapter |
 | Trusted publishing | GitHub/GitLab list/create/delete, assertion exchange and temporary-token revocation; local deadline/crate restrictions, not a JWT authenticator; trusted blocking adapter |
 | Artifact streaming | opt-in bundled static-origin live body sources and SHA-256; caller-supplied transactional sink remains required |
-| Unified execution | blocking typed reads and permits except publish and the two secret-path personal operations; authenticated async parity, secret-path storage, streaming publish and exhaustive coverage remain in progress |
+| Unified execution | blocking, local-async and Send-async typed reads and permits except publish and the two secret-path personal operations; secret-path storage, streaming publish and exhaustive qualification remain in progress |
 
 See the [Commit 20 implementation ledger](https://github.com/valkyoth/cloud-sdk/blob/main/docs/CRATESIO_UNIFIED_CLIENT.md)
 for exact remaining gates. Do not treat these foundations as full-provider qualification.
@@ -116,6 +117,52 @@ let metadata = client.execute(DiscoveryRequest::site_metadata(), RegistryBuffers
 # Ok(())
 # }
 ```
+
+## Official Async Client
+
+Enable `async-rustls` for bundled Tokio-backed transport, or `async` for a
+caller-provided raw executor implementing the explicit authorization contract.
+`execute_async` returns a Send future;
+`execute_local` also accepts non-Send executors. Both install cleanup guards
+before returning the future, share the process rate gate, and never retry or
+sleep implicitly. Poll bundled transports inside a Tokio runtime.
+
+```rust,no_run
+# #[cfg(feature = "async-rustls")]
+# async fn example(token: &cloud_sdk_cratesio::credentials::ApiToken)
+#     -> Result<(), Box<dyn std::error::Error>> {
+use cloud_sdk_cratesio::{
+    bundled::{RequestTimeouts, production_async},
+    catalog::CatalogRequest,
+    client::{RegistryBuffers, RegistryClient},
+    query::Parameter,
+    wire::IdentifyingUserAgent,
+};
+use std::time::Duration;
+
+let identity = IdentifyingUserAgent::new("my-tool/1 (ops@example.org)")?;
+let transport = production_async(identity,
+    RequestTimeouts::new(Duration::from_secs(30), Duration::from_secs(5))?)?;
+let client = RegistryClient::production(&transport, identity, 65_536)?;
+let parameters = [Parameter::Following];
+let mut credential = [0; 1024];
+let mut response = vec![0; 65_536];
+let mut headers = [0; 1024];
+let followed = client.catalog_with_token_async(
+    CatalogRequest::list(&parameters)?, token,
+    RegistryBuffers {
+        credential: &mut credential, body: &mut [],
+        response: &mut response, headers: &mut headers,
+    },
+).await?;
+# let _ = followed;
+# Ok(())
+# }
+```
+
+Mutation execution takes the same consumed permits as the blocking facade.
+An error or cancellation may follow a committed provider mutation; reconcile
+the outcome before explicitly authorizing another attempt.
 
 ## Trusted Publishing Intent
 
@@ -453,9 +500,10 @@ without permanently disabling the shared gate. No automatic retry occurs.
 
 `CatalogContinuation::LimitReached` is not end-of-data. Crate links are inert
 untrusted metadata, and include-expanded versions expose schema-checked protected
-fields; dedicated version endpoints remain later work. Optional raw API-token
-list execution requires the explicit blocking `execute_with_token` trusted
-adapter callback, not a Bearer token. Anonymous `following` requests reject.
+fields. Optional raw API-token list execution is available through the registry
+facade's `catalog_with_token`, `catalog_with_token_local` and
+`catalog_with_token_async` methods, or the lower-level blocking trusted callback.
+These use the raw API token, not a Bearer prefix. Anonymous `following` requests reject.
 See the [catalog contract](https://github.com/valkyoth/cloud-sdk/blob/main/docs/CRATESIO_CATALOG_POLICY.md)
 for source coverage, pagination, includes, resource limits and adapter obligations.
 
@@ -550,11 +598,11 @@ documented in the [crates.io endpoint policy](https://github.com/valkyoth/cloud-
 | `alloc` | no | Enables protected credentials, checked JSON admission and discovery/catalog models; still `no_std`. |
 | `serde` | no | Enables the Serde boundary for later serialization; discovery decoding reuses core JSON events. |
 | `std` | no | Enables `alloc` and the shared monotonic API gate. |
-| `blocking` | no | Enables checked discovery/catalog execution and an explicit token adapter hook; no transport dependency is added. |
+| `blocking` | no | Enables checked blocking clients and unified read/permit execution; no transport dependency is added. |
 | `artifact-sha256` | no | Adds the reviewed no_std SHA-256 implementation for archive integrity. |
 | `blocking-rustls` | no | Adds official blocking constructors, neutral authorized execution, live artifact reads and SHA-256. |
-| `async-rustls` | no | Adds official async constructors, live artifact reads and SHA-256; unified authenticated async workflows are not yet complete. |
-| `async` | no | Enables checked anonymous local/Send async discovery/catalog; no runtime or transport dependency is added. |
+| `async-rustls` | no | Adds official Tokio-backed async constructors, live artifact reads and SHA-256. |
+| `async` | no | Enables unified checked local/Send async reads and permits; no runtime or transport dependency is added. |
 
 Networking and TLS remain opt-in provider-neutral concerns. This crate does
 not depend on `cloud-sdk-reqwest`, an async runtime, a TLS implementation, a
@@ -748,9 +796,10 @@ for exact input limits and source-verification commands.
 ## Security And Policy
 
 The provider will not support browser-session cookies or undocumented private
-routes. Scheduling and bounded response admission are available foundations;
-operation-bound clients, mutation permits and async integration remain
-assigned to later checkpoints.
+routes. Operation-bound clients, consumed mutation permits, scheduling and
+bounded response admission are implemented. Bundled streaming publication,
+secret-path execution and final integration qualification remain open in the
+Commit 20 implementation ledger above.
 
 Direct crates.io API use must follow the service's data-access policy. Prefer
 the sparse index, static downloads, RSS feeds, or database dumps when those

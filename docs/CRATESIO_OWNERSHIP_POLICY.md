@@ -83,9 +83,11 @@ before issuing fresh consent after an ambiguous result.
 
 The blocking callback remains an explicitly trusted credential adapter: enforce
 the supplied policy, send once to the bound executor, add Authorization exactly
-once as sensitive, and disable redirects/cookies/retries. Bundled authenticated
-and async integration remains Commit 20. No live owner mutation is performed by
-the test suite.
+once as sensitive, and disable redirects/cookies/retries. Commit 20 adds unified
+blocking/local/Send execution with the same consumed intent and acknowledgements.
+Complete bundled qualification remains in the
+[implementation ledger](CRATESIO_UNIFIED_CLIENT.md). No live owner mutation is
+performed by the test suite.
 
 ## Verification And Stop
 
