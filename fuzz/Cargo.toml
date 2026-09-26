@@ -8,6 +8,7 @@ edition = "2024"
 cargo-fuzz = true
 
 [dependencies]
+cloud-sdk-cratesio = { path = "../crates/cloud-sdk-cratesio", version = "=1.1.0", default-features = false, features = ["alloc"] }
 cloud-sdk = { path = "../crates/cloud-sdk", version = "=1.1.0" }
 cloud-sdk-hetzner = { path = "../crates/cloud-sdk-hetzner", version = "=1.1.0", features = ["serde"] }
 cloud-sdk-reqwest = { path = "../crates/cloud-sdk-reqwest", version = "=1.1.0", default-features = false, features = ["fuzzing"] }
@@ -255,6 +256,34 @@ bench = false
 [[bin]]
 name = "metadata_response"
 path = "fuzz_targets/metadata_response.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "cratesio_targets"
+path = "fuzz_targets/cratesio_targets.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "cratesio_metadata"
+path = "fuzz_targets/cratesio_metadata.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "cratesio_continuation"
+path = "fuzz_targets/cratesio_continuation.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "cratesio_redirect"
+path = "fuzz_targets/cratesio_redirect.rs"
 test = false
 doc = false
 bench = false

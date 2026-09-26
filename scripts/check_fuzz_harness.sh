@@ -6,6 +6,8 @@ toolchain="nightly-2026-09-24"
 cargo_fuzz_version="0.13.2"
 targets="buffer_writers request_targets action_requests labels_dns pagination quota_retry retry_policy pagination_opaque provider_links action_polling response_envelopes response_content_type checked_response cloud_special_responses raw_response_parser raw_http1_wire incremental_json robot_form robot_error_protocol robot_server_response robot_ip_parser robot_cancellation_response robot_ip_response robot_subnet_response robot_reset_response robot_failover_response robot_boot_response robot_rdns_response robot_traffic_response robot_ssh_key_response robot_firewall_response robot_vswitch_response robot_ordering_response robot_transaction_response metadata_response"
 
+targets="$targets cratesio_targets cratesio_metadata cratesio_continuation cratesio_redirect"
+
 check_layout() {
     cargo fmt --manifest-path fuzz/Cargo.toml -- --check
     cargo metadata --manifest-path fuzz/Cargo.toml --locked --no-deps \
@@ -17,7 +19,7 @@ check_layout() {
 
     manifest_targets="$(
         sed -n 's/^name = "\([a-z0-9_]*\)"$/\1/p' fuzz/Cargo.toml |
-            tail -n 35 |
+            tail -n 39 |
             tr '\n' ' ' |
             sed 's/ $//'
     )"
@@ -114,6 +116,8 @@ case "$mode" in
         elif [ "$target" = metadata_response ]; then
             # One route-selector byte plus the complete metadata boundary.
             max_len=65537
+        elif [ "$target" = cratesio_metadata ]; then
+            max_len=131073
         fi
         cargo "+${toolchain}" fuzz run "$target" "$corpus" -- \
             -runs=64 "-max_len=${max_len}" -timeout=10
@@ -125,4 +129,4 @@ case "$mode" in
     ;;
 esac
 
-echo "fuzz harness: ${mode} passed for 35 targets"
+echo "fuzz harness: ${mode} passed for 39 targets"

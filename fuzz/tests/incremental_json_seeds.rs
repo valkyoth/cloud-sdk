@@ -7,7 +7,7 @@ use cloud_sdk_hetzner::serde::{
 
 const VALID_SEED: &[u8] = include_bytes!("../seeds/incremental_json/valid.seed");
 const DUPLICATE_SEED: &[u8] = include_bytes!("../seeds/incremental_json/duplicate.seed");
-const CONTROL_BYTES: [u8; 2] = [b'A', b'!'];
+const CONTROL_BYTES: [u8; 2] = *b"A!";
 
 struct Continue;
 

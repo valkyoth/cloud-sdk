@@ -72,6 +72,28 @@ scripts/check_fuzz_harness.sh --smoke
 | `robot_firewall_response` | ordered rules, templates, protected metadata, and reconciliation |
 | `robot_vswitch_response` | VLAN, membership, route, gateway, and acknowledgement boundaries |
 | `robot_ordering_response` | standard, auction, addon, currency, exact-price, and catalog identity boundaries |
+| `cratesio_targets` | identifier/path/query encoding, independent percent-encoding oracle, atomic short-buffer rejection, credential input erasure |
+| `cratesio_metadata` | bounded publish JSON, independent JSON admission, archive/framing length arithmetic and no-retry policy |
+| `cratesio_continuation` | immutable origin/filter binding, continuation progress, numbered-page limits |
+| `cratesio_redirect` | executed-response provenance, exact anonymous archive destination, rejection cleanup |
+
+Crates.io deterministic tests share the fuzz exercise functions and explicitly
+drive valid and rejected cases, including oversized metadata and continuation
+inputs. Text targets exercise both raw bytes and a second variant without one
+terminal LF, allowing readable corpus seeds to reach valid paths; deterministic
+tests verify those exact committed seeds. The metadata target uses a
+131,073-byte ceiling. Actual upload byte
+framing, cancellation and transactional artifact streaming additionally have
+provider unit/transport tests; the length-arithmetic fuzz target does not replace
+those tests. The Python OpenAPI boundary has a separate deterministic campaign:
+
+```sh
+python3 scripts/test-cratesio-drift-campaign.py
+```
+
+That campaign checks 128 reproducible parameter, status, authentication and
+schema mutations. A 64-run fuzz smoke is bounded smoke evidence, not exhaustive
+path coverage or a long-running campaign.
 
 Named seeds under `fuzz/seeds/` are synthetic valid and invalid cases derived
 from source-locked API examples and SDK policy boundaries. Generated corpora

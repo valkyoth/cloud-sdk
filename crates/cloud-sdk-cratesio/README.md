@@ -26,7 +26,7 @@ provider-neutral execution contracts from `cloud-sdk`.
 The crate is an unreleased `1.1.0` candidate. Seven discovery, three catalog
 and five version operations, four download/statistics operations and six public
 account/ownership operations have checked blocking, local-async and Send-async
-execution. Commit 19 is accepted; Commit 20 is ready for incremental pentest.
+execution. Commit 20 is accepted; Commit 21 is ready for incremental pentest.
 The `RegistryClient` facade executes eight personal mutation operations,
 including both API-token and consumed secret-path variants, in all three modes.
 Three token-management operations use the same checked execution boundary.
@@ -44,7 +44,7 @@ Authentication preparation, endpoint, query and response foundations
 are available. The blocking/local/Send facade, official bundled constructors and
 anonymous artifact streaming have three-mode fixture coverage for all 51 API
 operations. Independent Cargo wire fixtures and local qualification pass;
-the Commit 20 pentest and GitHub acceptance remain open. This is not yet a
+Commit 21 local qualification passed; its pentest and GitHub acceptance remain open. This is not yet a
 release-qualified crates.io provider.
 
 ## Current Boundary
@@ -880,7 +880,9 @@ The provider will not support browser-session cookies or undocumented private
 routes. Operation-bound clients, consumed mutation permits, scheduling and
 bounded response admission are implemented. Bundled streaming publication is
 implemented, including secret-path execution. Local integration qualification
-and the pending pentest are recorded in the Commit 20 ledger above. Custom adapters must
+is recorded in the Commit 20 ledger above; ongoing qualification is tracked in
+[Commit 21](https://github.com/valkyoth/cloud-sdk/blob/main/docs/CRATESIO_QUALIFICATION.md).
+Custom adapters must
 not log targets or retain unprotected secret URI copies. Bundled raw adapters
 clear owned URI staging; upstream HTTP/TLS buffers and server/proxy logs remain
 deployment boundaries.

@@ -625,3 +625,35 @@ No live registry mutation, tag or publication was performed. Stop before Commit 
   digest changed without a new entry. The latest notice remains the reviewed
   Debian 11 image deprecation, and the machine-readable Hetzner API still
   reports no drift. No SDK behavior or model change is required.
+
+### Commit 21 Qualification (Pentest Required)
+
+Commit 20 was accepted after user-confirmed pentest and GitHub green at
+`df5892e7`. Commit 21 has reached its implementation stop, not release approval.
+
+- Added an ignored, explicit live-read harness with fixed production GET
+  allowlists, guarded stdin credentials, bounded buffers and ten real-entry-point
+  CI rejection tests. Normal CI has no registry mutation authority.
+- Added four crates.io fuzz targets for targets/credential cleanup, publish
+  metadata/framing lengths, pagination and anonymous download redirects.
+  Shared deterministic tests verify actual seeds and boundary cases. All 39
+  repository targets passed bounded smoke campaigns; this is not exhaustive fuzzing.
+- Added 128 deterministic semantic OpenAPI mutations and tested package member
+  validation. Provider archives matched across independent target directories;
+  all six package graphs passed Cargo verification.
+- Repeated all 12 supported Rust toolchains, ten portable targets, native
+  transport checks, full repository tests/Clippy, advisory/license checks,
+  live crates.io source/drift checks, documentation and SBOM validation.
+- Operator-authorized live SDK publication, yank, unyank and owner invitation
+  acknowledgement passed on one disposable crate. The operator confirmed manual
+  deletion. Invitation acceptance and other account mutations were not tested.
+  A scoped-token following read returned 403 and is not claimed as qualified.
+- Added `scripts/check_cratesio_qualification.sh` to repeat credential-free
+  local qualification. No production SDK API or dependency version changed.
+- The extra Hetzner live check now detects drift: 209 active Cloud operations
+  versus locked 208, Network members and Primary IP assignee changes, and new
+  changelog notices. This supersedes earlier clean observations. Commit 22 must
+  reconcile this before release; fingerprints have not been blindly refreshed.
+
+See [the qualification ledger](../docs/CRATESIO_QUALIFICATION.md).
+Stop for incremental pentest and GitHub acceptance; do not tag or publish.

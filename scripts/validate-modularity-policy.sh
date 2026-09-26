@@ -116,7 +116,8 @@ if grep -RInE '(^|[^A-Za-z0-9_])std([[:space:]]*::|[[:space:]]+as|[[:space:]]*\{
     grep -Ev '^crates/cloud-sdk/tests/response_cleanup.rs:' |
     grep -Ev '^crates/cloud-sdk/tests/encoder_cleanup.rs:' |
     grep -Ev '^crates/cloud-sdk-hetzner/src/serde/strict_json/allocation_failure.rs:' |
-    grep -Ev '^crates/cloud-sdk-hetzner/tests/live_smoke(\.rs:|/)'; then
+    grep -Ev '^crates/cloud-sdk-hetzner/tests/live_smoke(\.rs:|/)' |
+    grep -Ev '^crates/cloud-sdk-cratesio/tests/live_read(\.rs:|/)'; then
     echo "modularity policy: unguarded std usage found under crates/" >&2
     status=1
 fi

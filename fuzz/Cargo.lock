@@ -120,10 +120,22 @@ dependencies = [
 ]
 
 [[package]]
+name = "cloud-sdk-cratesio"
+version = "1.1.0"
+dependencies = [
+ "base64-ng",
+ "cloud-sdk",
+ "cloud-sdk-sanitization",
+ "semver",
+ "spdx",
+]
+
+[[package]]
 name = "cloud-sdk-fuzz"
 version = "0.0.0"
 dependencies = [
  "cloud-sdk",
+ "cloud-sdk-cratesio",
  "cloud-sdk-hetzner",
  "cloud-sdk-reqwest",
  "libfuzzer-sys",
@@ -1145,6 +1157,15 @@ checksum = "c3d1e2c7f27f8d4cb10542a02c49005dbd6e93095799d6f3be745fae9f8fedd4"
 dependencies = [
  "libc",
  "windows-sys 0.61.2",
+]
+
+[[package]]
+name = "spdx"
+version = "0.13.5"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "081670c233dfbed55690cc0cd38424e0e24ac1b2673d0b408b3f7b684738dfa9"
+dependencies = [
+ "smallvec",
 ]
 
 [[package]]

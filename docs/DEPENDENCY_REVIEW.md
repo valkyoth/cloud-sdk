@@ -4,15 +4,9 @@ Add future release sections here instead of creating another version-named file.
 
 ## crates.io Commit 19 Base64 Admission
 
-Reviewed 2026-09-26. The crates.io `alloc` feature now admits the existing exact
-`base64-ng 2.0.4` workspace pin with default features disabled. No new registry
-package/version, native build or std/runtime feature is added. Protected compact
-OIDC preflight uses only its constant-work URL-safe unpadded scalar decoder,
-with bounded private scratch cleared on every exit. JWT JSON parsing is not
-claimed constant-time, and decoding is not signature authentication. The
-provider's empty-default no_std graph is unchanged. The root lock gains only the
-provider dependency edge; default/alloc/MSRV, advisory/license and SBOM checks
-qualify it. The existing 0.7.1 verifier follow-up below remains for Commit 20.
+Reviewed 2026-09-26. The crates.io `alloc` feature admits existing exact default-disabled `base64-ng 2.0.4`; no new registry version, native build or std/runtime feature.
+Protected OIDC preflight uses its constant-work URL-safe unpadded scalar decoder with bounded, cleared scratch. JSON parsing is not constant-time; decoding is not signature authentication.
+The default no_std graph is unchanged. Only the provider edge is added; default/alloc/MSRV, advisory/license and SBOM checks qualify it. The verifier follow-up belongs to Commit 20.
 
 ## crates.io Commit 18 Parser Admission
 
@@ -266,13 +260,19 @@ No resolved dependency, feature, target, build-script, or default edge changed f
 | `cloud-sdk-testkit` | `0.31.1` | `1.0.0` | Stable metadata promotion. |
 | `ovhcloud-v2-probe` | `0.100.0` | `1.0.0` | Excluded inherited identity only. |
 ## v1.1.0
+
+Commit 21 adds the existing provider's allocation-only graph to isolated fuzzing, with no new production dependency/version or provider networking. SPDX uses its existing admission above.
+
+| Lockfile | Package | Previous identity | Current identity | Review |
+| --- | --- | --- | --- | --- |
+| `fuzz/Cargo.lock` | `cloud-sdk-cratesio` | `-` | `f12745db8f47c2eac95617a12d11e098c1b9ca0efdd7ad2eeb23a9e2207c9bd1` | Local provider, alloc only, fuzz qualification. |
+| `fuzz/Cargo.lock` | `cloud-sdk-fuzz` | `5775d1338ff7c345533a0295dd735ed3bda38ef04044915bbb54a5ab193c4d5a` | `31e6aca85a9aa36388f20cf7fc4d6daa172a8c533a397ff2cba52d816c947f07` | Adds the local provider as a fuzz subject. |
+| `fuzz/Cargo.lock` | `spdx` | `-` | `e0700d2c26cd1af408d92ed97a3510339d488536f77143a982e36edb444e8fb3` | Same exact 0.13.5 parser already admitted for bounded publish metadata. |
 The unreleased candidate aligns every workspace crate at 1.1.0. Reviewed compatible maintenance patches retain their existing features, targets, sources, licenses, and default graph; the isolated policy checker remains separately gated.
-### crates.io Commit 20 Transport Foundation (In Progress)
-Reviewed 2026-09-26: platform-verifier 0.7.1 and Android helper 0.2.0;
-source, checksum, license and target details are in [transport admission](dependency-admission-reqwest.md#commit-20-platform-verifier-review).
-The provider adds opt-in neutral reqwest and exact default-disabled RustCrypto `sha2 0.11.0` edges, not new third-party packages.
-`artifact-sha256` is no_std; `blocking-rustls`/`async-rustls` select existing native transports. Default/alloc/Serde stay transport-free.
-SHA-256 checks public archive integrity against trusted metadata. This is not completion of Commit 20.
+### crates.io Commit 20 Transport Foundation (Accepted)
+Reviewed 2026-09-26: platform-verifier 0.7.1 and Android helper 0.2.0; source, checksum, license and target details are in [transport admission](dependency-admission-reqwest.md#commit-20-platform-verifier-review).
+The provider adds opt-in neutral reqwest and exact default-disabled RustCrypto `sha2 0.11.0` edges, not new third-party packages. `artifact-sha256` is no_std; `blocking-rustls`/`async-rustls` select existing native transports. Default/alloc/Serde stay transport-free.
+SHA-256 checks public archive integrity against trusted metadata. Commit 20 was accepted after pentest and GitHub green.
 
 | Lockfile | Package | Previous identity SHA-256 | Current identity SHA-256 | Review |
 | --- | --- | --- | --- | --- |

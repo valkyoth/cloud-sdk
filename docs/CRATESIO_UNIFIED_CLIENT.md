@@ -1,10 +1,11 @@
 # crates.io Unified Client Work
 
-Status: Commit 20 **implementation stop reached; pentest required**.
+Status: Commit 20 **accepted after user-confirmed pentest and GitHub green**.
 Baseline: `f49b7712` (Commit 19, user-confirmed pentest and GitHub pass).
-No tag, publication, Commit 21 authorization or full-provider coverage claim.
+Commit 21 is authorized. No tag, workspace publication or full-provider qualification claim.
 The increment sections below retain historical evidence. The final checkpoint
-section records current qualification; it is not pentest or GitHub acceptance.
+section records implementation qualification. Acceptance is recorded in
+[the Commit 20 report](../security/pentest/cratesio-commit-20.md).
 
 ## Implemented Foundation
 

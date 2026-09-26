@@ -35,6 +35,9 @@ scripts/check_cratesio_crate_boundary.py
 scripts/test-cratesio-crate-boundary.py
 python3 scripts/check_cratesio_execution_coverage.py --check-routes
 python3 scripts/test-cratesio-execution-coverage.py
+python3 scripts/check_cratesio_live_read.py
+python3 scripts/test-cratesio-drift-campaign.py
+python3 scripts/test-cratesio-archives.py
 python3 scripts/check_cratesio_request_policy.py
 python3 scripts/test-cratesio-request-policy.py
 python3 scripts/test-cratesio-discovery-fixtures.py

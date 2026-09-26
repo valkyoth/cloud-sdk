@@ -45,6 +45,7 @@ EXPECTED_LIBRARY = {"path": "src/lib.rs"}
 EXPECTED_TESTS = [
     {"name": "identity", "path": "tests/identity.rs"},
     {"name": "version_metadata", "path": "tests/version_metadata.rs", "required-features": ["alloc"]},
+    {"name": "live_read", "path": "tests/live_read.rs", "required-features": ["blocking-rustls"]},
 ]
 ENDPOINT_SOURCES = {
     "endpoint/mod.rs",

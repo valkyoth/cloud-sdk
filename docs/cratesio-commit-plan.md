@@ -16,9 +16,9 @@ Commit 16 passed incremental pentest and GitHub at `9fabe832`.
 Commit 17 passed incremental pentest and GitHub at `04f24c38`.
 Commit 18 passed incremental pentest and GitHub at `ddb12f74`.
 Commit 19 passed incremental pentest and GitHub at `f49b7712`.
-Commit 20 has reached its implementation stop; incremental pentest and GitHub
-acceptance remain required before advancing the accepted baseline.
-Stop before Commit 21; do not tag or publish.
+Commit 20 passed incremental pentest and GitHub at `df5892e7`.
+Commit 21 has reached its implementation stop; incremental pentest is required.
+Stop before Commit 22; do not tag or publish.
 
 ## Decision Summary
 
@@ -782,6 +782,14 @@ and Cargo-compatibility surface.
 
 ## Commit 21 - Live Evidence, Fuzzing, And Platform Qualification
 
+Implementation status: implementation stop reached; incremental pentest required.
+The checkpoint adds an operator-only read harness, protected stdin input,
+actual CI rejection probes, four provider fuzz targets with shared deterministic
+tests, a 128-case OpenAPI mutation campaign and reproducible archive checks.
+See [the qualification ledger](CRATESIO_QUALIFICATION.md) for completed local
+gates, operator-authorized live mutation evidence, manual cleanup and the
+separate Hetzner drift blocker. No Commit 22 work or publication is authorized.
+
 Goal: produce current adversarial and platform evidence without granting CI
 publication or account-mutation authority.
 
@@ -809,6 +817,12 @@ Cross-provider prerequisite: rerun the live Hetzner gates before qualification.
 The [September drift](SPEC_LOCK.md#reviewed-live-drift-2026-09-10) was resolved
 with schema, fixture and compatibility changes in Commit 8.
 Do not treat passing crates.io source checks as evidence that Hetzner is current.
+Commit 21's 2026-09-26 live check detected new drift: Cloud active-operation
+count 209 versus locked 208, and a changed changelog digest. Review and implement
+the new Network members endpoint and Primary IP unassigned-assignee semantics
+against the full live schemas; refresh generated models, tests and evidence.
+Also review the new deprecation notices. These are release blockers, not a
+permission to accept a changed hash without implementation review.
 
 Goal: freeze and qualify the complete selected crates.io integration without
 adding features.
