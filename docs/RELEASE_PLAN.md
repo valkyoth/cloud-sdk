@@ -2,10 +2,16 @@
 
 Status: completed historical plan.
 
-The stable `v1.0.0` release completed this plan. The unreleased `1.1.0`
-crates.io provider train follows
-[`cratesio-commit-plan.md`](cratesio-commit-plan.md) and uses pentested numbered
-commit checkpoints without intermediate tags.
+The stable `v1.0.0` release completed this plan. The `v1.1.0` crates.io provider
+release completed [`cratesio-commit-plan.md`](cratesio-commit-plan.md).
+Future Scaleway work follows the authoritative
+[`scaleway-commit-plan.md`](scaleway-commit-plan.md): full public API coverage,
+including alpha/beta and supported HTTP data planes, using pentested numbered
+checkpoints and green GitHub CI/CodeQL without intermediate tags.
+
+The post-1.0 provider/version sketches retained below are historical and
+superseded, including their GA-only scope and `v1.1.0-v1.6.0` Scaleway allocation.
+They do not assign future versions or override the current commit plans.
 
 This plan is intentionally granular. `cloud-sdk` manages infrastructure APIs,
 so each milestone must be small enough to review, test, and stop cleanly before

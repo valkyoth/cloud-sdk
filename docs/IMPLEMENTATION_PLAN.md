@@ -189,20 +189,27 @@ response identity binding. Deprecated server-IP aliases remain excluded.
 
 ## Post-1.0 Provider Direction
 
-The next published provider is `cloud-sdk-cratesio`. The unreleased `v1.1.0`
-train implements every source-locked public operation plus exact compatibility
+The `cloud-sdk-cratesio` provider shipped in `v1.1.0`. That train implemented
+every source-locked public operation plus exact compatibility
 with the seven overlapping stable Cargo Registry Web API operations. Its
 finite scope, access-policy boundary, and numbered checkpoints are defined in
 [`cratesio-commit-plan.md`](cratesio-commit-plan.md).
 
-`cloud-sdk-scaleway` follows crates.io. Its release selects a finite product
-list and exact stable GA versions from
-[Scaleway's APIs](https://www.scaleway.com/en/developers/api/). That inventory
-must account for global, regional, and zonal authorities, `X-Auth-Token`, PATCH
-requests, per-product schemas, and product-specific pagination/count
-conventions such as `per_page`, `page_size`, `X-Total-Count`, and body
-`total_count`. Only selected matrix rows enter the completeness claim; alpha,
-beta, unselected GA versions, and unselected products remain excluded.
+`cloud-sdk-scaleway` follows crates.io with a full documented public API target,
+including current GA, beta, and alpha interfaces and Scaleway-supported HTTP
+data planes. The authoritative [80-checkpoint plan](scaleway-commit-plan.md)
+starts from `v1.1.0` and assigns no release version. It includes IAM, DNS,
+serverless, storage, messaging, observability and AI, with separate S3,
+SQS/SNS, registry, Cockpit and Generative API protocol work.
+
+The finite source inventory must distinguish public contracts from private
+console/test routes, retain exact track labels, and cover every supported
+operation and field. Global/regional/zonal routing, `X-Auth-Token`, signing,
+separate data-plane origins, PATCH and pagination all receive explicit gates.
+Each checkpoint requires accepted pentest evidence and green GitHub CI/CodeQL;
+only the final approved release is tagged and published. Native application
+protocol clients and unsupported upstream compatibility features remain outside
+the provider API claim, not hidden omissions from a GA-only subset.
 
 `cloud-sdk-digitalocean` follows Scaleway. Its release selects a finite operation
 inventory from an exact revision of DigitalOcean's official

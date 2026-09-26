@@ -87,7 +87,7 @@ please report it so it can be fixed.
 | --- | --- | --- |
 | [`Hetzner Cloud & Robot`](https://www.hetzner.com/) | `1.0.0` | stable in [`cloud-sdk-hetzner`](https://crates.io/crates/cloud-sdk-hetzner) |
 | [`crates.io`](https://crates.io/) | `1.1.0` | supported: 51 source-locked public operations and Cargo Registry Web API compatibility through [`cloud-sdk-cratesio`](https://crates.io/crates/cloud-sdk-cratesio) |
-| [`Scaleway`](https://www.scaleway.com/en/developers/api/) | candidate assessment | commit plan available; stable GA APIs first |
+| [`Scaleway`](https://www.scaleway.com/en/developers/api/) | planned | full public API roadmap, including alpha/beta and supported HTTP data planes |
 | [`DigitalOcean`](https://docs.digitalocean.com/reference/api/reference/public-apis/) | candidate assessment | commit plan available |
 | [`OVHcloud`](https://docs.ovhcloud.com/en/) full provider | later candidate | follows a dedicated v1/v2 and product-scope plan |
 
