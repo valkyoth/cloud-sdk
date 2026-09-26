@@ -14,8 +14,9 @@ Commit 14 passed incremental pentest and GitHub at `fae5b5a1`.
 Commit 15 passed incremental pentest and GitHub at `42e534bd`.
 Commit 16 passed incremental pentest and GitHub at `9fabe832`.
 Commit 17 passed incremental pentest and GitHub at `04f24c38`.
-Commit 18 implements publish metadata and binary framing; pentest is required.
-Stop before Commit 19; do not tag or publish.
+Commit 18 passed incremental pentest and GitHub at `ddb12f74`.
+Commit 19 implements trusted publishing; pentest is required.
+Stop before Commit 20; do not tag or publish.
 
 ## Decision Summary
 
@@ -683,6 +684,13 @@ Pentest stop: run an incremental pentest for the exact Commit 18 publish and
 binary-framing surface.
 
 ## Commit 19 - Trusted Publishing
+
+Implementation checkpoint: [trusted publishing policy](CRATESIO_TRUSTED_PUBLISHING_POLICY.md).
+Incremental pentest baseline: `ddb12f74`. Stop before Commit 20. All eight
+operations use explicit single-attempt blocking adapter execution; bundled and
+async integration remains Commit 20. OIDC preflight is deliberately unverified;
+only crates.io authenticates assertions. Temporary-token time and intended-crate
+restrictions are local policy, not scope/expiry claims returned by the registry.
 
 Goal: support the complete source-locked GitHub and GitLab trusted-publishing
 surface without treating OIDC assertions as ordinary text.

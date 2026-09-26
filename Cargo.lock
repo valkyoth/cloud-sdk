@@ -118,6 +118,7 @@ dependencies = [
 name = "cloud-sdk-cratesio"
 version = "1.1.0"
 dependencies = [
+ "base64-ng",
  "cloud-sdk",
  "cloud-sdk-sanitization",
  "semver",

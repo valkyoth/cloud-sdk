@@ -23,6 +23,8 @@ python3 scripts/test-cratesio-yank.py
 python3 scripts/check_cratesio_yank.py
 python3 scripts/test-cratesio-publish.py
 python3 scripts/generate_cratesio_publish.py
+python3 scripts/test-cratesio-trusted-publishing.py
+python3 scripts/generate_cratesio_trusted_publishing.py
 scripts/checks.sh
 
 if [ "$(git rev-parse HEAD)" != "$reviewed_head" ]; then

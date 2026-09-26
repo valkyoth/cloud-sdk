@@ -526,6 +526,24 @@ see [the report](../security/pentest/cratesio-commit-15.md).
   pentest baseline is `04f24c38`; stop before Commit 19, without tagging or
   publishing. Bundled/async authenticated streaming remains Commit 20.
 
+### Commit 19 - Trusted Publishing
+
+- Add all eight GitHub/GitLab configuration, OIDC exchange and temporary-token
+  revocation operations through consumed permits and the trusted blocking adapter.
+- Bind configuration intent and seek pagination; check exact JSON/empty response
+  contracts, reject duplicate configs and retain protected/redacted metadata.
+- Preflight bounded protected assertions for issuer/audience/time/workflow
+  mismatches, without claiming JWT authentication or signature verification.
+- Move the exchanged token into protected ownership, with a conservative local
+  deadline and intended-crate binding. Revocation consumes and clears it even
+  when the remote result is ambiguous; no automatic retry or renewal.
+- Reuse the exact admitted no_std `base64-ng 2.0.4` pin behind `alloc`. Lock and
+  SBOM evidence records the new optional edge; default dependencies are unchanged.
+- Verify pinned OpenAPI and 15 upstream source digests in both check gates.
+  See [the trusted publishing policy](../docs/CRATESIO_TRUSTED_PUBLISHING_POLICY.md).
+  Commit 18 was accepted at `ddb12f74`; that is the Commit 19 incremental pentest
+  baseline. Stop before Commit 20. Do not tag or publish.
+
 ### Maintenance Evidence (Earlier Checkpoints)
 
 - Advanced the complete development and compatibility gate to stable Rust

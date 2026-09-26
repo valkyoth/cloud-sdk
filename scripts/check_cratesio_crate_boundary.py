@@ -12,12 +12,9 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 CRATE = Path("crates/cloud-sdk-cratesio")
-DOMAIN_MODULES = (
-    "trusted_publishing",
-)
 EXPECTED_FEATURES = {
     "default": [],
-    "alloc": ["cloud-sdk/alloc", "dep:cloud-sdk-sanitization", "cloud-sdk-sanitization/alloc", "dep:semver", "dep:spdx"],
+    "alloc": ["cloud-sdk/alloc", "dep:cloud-sdk-sanitization", "cloud-sdk-sanitization/alloc", "dep:semver", "dep:spdx", "dep:base64-ng"],
     "serde": ["alloc", "dep:serde"],
     "std": ["alloc", "cloud-sdk/std"],
     "blocking": ["serde", "std"],
@@ -37,6 +34,7 @@ EXPECTED_DEPENDENCIES = {
     "serde": {"workspace": True, "optional": True},
     "semver": {"workspace": True, "optional": True},
     "spdx": {"workspace": True, "optional": True},
+    "base64-ng": {"workspace": True, "optional": True},
 }
 EXPECTED_LIBRARY = {"path": "src/lib.rs"}
 EXPECTED_TESTS = [
@@ -58,6 +56,7 @@ CREDENTIAL_SOURCES = {
     for name in ("mod", "context", "context_tests", "kind", "material", "policy", "secret", "tests")
 }
 EXPECTED_WORKSPACE_DEPENDENCIES = {
+    "base64-ng": {"version": "=2.0.4", "default-features": False},
     "spdx": {"version": "=0.13.5", "default-features": False},
     "cloud-sdk-sanitization": {
         "path": "crates/cloud-sdk-sanitization",
@@ -200,6 +199,8 @@ def validate(root: Path) -> None:
         "identity.rs",
         "ownership.rs",
         "publishing.rs",
+        "trusted_publishing.rs",
+        *(f"trusted_publishing/{name}.rs" for name in ("config", "request", "oidc", "temporary", "decode", "schema_table", "client", "empty", "tests", "tests/configurations", "tests/assertions", "tests/tokens", "tests/execution", "tests/workflow")),
         "publishing/yank.rs",
         "publishing/publish.rs",
         *(f"publishing/publish/{name}.rs" for name in ("metadata", "validation", "target", "request", "stream", "response", "schema_table", "client", "tests", "tests/metadata", "tests/execution")),
@@ -228,7 +229,6 @@ def validate(root: Path) -> None:
             "mod", "error", "rate", "shared_rate", "user_agent", "envelope",
             "response", "policy_tests", "response_tests", "boundary_tests",
         )),
-        *(f"{module}.rs" for module in DOMAIN_MODULES),
     }
     actual_sources = {
         str(path.relative_to(crate / "src"))
@@ -242,6 +242,14 @@ def validate(root: Path) -> None:
     library = (crate / "src/lib.rs").read_text(encoding="ascii")
     ownership = (crate / "src/ownership.rs").read_text(encoding="ascii")
     publishing = (crate / "src/publishing.rs").read_text(encoding="ascii")
+    trusted = (crate / "src/trusted_publishing.rs").read_text(encoding="ascii")
+    if "pub mod trusted_publishing;" not in library:
+        raise BoundaryError("trusted publishing export missing")
+    for module in ("config", "request", "oidc", "temporary", "decode", "schema_table"):
+        if f'#[cfg(feature = "alloc")]\nmod {module};' not in trusted:
+            raise BoundaryError("trusted publishing allocation guard changed")
+    if '#[cfg(feature = "blocking")]\nmod client;' not in trusted:
+        raise BoundaryError("trusted publishing client guard changed")
     if '#[cfg(feature = "alloc")]\nmod publish;' not in publishing:
         raise BoundaryError("publish allocation guard changed")
     publish = (crate / "src/publishing/publish.rs").read_text(encoding="ascii")
@@ -317,14 +325,6 @@ def validate(root: Path) -> None:
         raise BoundaryError("provider does not export the endpoint boundary")
     if '#[cfg(feature = "alloc")]\npub mod credentials;' not in library:
         raise BoundaryError("provider credential allocation boundary changed")
-    for module in DOMAIN_MODULES:
-        if f"pub mod {module};" not in library:
-            raise BoundaryError(f"provider does not export {module}")
-        text = (crate / f"src/{module}.rs").read_text(encoding="ascii")
-        lines = tuple(line for line in text.splitlines() if line)
-        if not lines or any(not line.startswith("//!") for line in lines):
-            raise BoundaryError(f"{module} contains endpoint implementation")
-
     identity = (crate / "src/identity.rs").read_text(encoding="ascii")
     for name in ("CRATES_IO_PROVIDER_ID", "REGISTRY_SERVICE_ID"):
         if f"pub const {name}:" not in identity:

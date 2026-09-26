@@ -44,7 +44,8 @@ def fixture() -> Path:
         "features = [\"alloc\", \"derive\"] }\n"
         "serde_json = { version = \"=1.0.151\", default-features = false, features = [\"alloc\"] }\n"
         "semver = { version = \"=1.0.28\", default-features = false }\n"
-        "spdx = { version = \"=0.13.5\", default-features = false }\n",
+        "spdx = { version = \"=0.13.5\", default-features = false }\n"
+        "base64-ng = { version = \"=2.0.4\", default-features = false }\n",
         encoding="ascii",
     )
     source = ROOT / checker.CRATE
@@ -203,11 +204,12 @@ def test_workspace_dependency_substitution_is_rejected() -> None:
         shutil.rmtree(root)
 
 
-def test_endpoint_code_and_extra_modules_are_rejected() -> None:
+def test_unguarded_trusted_publishing_and_extra_modules_are_rejected() -> None:
     root = fixture()
     accounts = root / checker.CRATE / "src/trusted_publishing.rs"
-    accounts.write_text("pub const ENDPOINT: &str = \"/api/v1/crates\";\n", encoding="ascii")
-    assert_rejected(root, "endpoint implementation")
+    accounts.write_text(accounts.read_text(encoding="ascii").replace(
+        '#[cfg(feature = "alloc")]\nmod config;', 'mod config;'), encoding="ascii")
+    assert_rejected(root, "trusted publishing allocation guard")
     shutil.rmtree(root)
 
     root = fixture()
@@ -326,7 +328,7 @@ def main() -> None:
         test_explicit_target_substitution_is_rejected,
         test_dependency_substitution_and_extra_sections_are_rejected,
         test_workspace_dependency_substitution_is_rejected,
-        test_endpoint_code_and_extra_modules_are_rejected,
+        test_unguarded_trusted_publishing_and_extra_modules_are_rejected,
         test_unrelated_crate_dependency_is_rejected,
         test_credential_inventory_and_feature_regressions_are_rejected,
         test_packaged_candidate_uses_both_local_dependency_patches,

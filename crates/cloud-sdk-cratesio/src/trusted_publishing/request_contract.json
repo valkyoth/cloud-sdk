@@ -1,0 +1,239 @@
+{
+  "create_trustpub_github_config": {
+    "requestBody": {
+      "content": {
+        "application/json": {
+          "schema": {
+            "properties": {
+              "github_config": {
+                "properties": {
+                  "crate": {
+                    "type": "string"
+                  },
+                  "environment": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "repository_name": {
+                    "type": "string"
+                  },
+                  "repository_owner": {
+                    "type": "string"
+                  },
+                  "workflow_filename": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "crate",
+                  "repository_owner",
+                  "repository_name",
+                  "workflow_filename"
+                ],
+                "type": "object"
+              }
+            },
+            "required": [
+              "github_config"
+            ],
+            "type": "object"
+          }
+        }
+      },
+      "required": true
+    }
+  },
+  "create_trustpub_gitlab_config": {
+    "requestBody": {
+      "content": {
+        "application/json": {
+          "schema": {
+            "properties": {
+              "gitlab_config": {
+                "properties": {
+                  "crate": {
+                    "type": "string"
+                  },
+                  "environment": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "namespace": {
+                    "type": "string"
+                  },
+                  "project": {
+                    "type": "string"
+                  },
+                  "workflow_filepath": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "crate",
+                  "namespace",
+                  "project",
+                  "workflow_filepath"
+                ],
+                "type": "object"
+              }
+            },
+            "required": [
+              "gitlab_config"
+            ],
+            "type": "object"
+          }
+        }
+      },
+      "required": true
+    }
+  },
+  "delete_trustpub_github_config": {
+    "parameters": [
+      {
+        "in": "path",
+        "name": "id",
+        "required": true,
+        "schema": {
+          "format": "int32",
+          "type": "integer"
+        }
+      }
+    ]
+  },
+  "delete_trustpub_gitlab_config": {
+    "parameters": [
+      {
+        "in": "path",
+        "name": "id",
+        "required": true,
+        "schema": {
+          "format": "int32",
+          "type": "integer"
+        }
+      }
+    ]
+  },
+  "exchange_trustpub_token": {
+    "requestBody": {
+      "content": {
+        "application/json": {
+          "schema": {
+            "properties": {
+              "jwt": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "jwt"
+            ],
+            "type": "object"
+          }
+        }
+      },
+      "required": true
+    }
+  },
+  "list_trustpub_github_configs": {
+    "parameters": [
+      {
+        "in": "query",
+        "name": "crate",
+        "required": false,
+        "schema": {
+          "type": "string"
+        }
+      },
+      {
+        "in": "query",
+        "name": "user_id",
+        "required": false,
+        "schema": {
+          "format": "int32",
+          "type": "integer"
+        }
+      },
+      {
+        "in": "query",
+        "name": "page",
+        "required": false,
+        "schema": {
+          "format": "int32",
+          "minimum": 1,
+          "type": "integer"
+        }
+      },
+      {
+        "in": "query",
+        "name": "per_page",
+        "required": false,
+        "schema": {
+          "format": "int32",
+          "minimum": 1,
+          "type": "integer"
+        }
+      },
+      {
+        "in": "query",
+        "name": "seek",
+        "required": false,
+        "schema": {
+          "type": "string"
+        }
+      }
+    ]
+  },
+  "list_trustpub_gitlab_configs": {
+    "parameters": [
+      {
+        "in": "query",
+        "name": "crate",
+        "required": false,
+        "schema": {
+          "type": "string"
+        }
+      },
+      {
+        "in": "query",
+        "name": "user_id",
+        "required": false,
+        "schema": {
+          "format": "int32",
+          "type": "integer"
+        }
+      },
+      {
+        "in": "query",
+        "name": "page",
+        "required": false,
+        "schema": {
+          "format": "int32",
+          "minimum": 1,
+          "type": "integer"
+        }
+      },
+      {
+        "in": "query",
+        "name": "per_page",
+        "required": false,
+        "schema": {
+          "format": "int32",
+          "minimum": 1,
+          "type": "integer"
+        }
+      },
+      {
+        "in": "query",
+        "name": "seek",
+        "required": false,
+        "schema": {
+          "type": "string"
+        }
+      }
+    ]
+  },
+  "revoke_trustpub_token": {}
+}

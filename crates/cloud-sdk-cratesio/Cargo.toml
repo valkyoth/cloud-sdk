@@ -20,7 +20,7 @@ all-features = true
 
 [features]
 default = []
-alloc = ["cloud-sdk/alloc", "dep:cloud-sdk-sanitization", "cloud-sdk-sanitization/alloc", "dep:semver", "dep:spdx"]
+alloc = ["cloud-sdk/alloc", "dep:cloud-sdk-sanitization", "cloud-sdk-sanitization/alloc", "dep:semver", "dep:spdx", "dep:base64-ng"]
 serde = ["alloc", "dep:serde"]
 std = ["alloc", "cloud-sdk/std"]
 blocking = ["serde", "std"]
@@ -32,6 +32,7 @@ cloud-sdk-sanitization = { workspace = true, optional = true }
 serde = { workspace = true, optional = true }
 semver = { workspace = true, optional = true }
 spdx = { workspace = true, optional = true }
+base64-ng = { workspace = true, optional = true }
 
 [dev-dependencies]
 semver.workspace = true

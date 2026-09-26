@@ -143,6 +143,12 @@ impl DiscoveryValue {
             _ => Err(Error::Schema),
         }
     }
+    pub(crate) fn into_secret_text(self) -> Result<SecretString, Error> {
+        match self.0 {
+            Kind::Text(value) => Ok(value),
+            _ => Err(Error::Schema),
+        }
+    }
 }
 
 struct Frame {

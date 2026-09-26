@@ -9,6 +9,12 @@ pub struct PublishRequest<'a> {
     pub(super) policy: StreamPolicy,
 }
 impl<'a> PublishRequest<'a> {
+    pub(crate) fn crate_matches(&self, name: &str) -> Result<bool, Error> {
+        self.metadata
+            .fields
+            .required("name")?
+            .with_text(|s| s == name)
+    }
     /// The source must contain exactly `archive_bytes` compressed `.crate` bytes.
     /// No packaging, unpacking, manifest verification or implicit retries occur.
     pub fn new(

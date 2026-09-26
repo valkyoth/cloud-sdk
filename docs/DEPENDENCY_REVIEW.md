@@ -2,6 +2,18 @@
 This document consolidates release dependency reviews. Earlier complete snapshots remain available from their signed Git tags and repository history.
 Add future release sections here instead of creating another version-named file. Current policies live in the focused documents linked from each release note and in the release roadmap.
 
+## crates.io Commit 19 Base64 Admission
+
+Reviewed 2026-09-26. The crates.io `alloc` feature now admits the existing exact
+`base64-ng 2.0.4` workspace pin with default features disabled. No new registry
+package/version, native build or std/runtime feature is added. Protected compact
+OIDC preflight uses only its constant-work URL-safe unpadded scalar decoder,
+with bounded private scratch cleared on every exit. JWT JSON parsing is not
+claimed constant-time, and decoding is not signature authentication. The
+provider's empty-default no_std graph is unchanged. The root lock gains only the
+provider dependency edge; default/alloc/MSRV, advisory/license and SBOM checks
+qualify it. The existing 0.7.1 verifier follow-up below remains for Commit 20.
+
 ## crates.io Commit 18 Parser Admission
 
 Reviewed 2026-09-25. Publish metadata promotes existing exact `semver 1.0.28`
@@ -297,7 +309,7 @@ The nine additional same-version rows record macro dependencies moving from
 | `Cargo.lock` | `cfg-if` | `7edd0c296b0151d16294a4c57cc739d6b78f975542abadea569aa792fcf8e0da` | `436e75fbcf83f7f848114cad6f7fb5528738542b4c8bea7c4a183db25578f7b9` | Transitive compile-time configuration macro patch. |
 | `Cargo.lock` | `chacha20` | `2f9b94a68a291d63e22ada7fa4bbe0f9047fffab482f080644fef15f39d41fcb` | `4ce58df346aa18fd4198dcc368768c22ae4902064f14ba135612984fc361cae1` | Compatible transitive patch in the existing rustls platform graph. |
 | `Cargo.lock` | `cloud-sdk` | `99bde992b3044533cd754c81d1c51856de4a8c9bbb2bc7a91b898be136d76d4d` | `7441c5963af8bc2d86e4b322b10e51c9fa85e94da557e119872860d7bf87d8ea` | Advance the unreleased facade candidate. |
-| `Cargo.lock` | `cloud-sdk-cratesio` | `-` | `95c122f674b0d58cea5a3ba1d4ecb4fc6e7a7638f47ea6f1f0daedeb845a9473` | First-party provider with optional Serde/sanitization, fixture oracles and opt-in publish metadata parsers; see Commit 18 parser admission above. Defaults remain transport-free. |
+| `Cargo.lock` | `cloud-sdk-cratesio` | `-` | `453fe85a03ba5a0e21d2509d62b259db4942d80f48b2b02c909f593482fad240` | First-party provider with optional Serde/sanitization, fixture oracles, publish parsers and base64-ng for bounded OIDC preflight; see Commit 18/19 admissions above. Defaults remain transport-free. |
 | `Cargo.lock` | `spdx` | `-` | `e0700d2c26cd1af408d92ed97a3510339d488536f77143a982e36edb444e8fb3` | Exact 0.13.5 no_std license-expression parser with default features disabled; bounded public inputs, existing smallvec dependency, no native code or build script; see Commit 18 admission above. |
 | `Cargo.lock` | `cloud-sdk-hetzner` | `b2f69f76469a98e21ae5e0313473480bf35e226a79722f2f5858dd8b6e116f7f` | `6122bad0afc7f54a085c63752a2c5f5656813849b0fbf48ef5af2a4dbc69e732` | Align the provider with the candidate train. |
 | `Cargo.lock` | `cloud-sdk-reqwest` | `2cab423ab02c5e03c855c958ae9c6ef74e31be02124d29946d917d6657f4a648` | `bd0c6d54c0825894a5c6b02544e6c084188a888307b857e6371e958dcfdeb205` | Align the transport adapter with the candidate train. |

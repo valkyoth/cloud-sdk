@@ -26,7 +26,7 @@ provider-neutral execution contracts from `cloud-sdk`.
 The crate is an unreleased `1.1.0` candidate. Seven discovery, three catalog
 and five version operations, four download/statistics operations and six public
 account/ownership operations have checked blocking, local-async and Send-async
-execution. Commit 17 is accepted; Commit 18 requires pentest. Eight personal
+execution. Commit 18 is accepted; Commit 19 requires pentest. Eight personal
 mutation operations now have single-attempt execution through an explicitly
 trusted blocking credential-adapter callback, not a bundled token transport.
 Three token-management operations now share that explicit adapter boundary.
@@ -37,6 +37,8 @@ Cargo yank/unyank uses bodyless single-attempt mutations, checked acknowledgemen
 and explicit version-state read-back.
 Publishing adds validated metadata, exact binary framing, single-use authority
 and bounded streaming through an explicitly trusted blocking adapter.
+Trusted publishing adds GitHub/GitLab configuration management, unverified OIDC
+preflight and exchange, and protected temporary-token revocation.
 Authentication preparation, endpoint, query and response foundations
 are available, but bundled authenticated adapters and other API workflows remain
 assigned to later checkpoints. This is not yet a complete crates.io provider.
@@ -69,14 +71,42 @@ assigned to later checkpoints. This is not yet a complete crates.io provider.
 | Ownership mutations | Cargo-compatible additions/removals, explicit namespaces, destructive confirmation and optional self/last-owner preflight; trusted blocking adapter |
 | Cargo yank/unyank | exact bodyless DELETE/PUT, consumed consent, checked acknowledgements and explicit state observation; trusted blocking adapter |
 | Cargo publish | bounded metadata, exact little-endian framing, borrowed/streaming archives, API or temporary token consent and checked warnings; trusted blocking streaming adapter |
+| Trusted publishing | GitHub/GitLab list/create/delete, assertion exchange and temporary-token revocation; local deadline/crate restrictions, not a JWT authenticator; trusted blocking adapter |
 | Artifact streaming | static-origin transport and SHA-256 hooks, transactional sink, bounded scratch and cancellation cleanup; caller-supplied streaming adapter required |
-| Other API operations | deferred to their source-locked implementation commits |
+| Unified execution | bundled authenticated/streaming adapters and execution parity remain Commit 20 |
 
-Trusted-publishing configuration/exchange and bundled authenticated transports
-remain later checkpoints.
+Bundled authenticated transports and unified async execution remain later checkpoints.
 Public ownership reads do not grant mutation authority.
 The complete 51-operation scope is maintained in the
 [crates.io source lock](https://github.com/valkyoth/cloud-sdk/blob/main/docs/CRATESIO_SOURCE_LOCK.md).
+
+## Trusted Publishing Intent
+
+```rust
+# #[cfg(feature = "alloc")] {
+use cloud_sdk_cratesio::{identifiers::CrateName,
+    trusted_publishing::{Publisher, PublisherConfig, ExchangePolicy}};
+let config = PublisherConfig::new(
+    Publisher::GitHub, CrateName::new("example")?, "example-org",
+    "example", "release.yml", Some("production"),
+)?;
+// Supply fresh trusted Unix time in the integration, not assertion claims.
+let policy = ExchangePolicy::new(config, "crates.io", 1_790_400_000, 600)?;
+// Consume a protected OidcAssertion with TrustedPublishingPermit::confirm_exchange.
+// TrustedPublishingClient sends it once, in JSON, without Authorization.
+# let _ = policy;
+# }
+# Ok::<(), Box<dyn std::error::Error>>(())
+```
+
+The registry verifies OIDC signatures and authorization. Local preflight only
+rejects obvious issuer, audience, workflow and time mismatches. The response
+does not carry scope or expiry; `TemporaryToken` applies a caller-selected local
+deadline (at most 30 minutes from policy creation) and intended crate restriction.
+`None` for environment deliberately permits any environment upstream. Revoke
+with fresh explicit consent after use; failures never trigger automatic retries.
+See the [trusted publishing policy](https://github.com/valkyoth/cloud-sdk/blob/main/docs/CRATESIO_TRUSTED_PUBLISHING_POLICY.md)
+for the conservative input profile, clock and trusted-adapter requirements.
 
 ## Publish Intent
 
