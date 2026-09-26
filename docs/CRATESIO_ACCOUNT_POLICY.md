@@ -2,6 +2,8 @@
 
 Status: unreleased `1.1.0`, logical Commit 12 pentest and GitHub passed.
 Baseline: `5c925018` (accepted Commit 11 evidence).
+The separate Cargo owner-list addition belongs to Commit 20, still in progress
+and not yet accepted by pentest; the historical qualification below is Commit 12.
 
 ## Executable Scope
 
@@ -24,6 +26,9 @@ local async and Send async have the same policy. Requests remain available
 without allocation; response models require `alloc`, execution is opt-in.
 
 ## Identity And Data Boundaries
+
+The rules in this section describe the website/OpenAPI account operations.
+The separately selected Cargo profile below does not relax those models.
 
 Registry users are not linked OAuth identities. The pinned database lookup
 normalizes ASCII case and maps `-` to `_`; response correlation and duplicate
@@ -71,6 +76,40 @@ the caller's cleanup responsibility.
   on success, rejection, cancellation and unpolled future drop.
 
 ## Source And Drift
+
+### Cargo Owner-List Profile (Commit 20)
+
+`accounts::cargo::CargoOwnersRequest` requires an explicit `ApiToken` and typed
+crate name. The unified client's blocking/local/Send execution uses the same
+official-origin, identifying-user-agent, rate-admission, bounded-response and
+cleanup controls. The token is sent without a Bearer prefix. No query, body,
+cookies, redirect, retry or extra lookup is introduced. An origin mismatch or
+cleared token fails before dispatch and admission. Anonymous `AccountRequest`
+behavior and the generic `CredentialContext::api` allowlist are unchanged.
+
+This profile follows the separately admitted
+[Cargo owner-list contract](https://doc.rust-lang.org/cargo/reference/registry-web-api.html#owners-list),
+not the website schema: `users` contains unsigned 32-bit IDs (including zero),
+required nonempty logins, and optional or null names. Login and name strings
+are limited to 256 UTF-8 bytes and reject control characters. All records and
+extensions share the bounded protected JSON parser; at most 256 owners are
+accepted. Missing and null names remain distinguishable. Unknown fields are
+inert metadata, never credentials, URLs to fetch, or authority to mutate.
+
+Cargo does not define a user/team discriminator or login canonicalization.
+No kind is guessed and no website identity is constructed from these records.
+Exact duplicate logins fail. Numeric IDs alone are not de-duplicated because
+crates.io user/team namespaces can overlap. Case/separator equivalence and
+ownership authority must be resolved through the strict website models before
+any optional ownership-change preflight; this snapshot grants no capability.
+The response does not echo the crate: association relies on the bound exchange.
+
+Independent minimal-wire tests cover all three execution modes, exact raw
+authorization, credential/origin failures, media/status/encoding rejection,
+short scratch, malformed JSON, exact bounds, duplicates, and cancellation.
+The Cargo source lock remains separate from generated website schema fixtures.
+
+### Website Sources
 
 Sources: [OpenAPI](https://crates.io/api/openapi.json) and the pinned
 [user controller](https://github.com/rust-lang/crates.io/blob/9ae7f769cea32f38ebc2ea9ec2ce455b47641511/src/controllers/user/other.rs),

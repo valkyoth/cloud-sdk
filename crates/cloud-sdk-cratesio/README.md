@@ -415,6 +415,41 @@ provide the same checks under `async`. See the
 [public account contract](https://github.com/valkyoth/cloud-sdk/blob/main/docs/CRATESIO_ACCOUNT_POLICY.md)
 for namespace rules, bounds and linked-account inclusion.
 
+## Cargo Owner Inspection
+
+For Cargo-compatible owner listing, explicitly choose the token-authenticated
+profile instead of the anonymous website response model. The minimal Cargo
+records do not infer user/team kinds or grant ownership-change authority.
+
+```rust
+# #[cfg(feature = "blocking")] {
+use cloud_sdk::transport::{BlockingAuthorizedRawHttpExecutor, BoundUserAgent};
+use cloud_sdk_cratesio::{
+    accounts::cargo::{CargoOwners, CargoOwnersRequest},
+    client::{RegistryBuffers, RegistryClient},
+    credentials::ApiToken,
+    identifiers::CrateName,
+    wire::IdentifyingUserAgent,
+};
+fn cargo_owners<T>(executor: &T, token: &ApiToken)
+    -> Result<CargoOwners, Box<dyn std::error::Error>>
+where T: BlockingAuthorizedRawHttpExecutor + BoundUserAgent, T::Error: 'static,
+{
+    let identity = IdentifyingUserAgent::new("inventory/1.0 (ops@example.org)")?;
+    let client = RegistryClient::production(executor, identity, 65_536)?;
+    let mut credential = [0; 2048];
+    let mut response = vec![0; 65_536];
+    let mut headers = [0; 512];
+    Ok(client.execute(CargoOwnersRequest::new(CrateName::new("serde")?, token),
+        RegistryBuffers { credential: &mut credential, body: &mut [],
+            response: &mut response, headers: &mut headers })?)
+}
+# }
+```
+
+The same request supports `execute_local` and `execute_async` under `async`.
+All supplied scratch is cleared; caller-created copies remain caller-owned.
+
 ## Install
 
 This provider remains unpublished. For the candidate examples, use a checkout

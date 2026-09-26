@@ -1,6 +1,8 @@
 //! Anonymous public users, teams, statistics and ownership inspection.
 //! Returned identities are metadata, never mutation authority.
 #[cfg(feature = "alloc")]
+pub mod cargo;
+#[cfg(feature = "alloc")]
 pub mod personal;
 mod request;
 #[cfg(feature = "alloc")]

@@ -49,6 +49,17 @@ impl<'a, K: CredentialKind> CredentialContext<'a, K> {
 }
 
 impl<'a> CredentialContext<'a, Api> {
+    #[cfg(any(feature = "blocking", feature = "async"))]
+    pub(crate) fn cargo_owners(
+        origin: CredentialOrigin,
+        name: crate::identifiers::CrateName<'_>,
+        output: &'a mut [u8],
+    ) -> Result<Self, CredentialError> {
+        let target = crate::accounts::AccountRequest::owners(name)
+            .write_target(output)
+            .map_err(|_| CredentialError::OperationNotAllowed)?;
+        Ok(Self::new(origin, Method::Get, target.as_str()))
+    }
     /// Admits only method/path pairs whose source lock accepts API tokens.
     ///
     /// Dynamic segments use a conservative unescaped ASCII profile. Domain

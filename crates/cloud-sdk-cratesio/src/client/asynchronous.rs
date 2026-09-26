@@ -134,6 +134,11 @@ implementation!(
     crate::accounts::AccountClient
 );
 implementation!(
+    crate::accounts::cargo::CargoOwnersRequest<'r>,
+    crate::accounts::cargo::CargoOwners,
+    permit
+);
+implementation!(
     crate::accounts::personal::PersonalPermit<'r>,
     crate::accounts::personal::PersonalResponse,
     permit

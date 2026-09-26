@@ -387,6 +387,10 @@ def test_settings_feature_guards_cannot_be_removed() -> None:
     for path, guard, replacement, error in (
         ("lib.rs", '#[cfg(feature = "alloc")]\npub mod settings;',
          "pub mod settings;", "settings allocation guard"),
+        ("accounts/mod.rs", '#[cfg(feature = "alloc")]\npub mod cargo;',
+         "pub mod cargo;", "Cargo owners allocation guard"),
+        ("accounts/cargo.rs", '#[cfg(any(feature = "blocking", feature = "async"))]\nmod execution;',
+         "mod execution;", "Cargo owners execution guard"),
         ("settings/mod.rs", '#[cfg(feature = "blocking")]\nmod client;',
          "mod client;", "settings client guard"),
         ("ownership.rs", '#[cfg(feature = "alloc")]\nmod changes;',

@@ -9,6 +9,26 @@ mod sealed {
     pub trait Operation {}
 }
 
+impl sealed::Operation for crate::accounts::cargo::CargoOwnersRequest<'_> {}
+impl BlockingRegistryOperation for crate::accounts::cargo::CargoOwnersRequest<'_> {
+    type Response = crate::accounts::cargo::CargoOwners;
+    fn run<T: BlockingAuthorizedRawHttpExecutor + BoundUserAgent + ?Sized>(
+        self,
+        c: &RegistryClient<'_, T>,
+        buffers: RegistryBuffers<'_>,
+    ) -> Result<Self::Response, DiscoveryExecutionError<T::Error>> {
+        use crate::discovery::DiscoveryClient;
+        let mut guard = super::buffers::Guard::new(buffers);
+        let client = if c.staging {
+            DiscoveryClient::staging(c.executor, c.identity, c.maximum)
+        } else {
+            DiscoveryClient::production(c.executor, c.identity, c.maximum)
+        }
+        .map_err(DiscoveryExecutionError::Model)?;
+        self.execute(&client, guard.parts())
+    }
+}
+
 /// Sealed binding from a reviewed provider request/permit to its checked runner.
 /// Downstream code cannot register arbitrary paths or bypass mutation consent.
 pub trait BlockingRegistryOperation: sealed::Operation + Sized {

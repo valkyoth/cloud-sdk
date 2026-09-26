@@ -577,7 +577,11 @@ Generated execution evidence now links successful three-mode facade fixtures to
 the reviewed inventory: 50/51 rows are covered, with publication still pending.
 The release gate rejects missing witnesses. Independent Cargo search evidence
 and an owner-list characterization test distinguish website-schema coverage from
-the still-needed authenticated/minimal Cargo owner profile. Commit 20 remains open.
+the separately selected authenticated/minimal Cargo owner profile. Its typed
+request now executes through the unified blocking/local/Send client with explicit
+raw API-token authorization and bounded protected response decoding. Website
+validation and the generic token route allowlist remain unchanged. Commit 20
+remains open, including the integrated publication witness.
 
 ### Maintenance Evidence (Earlier Checkpoints)
 

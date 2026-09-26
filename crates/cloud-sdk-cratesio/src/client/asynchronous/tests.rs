@@ -28,6 +28,7 @@ pub(crate) struct Fixture<'a> {
     pub wire: &'a [u8],
     pub status: u16,
     pub auth: bool,
+    pub expected_auth: Option<&'a [u8]>,
     pub media: bool,
     pub retry: Option<&'a [u8]>,
     pub encoding: Option<&'a [u8]>,
@@ -51,6 +52,7 @@ impl<'a> Fixture<'a> {
             wire,
             status,
             auth: true,
+            expected_auth: None,
             media: status != 204,
             retry: None,
             encoding: None,
@@ -71,6 +73,12 @@ impl<'a> Fixture<'a> {
         assert_eq!(request.target().as_str(), self.target);
         assert!(request.body() == self.payload, "request body differs");
         assert_eq!(auth.is_some(), self.auth);
+        if let Some(expected) = self.expected_auth {
+            assert!(
+                auth.fixture("explicit authorization").as_str().as_bytes() == expected,
+                "authorization differs"
+            );
+        }
         assert!(request.headers().get("authorization").is_none());
         assert!(request.headers().get("cookie").is_none());
         assert_eq!(

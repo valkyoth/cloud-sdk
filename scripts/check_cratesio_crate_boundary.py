@@ -206,6 +206,7 @@ def validate(root: Path) -> None:
         "client/asynchronous/tests/coverage.rs",
         "client/asynchronous/tests/coverage_routes.rs",
         "client/asynchronous/tests/cargo.rs",
+        *(f"accounts/{name}.rs" for name in ("cargo", "cargo/execution", "cargo/tests")),
         *(f"{area}/unified.rs" for area in ("accounts/personal", "accounts/tokens", "settings", "ownership/changes", "publishing/yank", "trusted_publishing")),
         *(f"{area}/tests/unified.rs" for area in ("discovery", "catalog", "versions", "downloads", "accounts", "accounts/tokens", "settings", "trusted_publishing")),
         *(f"bundled/{name}.rs" for name in ("mod", "artifacts", "tests")),
@@ -313,6 +314,11 @@ def validate(root: Path) -> None:
             raise BoundaryError("catalog allocation guard changed")
     versions = (crate / "src/versions/mod.rs").read_text(encoding="ascii")
     accounts = (crate / "src/accounts/mod.rs").read_text(encoding="ascii")
+    if '#[cfg(feature = "alloc")]\npub mod cargo;' not in accounts:
+        raise BoundaryError("Cargo owners allocation guard changed")
+    cargo_owners = (crate / "src/accounts/cargo.rs").read_text(encoding="ascii")
+    if '#[cfg(any(feature = "blocking", feature = "async"))]\nmod execution;' not in cargo_owners:
+        raise BoundaryError("Cargo owners execution guard changed")
     if '#[cfg(feature = "alloc")]\npub mod personal;' not in accounts:
         raise BoundaryError("personal allocation guard changed")
     if '#[cfg(feature = "alloc")]\npub mod tokens;' not in accounts:
