@@ -35,11 +35,16 @@ The observation, refreshed on 2026-09-24, binds six official HTTPS representatio
 
 The manifest records each requested URL, final URL, redirect chain, media type,
 exact byte length, and SHA-256 digest. Retrieval requires HTTPS, a bounded
-response, a 60-second total read deadline, and same-origin redirects only. The
+response, a 60-second worker-process retrieval deadline, and same-origin redirects only. The
 accepted observation has no redirects. Validation additionally requires each
 requested and final URL to equal its approved official authority and path;
 changing a URL, query, fragment, credential component, retrieval media type, or
 bound is not an accepted lock refresh.
+
+The parent kills and reaps a stalled worker, including stalls in DNS, TLS or
+buffered reads. The worker retains the byte and origin limits; the parent
+checks the result size and, for locked retrieval, its digest. Process creation
+and OS scheduling are not hard-real-time guarantees.
 
 The deployed policy uses HTTP content negotiation. A request without an HTML
 `Accept` header currently returns `404`; the authoritative

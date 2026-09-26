@@ -146,6 +146,7 @@ scripts/check_hetzner_api_drift.py --local-only
 scripts/test-hetzner-api-drift.py
 scripts/check_cratesio_source_lock.py
 scripts/test-cratesio-source-lock.py
+python3 scripts/test-cratesio-source-deadline.py
 python3 scripts/test-cratesio-schema-dialect.py
 python3 scripts/test-cratesio-reference-depth.py
 python3 scripts/test-cratesio-structural-depth.py

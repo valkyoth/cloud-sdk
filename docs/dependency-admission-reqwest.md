@@ -259,6 +259,17 @@ does not enable this std adapter.
 
 ## Verification
 
+Commit 22 remediation makes the already-transitive `tower-service =0.3.3`
+(MIT, no default features) an optional direct transport dependency. Its `Service`
+trait connects Hyper to a bounded system resolver; no new resolved package is
+introduced. Empty/default and std-only graphs remain transport-free. At most
+eight raw-adapter DNS jobs may be outstanding across clients/runtimes. Each job
+owns its permit until the blocking OS call finishes, even after cancellation.
+Saturation fails closed without spawning another job. Private blocking runtime
+shutdown detaches on every exit/unwind rather than waiting for DNS; stalled OS
+jobs cannot be forcibly cancelled and may occupy the finite budget indefinitely.
+This budget does not govern unrelated resolvers used by the application.
+
 `scripts/check_reqwest_boundary.sh`,
 `scripts/check_reqwest_webpki_roots_boundary.sh`, and
 `scripts/check_fips_deferred.py` verify the exact top-level versions,

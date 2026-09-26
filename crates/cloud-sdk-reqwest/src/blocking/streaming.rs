@@ -7,7 +7,7 @@ use cloud_sdk::transport::{
 /// source closes unfinished I/O. Never use it from an active Tokio runtime.
 pub struct BlockingStreamingResponse {
     pub(super) response: StreamingResponse,
-    pub(super) runtime: Option<tokio::runtime::Runtime>,
+    pub(super) runtime: super::runtime::Runtime,
 }
 impl BlockingStreamingResponse {
     /// Optional validated Content-Length; EOF also checks this declaration.
@@ -32,16 +32,6 @@ impl BlockingStreamSource for BlockingStreamingResponse {
                 RawHttpError::BlockingRuntimeContext,
             ));
         }
-        let runtime = self.runtime.as_ref().ok_or_else(|| {
-            cloud_sdk::transport::TransportFailure::response_started(RawHttpError::RequestFailed)
-        })?;
-        runtime.block_on(self.response.read_chunk(output))
-    }
-}
-impl Drop for BlockingStreamingResponse {
-    fn drop(&mut self) {
-        if let Some(runtime) = self.runtime.take() {
-            runtime.shutdown_background();
-        }
+        self.runtime.block_on(self.response.read_chunk(output))?
     }
 }

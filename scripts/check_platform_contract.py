@@ -28,6 +28,7 @@ TRANSPORT_DEPENDENCIES = {
     "rustls",
     "rustls-platform-verifier",
     "tokio",
+    "tower-service",
     "webpki-roots",
 }
 FEATURES = {

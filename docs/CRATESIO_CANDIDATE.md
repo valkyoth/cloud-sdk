@@ -1,6 +1,6 @@
 # crates.io Candidate Qualification
 
-Status: Commit 22 locally qualified; stop for full-service pentest and GitHub.
+Status: Commit 22 full-service pentest remediation; retest and requalification required.
 Candidate: unreleased workspace `1.1.0`; publication remains blocked.
 Previous accepted checkpoint: `cbcaf17f54b50918b9b6f6fb29f76cbd9656b537`.
 
@@ -42,12 +42,18 @@ silently marked supported.
   [platform policy](PLATFORM_SUPPORT.md), and
   [release notes](../release-notes/RELEASE_NOTES_1.1.0.md) remain candidate documents.
 
-No new cryptography, unsafe code, dependency, implicit retry, or mutation
+No new cryptography, unsafe code, implicit retry, or mutation
 authority is introduced by Commit 22. Network members are read-only. Responses
 do not echo their parent Network; the authenticated exchange provides that
 association. Type/status strings retain forward-compatible values, IPv4 fields
 are validated, and normal response/body/allocation bounds still apply. Schema
 updates cannot silently relax endpoint or credential policy.
+
+The first full-service review found blocking-runtime shutdown and source-fetch
+deadline availability issues. Remediation adds non-waiting runtime cleanup,
+bounded resolver jobs, and a killable source-fetch worker. The existing
+transitive `tower-service` package is now an optional direct transport dependency;
+see its admission record. Earlier qualification does not qualify these changes.
 
 ## Compatibility Review
 

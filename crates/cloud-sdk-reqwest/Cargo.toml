@@ -30,6 +30,7 @@ blocking-rustls = [
     "dep:rustls",
     "dep:rustls-platform-verifier",
     "dep:tokio",
+    "dep:tower-service",
     "hyper/client",
     "hyper/http1",
     "hyper-rustls/aws-lc-rs",
@@ -64,6 +65,7 @@ blocking-rustls-webpki-roots = [
     "dep:rustls",
     "dep:rustls-platform-verifier",
     "dep:tokio",
+    "dep:tower-service",
     "dep:webpki-roots",
     "hyper/client",
     "hyper/http1",
@@ -99,6 +101,7 @@ async-rustls = [
     "dep:rustls",
     "dep:rustls-platform-verifier",
     "dep:tokio",
+    "dep:tower-service",
     "hyper/client",
     "hyper/http1",
     "hyper-rustls/aws-lc-rs",
@@ -142,6 +145,7 @@ reqwest = { workspace = true, optional = true }
 rustls = { workspace = true, optional = true }
 rustls-platform-verifier = { workspace = true, optional = true }
 tokio = { workspace = true, optional = true }
+tower-service = { workspace = true, optional = true }
 webpki-roots = { workspace = true, optional = true }
 
 [dev-dependencies]

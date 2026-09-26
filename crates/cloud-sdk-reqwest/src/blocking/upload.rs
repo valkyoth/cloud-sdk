@@ -18,21 +18,13 @@ impl RawBlockingClient {
         let mut attempt = response
             .begin_attempt()
             .map_err(|_| TransportFailure::not_sent(RawHttpError::ResponseAlreadyCommitted))?;
-        if tokio::runtime::Handle::try_current().is_ok() {
-            return Err(TransportFailure::not_sent(
-                RawHttpError::BlockingRuntimeContext,
-            ));
-        }
-        let runtime = tokio::runtime::Builder::new_current_thread()
-            .enable_all()
-            .build()
-            .map_err(|_| TransportFailure::not_sent(RawHttpError::RuntimeInitializationFailed))?;
+        let runtime = super::runtime::Runtime::new()?;
         let completion = runtime.block_on(self.inner.execute_upload_blocking(
             request,
             policy,
             upload,
             &mut attempt,
-        ))?;
+        ))??;
         let status = completion.status();
         attempt.commit_completion(completion).map_err(|_| {
             TransportFailure::response_started_with_status(

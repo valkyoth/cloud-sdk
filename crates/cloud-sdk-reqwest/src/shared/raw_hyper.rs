@@ -36,12 +36,13 @@ use super::{
 mod streaming;
 pub use streaming::StreamingResponse;
 mod body;
+mod resolver;
 mod upload;
 mod uri;
 use body::{RequestBody, SanitizedBody};
 pub use upload::RawUpload;
 
-type HttpClient = Client<HttpsConnector<HttpConnector>, RequestBody>;
+type HttpClient = Client<HttpsConnector<HttpConnector<resolver::BoundedResolver>>, RequestBody>;
 
 pub(crate) trait RawResponseSink<'buffer> {
     fn body_capacity(&self) -> usize;
@@ -181,7 +182,7 @@ impl RawHyperClient {
         if !tls_config.alpn_protocols.is_empty() {
             return Err(BuildError::ClientBuildFailed);
         }
-        let mut connector = HttpConnector::new();
+        let mut connector = HttpConnector::new_with_resolver(resolver::BoundedResolver);
         connector.enforce_http(false);
         connector.set_connect_timeout(Some(timeouts.connect()));
         connector.set_nodelay(true);

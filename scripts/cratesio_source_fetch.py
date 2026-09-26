@@ -4,7 +4,11 @@
 from __future__ import annotations
 
 import hashlib
+import json
+from pathlib import Path
 import ssl
+import subprocess
+import sys
 import time
 import urllib.request
 from typing import Any
@@ -43,7 +47,31 @@ class SameOriginRedirects(urllib.request.HTTPRedirectHandler):
         return super().redirect_request(request, file, code, message, headers, new_url)
 
 
-def observe_source(source: dict[str, Any], monotonic: Any = time.monotonic) -> bytes:
+def observe_source(source: dict[str, Any]) -> bytes:
+    """Kill and reap retrieval if DNS, TLS or a buffered read stalls."""
+    return run_worker(source)
+
+
+def run_worker(source: dict[str, Any], timeout: float = 60) -> bytes:
+    try:
+        result = subprocess.run(
+            [sys.executable, "-E", "-s", str(Path(__file__).resolve()), "--worker"],
+            input=json.dumps(source).encode("ascii"),
+            stdout=subprocess.PIPE,
+            stderr=subprocess.DEVNULL,
+            timeout=timeout,
+            check=True,
+        )
+    except subprocess.TimeoutExpired:
+        raise SourceLockError("source retrieval deadline exceeded") from None
+    except (OSError, subprocess.CalledProcessError):
+        raise SourceLockError("source retrieval failed") from None
+    if len(result.stdout) > source["max_bytes"]:
+        raise SourceLockError("source retrieval exceeded its size bound")
+    return result.stdout
+
+
+def _observe_source(source: dict[str, Any], monotonic: Any = time.monotonic) -> bytes:
     redirector = SameOriginRedirects(source["url"])
     opener = urllib.request.build_opener(
         urllib.request.HTTPSHandler(context=ssl.create_default_context()), redirector
@@ -64,8 +92,8 @@ def observe_source(source: dict[str, Any], monotonic: Any = time.monotonic) -> b
     return payload
 
 
-def fetch_source(source: dict[str, Any], monotonic: Any = time.monotonic) -> bytes:
-    payload = observe_source(source, monotonic)
+def fetch_source(source: dict[str, Any]) -> bytes:
+    payload = observe_source(source)
     actual = hashlib.sha256(payload).hexdigest()
     if len(payload) != source["size_bytes"] or actual != source["sha256"]:
         raise SourceLockError(f"{source['id']} digest or size changed")
@@ -101,3 +129,12 @@ def read_response(
         data.extend(chunk)
         if len(data) > source["max_bytes"]:
             raise SourceLockError(f"{source['id']} exceeds its size bound")
+
+
+if __name__ == "__main__":
+    if sys.argv[1:] != ["--worker"]:
+        raise SystemExit("internal source retrieval worker")
+    try:
+        sys.stdout.buffer.write(_observe_source(json.load(sys.stdin)))
+    except (SourceLockError, OSError, ValueError, KeyError):
+        raise SystemExit(1) from None

@@ -669,6 +669,11 @@ own those boundaries and pass only validated lifetimes, tokens, and handoffs.
 - Rustls with TLS 1.2 minimum; platform certificate verification for standard
   transports and deterministic Mozilla roots for the snapshot feature.
 - Explicit total and connect timeouts, each nonzero and at most 300 seconds.
+  Raw blocking runtime shutdown does not wait for stalled system DNS calls.
+  Raw clients share a limit of eight outstanding DNS jobs; cancelled jobs keep
+  their slots until the OS call returns, and saturation rejects new DNS work.
+  This bounds lingering resolver work rather than forcibly terminating it.
+  Caller-provided blocking sources and OS scheduling are not preemptible.
 - Explicit validated user agent and bounded, type-separated bearer or Basic
   credential.
 - HTTP/1 and the system resolver are forced even under downstream reqwest

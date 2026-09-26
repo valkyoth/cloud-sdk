@@ -139,6 +139,7 @@ dependencies = [
  "rustls",
  "rustls-platform-verifier",
  "tokio",
+ "tower-service",
  "webpki-roots",
 ]
 

@@ -25,20 +25,9 @@ impl RawBlockingClient {
         request: TransportRequest<'_>,
         maximum_body_bytes: u64,
     ) -> Result<super::BlockingStreamingResponse, RawTransportFailure> {
-        if tokio::runtime::Handle::try_current().is_ok() {
-            return Err(TransportFailure::not_sent(
-                RawHttpError::BlockingRuntimeContext,
-            ));
-        }
-        let runtime = tokio::runtime::Builder::new_current_thread()
-            .enable_all()
-            .build()
-            .map_err(|_| TransportFailure::not_sent(RawHttpError::RuntimeInitializationFailed))?;
-        let response = runtime.block_on(self.inner.open_stream(request, maximum_body_bytes))?;
-        Ok(super::BlockingStreamingResponse {
-            response,
-            runtime: Some(runtime),
-        })
+        let runtime = super::runtime::Runtime::new()?;
+        let response = runtime.block_on(self.inner.open_stream(request, maximum_body_bytes))??;
+        Ok(super::BlockingStreamingResponse { response, runtime })
     }
 
     pub(super) const fn new(inner: RawHyperClient, endpoint: HttpsEndpoint) -> Self {
@@ -51,19 +40,11 @@ impl RawBlockingClient {
         policy: RawResponsePolicy<'_>,
         response_writer: &mut ResponseWriter<'_>,
     ) -> Result<(), RawTransportFailure> {
-        if tokio::runtime::Handle::try_current().is_ok() {
-            return Err(TransportFailure::not_sent(
-                RawHttpError::BlockingRuntimeContext,
-            ));
-        }
-        let runtime = tokio::runtime::Builder::new_current_thread()
-            .enable_all()
-            .build()
-            .map_err(|_| TransportFailure::not_sent(RawHttpError::RuntimeInitializationFailed))?;
+        let runtime = super::runtime::Runtime::new()?;
         let mut attempt = response_writer
             .begin_attempt()
             .map_err(|_| TransportFailure::not_sent(RawHttpError::ResponseAlreadyCommitted))?;
-        let completion = runtime.block_on(self.inner.execute(request, policy, &mut attempt))?;
+        let completion = runtime.block_on(self.inner.execute(request, policy, &mut attempt))??;
         let status = completion.status();
         attempt.commit_completion(completion).map_err(|_| {
             TransportFailure::response_started_with_status(
@@ -80,15 +61,7 @@ impl RawBlockingClient {
         authorization: HeaderValue,
         response_writer: &mut ResponseWriter<'_>,
     ) -> Result<(), RawTransportFailure> {
-        if tokio::runtime::Handle::try_current().is_ok() {
-            return Err(TransportFailure::not_sent(
-                RawHttpError::BlockingRuntimeContext,
-            ));
-        }
-        let runtime = tokio::runtime::Builder::new_current_thread()
-            .enable_all()
-            .build()
-            .map_err(|_| TransportFailure::not_sent(RawHttpError::RuntimeInitializationFailed))?;
+        let runtime = super::runtime::Runtime::new()?;
         let mut attempt = response_writer
             .begin_attempt()
             .map_err(|_| TransportFailure::not_sent(RawHttpError::ResponseAlreadyCommitted))?;
@@ -97,7 +70,7 @@ impl RawBlockingClient {
             policy,
             authorization,
             &mut attempt,
-        ))?;
+        ))??;
         let status = completion.status();
         attempt.commit_completion(completion).map_err(|_| {
             TransportFailure::response_started_with_status(

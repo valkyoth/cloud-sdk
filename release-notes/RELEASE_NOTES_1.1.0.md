@@ -68,6 +68,12 @@ for the complete gate, compatibility review and full-service pentest boundary.
 - Restores the published exhaustive raw transport error enum after the final
   SemVer review; streaming/URI failures reuse existing errors while retaining
   delivery phase and cleanup. Adds external-consumer compatibility witnesses.
+- Full-service pentest remediation: private raw blocking runtimes detach on
+  errors and unwinding; system DNS jobs retain one of eight shared permits until
+  completion. Source-lock fetching uses a killable worker to enforce the total
+  retrieval deadline even during a slow buffered read. Regression tests cover
+  all four blocking request paths, cancellation, saturation, unwind and child
+  termination. Retest and fresh release qualification remain required.
 
 The new API is additive: existing exhaustive endpoint/query enums are unchanged.
 The candidate remains unreleased and publication-blocked. Full-service pentest,
