@@ -215,7 +215,7 @@ fuzz_target!(|data: &[u8]| {
         return;
     };
     if data[2] % 3 != 2 {
-        let content_type = if data[2] % 3 == 0 {
+        let content_type = if data[2].is_multiple_of(3) {
             "application/json; charset=utf-8"
         } else {
             "text/plain"

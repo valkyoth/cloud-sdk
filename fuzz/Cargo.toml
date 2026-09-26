@@ -2,6 +2,7 @@
 name = "cloud-sdk-fuzz"
 version = "0.0.0"
 publish = false
+autobins = false
 edition = "2024"
 
 [package.metadata]

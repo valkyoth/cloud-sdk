@@ -84,8 +84,32 @@ operator deleted the crate without completing that step.
 - Full repository checks passed, including workspace default/all-feature tests,
   doctests, warning-denied Clippy, source-locked fixtures, no_std boundaries,
   line-length/security policies, release tooling and packaging.
-- Documentation links, archive-checker regressions, fuzz Clippy and refreshed
-  complete SBOM freshness passed. No production Rust source changed.
+- Documentation links, archive-checker regressions and refreshed complete SBOM
+  freshness passed. The original fuzz Clippy run used `--tests`, not
+  `--all-targets`; the broader claim was corrected by the remediation below.
+  No production Rust source changed.
+
+## Commit 21 Pentest Remediation
+
+The review of `bd80a77d` identified two Low assurance findings:
+
+- Replaced truncated text extraction with structural TOML validation of the
+  complete ordered binary inventory, including exact names, paths and target
+  flags. Automatic Cargo binary discovery is disabled. The validated inventory
+  is also the list used by the smoke runner, avoiding separate unchecked lists.
+- Fixed the existing fuzz-target Clippy warnings and made warning-denied
+  `cargo clippy --locked --manifest-path fuzz/Cargo.toml --all-targets -- -D warnings`
+  mandatory in every fuzz gate mode, including normal CI's metadata mode.
+
+Regression tests inject extra targets before/within/after the reviewed list,
+remap paths, remove/reorder targets, alter flags and exercise malformed TOML.
+Shell-level probes prove inventory rejection precedes Cargo, exact Clippy
+arguments are used, and Clippy failure stops the gate before tests.
+The review's warning fixes are confined to fuzz harnesses; SDK behavior is
+unchanged. Verification passed: full `scripts/checks.sh`, all-target fuzz
+Clippy, all 39 fuzz smoke campaigns, inventory/shell regressions, SBOM freshness,
+documentation links, formatting and shell syntax. User retest acceptance remains
+pending.
 
 Repeat the credential-free checkpoint with:
 

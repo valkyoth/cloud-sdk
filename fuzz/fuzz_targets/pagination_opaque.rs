@@ -229,13 +229,12 @@ fn exercise_history(
     let mut collision_destination = vec![0xa5_u8; 8_192];
     if let Ok(collision) =
         PaginationCursor::transfer_from(collision_source, &mut collision_destination, limits)
+        && !collision.with_cursor(|value| cursor.with_cursor(|stored| value == stored))
     {
-        if !collision.with_cursor(|value| cursor.with_cursor(|stored| value == stored)) {
-            assert_eq!(
-                history.observe(&collision, digest),
-                Err(PaginationError::CursorDigestCollision)
-            );
-        }
+        assert_eq!(
+            history.observe(&collision, digest),
+            Err(PaginationError::CursorDigestCollision)
+        );
     }
     drop(history);
     assert!(history_storage.iter().all(|byte| *byte == 0));

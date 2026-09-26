@@ -75,11 +75,12 @@ fn prepared() -> Option<PreparedRequest<'static>> {
 }
 
 fn decode_hex(value: &[u8]) -> Option<Vec<u8>> {
-    let chunks = value.chunks_exact(2);
-    if !chunks.remainder().is_empty() {
+    let (chunks, remainder) = value.as_chunks::<2>();
+    if !remainder.is_empty() {
         return None;
     }
     chunks
+        .iter()
         .map(|chunk| {
             let high = hex_digit(*chunk.first()?)?;
             let low = hex_digit(*chunk.get(1)?)?;
@@ -122,7 +123,7 @@ fuzz_target!(|data: &[u8]| {
         &data[2..]
     };
     let content_type = if data[1] % 3 != 2 {
-        Some(if data[1] % 3 == 0 {
+        Some(if data[1].is_multiple_of(3) {
             "application/json; charset=utf-8"
         } else {
             "text/plain"

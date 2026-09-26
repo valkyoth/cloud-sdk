@@ -21,7 +21,9 @@ cargo install --locked cargo-fuzz --version 0.13.2
 ```
 
 The normal stable gate validates target layout, formatting, the locked
-dependency graph, and named seeds:
+dependency graph, complete ordered TOML binary name/path inventory, all-target
+warning-denied Clippy, and named seeds. Cargo automatic binary discovery is
+disabled; the structurally checked inventory also supplies the smoke runner:
 
 ```sh
 scripts/check_fuzz_harness.sh --metadata
