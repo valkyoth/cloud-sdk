@@ -44,7 +44,7 @@ base64-ng = { version = "=2.0.4", default-features = false }
 bytes = { version = "=1.12.1", default-features = false }
 http = { version = "=1.5.0", default-features = false }
 http-body-util = { version = "=0.1.5", default-features = false }
-hyper = { version = "=1.11.1", default-features = false }
+hyper = { version = "=1.12.0", default-features = false }
 hyper-rustls = { version = "=0.27.10", default-features = false }
 hyper-util = { version = "=0.1.21", default-features = false }
 md-5 = { version = "=0.11.0", default-features = false }
