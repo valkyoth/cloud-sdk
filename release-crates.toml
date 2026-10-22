@@ -5,7 +5,7 @@ baseline = "1.1.0"
 review_baseline = "1.1.0"
 cumulative_milestones = ["1.1.1"]
 policy = "independent"
-stage = "candidate"
+stage = "public"
 exceptional = false
 exception_reason = ""
 
@@ -13,40 +13,40 @@ exception_reason = ""
 previous_version = "1.1.0"
 version = "1.1.1"
 change = "metadata"
-publish = false
+publish = true
 reason = "Synchronize maintenance documentation and reviewed dependency pins."
 
 [crates."cloud-sdk-cratesio"]
 previous_version = "1.1.0"
 version = "1.1.1"
 change = "code"
-publish = false
+publish = true
 reason = "Refresh reviewed crates.io schema representations without adding operations."
 
 [crates."cloud-sdk-hetzner"]
 previous_version = "1.1.0"
 version = "1.1.1"
 change = "code"
-publish = false
+publish = true
 reason = "Support existing load-balancer Primary IPs and upstream asynchronous deletion."
 
 [crates."cloud-sdk-reqwest"]
 previous_version = "1.1.0"
 version = "1.1.1"
 change = "metadata"
-publish = false
+publish = true
 reason = "Refresh TLS roots, certificate verification and transport dependencies."
 
 [crates."cloud-sdk-sanitization"]
 previous_version = "1.1.0"
 version = "1.1.1"
 change = "metadata"
-publish = false
+publish = true
 reason = "Refresh sanitization and synchronized workspace dependency metadata."
 
 [crates."cloud-sdk-testkit"]
 previous_version = "1.1.0"
 version = "1.1.1"
 change = "metadata"
-publish = false
+publish = true
 reason = "Publish synchronized 1.1.1 documentation and workspace dependencies; no first-party runtime change."

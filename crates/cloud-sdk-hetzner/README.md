@@ -766,14 +766,14 @@ authentication scope, raw response policy, and official endpoint.
 
 | Capability | Current coverage | Release status |
 | --- | --- | --- |
-| Request models | Complete for all 209 non-deprecated operations | 1.1.0 |
-| Path/query encoding | Complete for all 209 non-deprecated operations | 1.1.0 |
-| Body serialization | Complete for all 91 non-deprecated operations with request bodies | 1.1.0 |
-| Success response models | Complete checked envelopes for all 209 operations; source-complete ordinary Cloud resources, DNS zones and RRSets, zonefiles, actions, metrics, composites, pricing, locations, certificates, SSH keys, and Console Storage Boxes, types, snapshots, subaccounts, and folders; operation-branded typed execution guards decode through `decode_associated_checked_response` | 1.1.0 |
-| Error response models | Complete checked typed API error decoding for all active operations | 1.1.0 |
-| End-to-end client | Complete named workflows for all 209 active Cloud, DNS, Security, and Console Storage Box operations; custom-endpoint execution remains unavailable | 1.1.0 |
-| Robot client | Complete typed contracts for all 89 active Robot operations; 45 read-only routes execute directly and every state change remains permit-gated | 1.1.0 |
-| Server Metadata | Complete strict contracts for all seven canonical credential-free link-local reads | 1.1.0 |
+| Request models | Complete for all 209 non-deprecated operations | 1.1.1 |
+| Path/query encoding | Complete for all 209 non-deprecated operations | 1.1.1 |
+| Body serialization | Complete for all 91 non-deprecated operations with request bodies | 1.1.1 |
+| Success response models | Complete checked envelopes for all 209 operations; source-complete ordinary Cloud resources, DNS zones and RRSets, zonefiles, actions, metrics, composites, pricing, locations, certificates, SSH keys, and Console Storage Boxes, types, snapshots, subaccounts, and folders; operation-branded typed execution guards decode through `decode_associated_checked_response` | 1.1.1 |
+| Error response models | Complete checked typed API error decoding for all active operations | 1.1.1 |
+| End-to-end client | Complete named workflows for all 209 active Cloud, DNS, Security, and Console Storage Box operations; custom-endpoint execution remains unavailable | 1.1.1 |
+| Robot client | Complete typed contracts for all 89 active Robot operations; 45 read-only routes execute directly and every state change remains permit-gated | 1.1.1 |
+| Server Metadata | Complete strict contracts for all seven canonical credential-free link-local reads | 1.1.1 |
 
 The convenience request types cover common filters with domain-specific
 values. `query::SourceLockedQuery` is the complete operation-bound fallback
@@ -799,11 +799,17 @@ The construction, storage, and trust boundaries are described in the
 Upstream source monitoring and lock-refresh decisions follow the
 [API drift maintenance runbook](https://github.com/valkyoth/cloud-sdk/blob/main/docs/API_DRIFT_MAINTENANCE.md).
 
-Version 1.1.0 includes the September 2026
+Version 1.1.1 retains the September 2026
 [schema and deprecation review](https://github.com/valkyoth/cloud-sdk/blob/main/docs/SPEC_LOCK.md#reviewed-live-drift-2026-09-10).
 Use the replacement `deprecation` metadata: Hetzner has announced removal of
 legacy `deprecated` fields on November 2. Both present and omitted legacy
 fields are handled at the affected resource paths.
+
+The October 2026 maintenance refresh adds existing Primary IP selection during
+load-balancer creation and asynchronous deletion responses. Typed deletion
+responses require the expected command and resource identity; callers must
+still inspect action status and poll completion. See the
+[1.1.1 release notes](https://github.com/valkyoth/cloud-sdk/blob/main/release-notes/RELEASE_NOTES_1.1.1.md).
 
 ## Server Metadata Example
 

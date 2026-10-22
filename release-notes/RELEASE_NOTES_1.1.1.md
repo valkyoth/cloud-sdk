@@ -1,7 +1,17 @@
 # cloud-sdk 1.1.1
 
-Status: maintenance candidate; pentest and GitHub acceptance remain required.
+Status: security review accepted; final release qualification and GitHub acceptance required.
 No tag or crates.io publication is authorized by this document.
+
+Release date: pending
+
+Security-Review: PASS
+Pentest: PASS
+Publication: PENDING
+
+The full maintenance review and focused remediation retests are accepted at
+`2691f60924bf55821ca6357329c016f73bb11602`; see the
+[permanent pentest report](../security/pentest/v1.1.1.md).
 
 ## Security and Dependencies
 
@@ -55,8 +65,10 @@ No tag or crates.io publication is authorized by this document.
 - Preserve historical pinned controller evidence; this refresh does not claim
   that every upstream backend commit has been independently audited.
 
-All six packages are synchronized to 1.1.1 as candidates. Scaleway development
-remains on its separate branch. FIPS remains deferred.
+The publication plan selects exactly the six existing SDK packages at 1.1.1.
+Scaleway development remains on its separate branch. Probes, fuzzing, feature
+fixtures, coverage tools and retired provider-specific helper packages are not
+selected for publication. FIPS remains deferred.
 
 ## Local Verification
 
