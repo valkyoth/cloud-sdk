@@ -19,6 +19,50 @@ fn decode(model: &str, value: &Value) -> Result<CloudResource, ResponseModelErro
 }
 
 #[test]
+fn load_balancer_public_ips_require_typed_ids_and_blocked_flags() {
+    for family in ["ipv4", "ipv6"] {
+        for id in [Value::Null, json!(1), json!(9_007_199_254_740_991_u64)] {
+            let mut value = fixture("load_balancer");
+            let ip = value
+                .get_mut("public_net")
+                .and_then(|net| net.get_mut(family))
+                .and_then(Value::as_object_mut)
+                .unwrap_or_else(|| unreachable!("public IP fixture"));
+            ip.insert("id".into(), id);
+            ip.insert("blocked".into(), json!(false));
+            assert!(decode("load_balancer", &value).is_ok());
+        }
+        for (field, invalid) in [
+            ("id", json!(0)),
+            ("id", json!(-1)),
+            ("id", json!(9_007_199_254_740_992_u64)),
+            ("id", json!("1")),
+            ("blocked", Value::Null),
+            ("blocked", json!(0)),
+        ] {
+            let mut value = fixture("load_balancer");
+            value
+                .get_mut("public_net")
+                .and_then(|net| net.get_mut(family))
+                .and_then(Value::as_object_mut)
+                .unwrap_or_else(|| unreachable!("public IP fixture"))
+                .insert(field.into(), invalid);
+            assert!(decode("load_balancer", &value).is_err());
+        }
+        for field in ["id", "blocked"] {
+            let mut value = fixture("load_balancer");
+            value
+                .get_mut("public_net")
+                .and_then(|net| net.get_mut(family))
+                .and_then(Value::as_object_mut)
+                .unwrap_or_else(|| unreachable!("public IP fixture"))
+                .remove(field);
+            assert!(decode("load_balancer", &value).is_err());
+        }
+    }
+}
+
+#[test]
 fn image_deprecation_is_required_nullable_and_calendar_checked() {
     for model in ["image", "server"] {
         let mut value = fixture(model);

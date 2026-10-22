@@ -34,6 +34,7 @@ def document():
 
 def main():
     one_of_constraints()
+    enum_examples()
     source = document()
     table, fixtures = render(source)
     assert "Node::Object" in table and "Node::Integer" in table
@@ -63,7 +64,17 @@ def main():
     del mutated["paths"][PATHS["list_crates"]]
     rejected(lambda: render(mutated))
     assert {p.name for p in (OUTPUT / "fixtures").glob("*.json")} == set(fixtures)
-    print("6 catalog schema and fixture regression groups passed.")
+    print("7 catalog schema and fixture regression groups passed.")
+
+
+def enum_examples():
+    branch = {"type": "object", "required": ["provider"], "properties": {
+        "provider": {"type": "string", "enum": ["github", "gitlab"]}}}
+    assert expanded_example({"oneOf": [branch, {"type": "null"}]}, {}) == {
+        "provider": "github"}
+    assert expanded_example({"oneOf": [{"type": "null"}, branch]}, {}) is None
+    for choices in ([], None, "github", [1]):
+        rejected(lambda: expanded_example({"type": "string", "enum": choices}, {}))
 
 
 def one_of_constraints():

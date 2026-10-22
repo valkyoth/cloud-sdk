@@ -23,34 +23,34 @@ PRODUCTION_TARGETS = (
     "x86_64-unknown-freebsd",
 )
 EXPECTED = {
-    "aws-lc-rs": ("1.18.1", "aws-lc-sys"),
-    "aws-lc-sys": ("0.45.0", None),
+    "aws-lc-rs": ("1.18.2", "aws-lc-sys"),
+    "aws-lc-sys": ("0.46.0", None),
     "ring": ("0.17.14", None),
 }
 EXPECTED_BUILD_SCRIPTS = {
-    ("aws-lc-rs", "1.18.1"),
-    ("aws-lc-sys", "0.45.0"),
+    ("aws-lc-rs", "1.18.2"),
+    ("aws-lc-sys", "0.46.0"),
     ("getrandom", "0.4.3"),
     ("httparse", "1.10.1"),
-    ("icu_normalizer_data", "2.3.0"),
-    ("icu_properties_data", "2.3.0"),
+    ("icu_normalizer_data", "2.4.0"),
+    ("icu_properties_data", "2.4.0"),
     ("jni", "0.22.4"),
     ("jni-macros", "0.22.4"),
-    ("libc", "0.2.189"),
+    ("libc", "0.2.191"),
     ("proc-macro2", "1.0.107"),
     ("quinn", "0.11.12"),
-    ("quinn-udp", "0.5.15"),
+    ("quinn-udp", "0.5.16"),
     ("quote", "1.0.47"),
     ("ring", "0.17.14"),
     ("rustix", "1.1.5"),
-    ("rustls", "0.23.45"),
+    ("rustls", "0.23.46"),
     ("rustversion", "1.0.23"),
     ("serde", "1.0.229"),
     ("serde_core", "1.0.229"),
-    ("serde_json", "1.0.151"),
+    ("serde_json", "1.0.154"),
     ("thiserror", "2.0.21"),
-    ("wasm-bindgen", "0.2.128"),
-    ("wasm-bindgen-shared", "0.2.128"),
+    ("wasm-bindgen", "0.2.129"),
+    ("wasm-bindgen-shared", "0.2.129"),
     ("windows_aarch64_gnullvm", "0.52.6"),
     ("windows_aarch64_msvc", "0.52.6"),
     ("windows_i686_gnu", "0.52.6"),
@@ -141,7 +141,7 @@ def production_failures(metadata: dict, feature: str, target: str) -> list[str]:
     reachable_ids = reachable_from(root, nodes, packages)
     reachable = [packages[package_id] for package_id in reachable_ids]
     active = {(package["name"], package["version"]) for package in reachable}
-    required = {("aws-lc-rs", "1.18.1"), ("aws-lc-sys", "0.45.0")}
+    required = {("aws-lc-rs", "1.18.2"), ("aws-lc-sys", "0.46.0")}
     if not required <= active:
         problems.append(f"{context}: AWS-LC production graph drifted")
     forbidden = sorted(
@@ -160,13 +160,13 @@ def production_failures(metadata: dict, feature: str, target: str) -> list[str]:
         package_id
         for package_id in reachable_ids
         if (packages[package_id]["name"], packages[package_id]["version"])
-        == ("aws-lc-rs", "1.18.1")
+        == ("aws-lc-rs", "1.18.2")
     ]
     sys_ids = [
         package_id
         for package_id in reachable_ids
         if (packages[package_id]["name"], packages[package_id]["version"])
-        == ("aws-lc-sys", "0.45.0")
+        == ("aws-lc-sys", "0.46.0")
     ]
     root_dependencies = normal_dependencies(nodes[root], packages[root])
     if len(aws_ids) != 1 or aws_ids[0] not in root_dependencies:

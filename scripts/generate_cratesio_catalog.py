@@ -24,6 +24,12 @@ def expanded_example(schema, document, depth=0):
         return schema["example"]
     if "oneOf" in schema:
         return expanded_example(schema["oneOf"][0], document, depth+1)
+    if "enum" in schema:
+        choices = schema["enum"]
+        if (schema.get("type") != "string" or not isinstance(choices, list)
+                or not choices or not all(isinstance(value, str) for value in choices)):
+            raise ValueError("catalog example enum")
+        return choices[0]
     if schema.get("type") == "null":
         return None
     if schema.get("type") == "object":

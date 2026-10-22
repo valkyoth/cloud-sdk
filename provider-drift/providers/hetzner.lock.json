@@ -84,9 +84,9 @@
       {
         "id": "operation-policy",
         "values": {
+          "mutation_authority": "required",
           "path": "docs/OPERATION_ASSOCIATIONS.tsv",
-          "sha256": "8055983dce5b2007f917c0112999a1b66c1791d96db6adf2e3cb55f05beb4c27",
-          "mutation_authority": "required"
+          "sha256": "8055983dce5b2007f917c0112999a1b66c1791d96db6adf2e3cb55f05beb4c27"
         }
       }
     ],
@@ -176,10 +176,10 @@
       {
         "id": "active-operation-lock",
         "values": {
+          "active_count": 209,
           "count": 222,
           "path": "docs/API_FINGERPRINTS.tsv",
-          "sha256": "862dc00b0b80c8f319b0c56ae41d6fbd9c01bb935453ed90e08c2c10aa97fdcb",
-          "active_count": 209
+          "sha256": "d9a1aac9bb39eccbe49b4ba625fd673da9951e44d2c727a3f7a2a62c10106190"
         }
       },
       {
@@ -187,7 +187,7 @@
         "values": {
           "count": 209,
           "path": "crates/cloud-sdk-hetzner/src/serde/response_operations.tsv",
-          "sha256": "1f5bde6832ffa703e917a3d247c7fc5c25119621aaa8c3bd6965ab426733e84e"
+          "sha256": "b20f25546ea0a43bdf642353b38baefcafffeae40742b79b56821ef3ac27d1f5"
         }
       }
     ],
@@ -217,13 +217,13 @@
       {
         "id": "operation-policy",
         "values": {
-          "path": "docs/OPERATION_ASSOCIATIONS.tsv",
-          "sha256": "8055983dce5b2007f917c0112999a1b66c1791d96db6adf2e3cb55f05beb4c27",
           "delivery_phases": [
             "not_sent",
             "possibly_sent",
             "response_started"
-          ]
+          ],
+          "path": "docs/OPERATION_ASSOCIATIONS.tsv",
+          "sha256": "8055983dce5b2007f917c0112999a1b66c1791d96db6adf2e3cb55f05beb4c27"
         }
       }
     ],
@@ -253,13 +253,13 @@
     {
       "id": "cloud-openapi",
       "max_bytes": 33554432,
-      "sha256": "592b22eb5a71b960d4d4b9cd13a026f8948828bf7ca7c5d88ea73ce9259b0fd5",
+      "sha256": "0f7f538a1d760d2e09a34a33ab411a9e29b52102721a2c4986aaf51cdb188c5d",
       "url": "https://docs.hetzner.cloud/cloud.spec.json"
     },
     {
       "id": "storage-openapi",
       "max_bytes": 33554432,
-      "sha256": "0afcd318330d18896104f6f99459e41692956665ce45c11b8b304391a651e0f8",
+      "sha256": "3afa18f135b62f4c6703a855fe0c5d5f5769f9bac8451a09819acc6a637cb688",
       "url": "https://docs.hetzner.cloud/hetzner.spec.json"
     }
   ]

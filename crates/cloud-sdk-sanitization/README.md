@@ -29,7 +29,7 @@ Provider-neutral cleanup and secret-handling boundary for the main
 [`cloud-sdk`](https://github.com/valkyoth/cloud-sdk) workspace and
 [`cloud-sdk`](https://crates.io/crates/cloud-sdk) crate.
 
-This crate is part of the cloud-sdk 1.1.0 release.
+This crate is part of the cloud-sdk 1.1.1 release.
 
 This crate provides the mandatory volatile cleanup primitive used by the
 stable default `no_std` SDK plus reusable caller-owned guards. It delegates

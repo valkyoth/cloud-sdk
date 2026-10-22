@@ -29,7 +29,7 @@ Hetzner provider crate for the main GitHub
 [`cloud-sdk`](https://github.com/valkyoth/cloud-sdk) workspace and the
 [`cloud-sdk`](https://crates.io/crates/cloud-sdk) crate on crates.io.
 
-This crate is part of the cloud-sdk 1.1.0 release.
+This crate is part of the cloud-sdk 1.1.1 release.
 
 This is the main documentation surface for stable Hetzner support in
 `cloud-sdk`. It covers the complete claimed non-deprecated Hetzner Cloud, DNS,

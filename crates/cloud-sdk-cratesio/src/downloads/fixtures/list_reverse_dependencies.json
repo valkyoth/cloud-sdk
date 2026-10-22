@@ -58,11 +58,24 @@
         "version_downloads": "/api/v1/crates/serde/1.0.0/downloads"
       },
       "num": "1.0.0",
-      "published_by": null,
+      "published_by": {
+        "avatar": "https://avatars2.githubusercontent.com/u/1234567?v=4",
+        "created_at": null,
+        "github_username_matches": false,
+        "id": 42,
+        "login": "ghost",
+        "name": "Kate Morgan",
+        "url": "https://github.com/ghost"
+      },
       "readme_path": "/api/v1/crates/serde/1.0.0/readme",
       "repository": "https://github.com/serde-rs/serde",
       "rust_version": "1.31",
-      "trustpub_data": null,
+      "trustpub_data": {
+        "provider": "github",
+        "repository": "fixture",
+        "run_id": "fixture",
+        "sha": "fixture"
+      },
       "updated_at": "2019-12-13T13:46:41Z",
       "yank_message": "Security vulnerability",
       "yanked": false

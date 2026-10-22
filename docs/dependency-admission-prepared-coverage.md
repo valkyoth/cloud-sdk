@@ -3,17 +3,21 @@
 Status: admitted only in the excluded, non-published
 `tools/prepared-coverage-check` package.
 
-Checked: 2026-09-24.
+Checked: 2026-10-22.
+
+The 0.2.2 YAML refresh rejects raw NUL input and duplicate mapping keys by
+default. Existing bounded event preflight and workflow rejection regressions
+remain enabled; duplicate-key permissive loading is not selected.
 
 ## Packages
 
 | Component | Version | Role | License | Rust |
 | --- | --- | --- | --- | --- |
-| `syn` | `3.0.6` | Rust source and macro-input parser | MIT OR Apache-2.0 | 1.71 |
-| `saphyr` | `0.1.0` | bounded YAML document parser | MIT OR Apache-2.0 | 1.85.0 |
-| `saphyr-parser` | `0.1.0` | pre-DOM YAML event validation | MIT OR Apache-2.0 | 1.85.0 |
+| `syn` | `3.0.9` | Rust source and macro-input parser | MIT OR Apache-2.0 | 1.71 |
+| `saphyr` | `0.2.2` | bounded YAML document parser | MIT OR Apache-2.0 | 1.85.0 |
+| `saphyr-parser` | `0.2.2` | pre-DOM YAML event validation | MIT OR Apache-2.0 | 1.85.0 |
 | `proc-macro2` | `1.0.107` | transitive token representation | MIT OR Apache-2.0 | 1.68 |
-| `unicode-ident` | `1.0.26` | transitive identifier tables | Unicode-3.0 | 1.71 |
+| `unicode-ident` | `1.0.27` | transitive identifier tables | Unicode-3.0 | 1.71 |
 
 The direct pins disable default features. `syn` explicitly enables `full`,
 `parsing`, and `visit`; the YAML dependencies enable no direct features.
@@ -24,9 +28,9 @@ capability is intentionally provided by this tool.
 
 | Direct package | Version | Registry checksum |
 | --- | --- | --- |
-| `syn` | `3.0.6` | `8593e8e72159ed2257d083c7a454a85cbf854f37a0966d8d483aff8c8a3ebcee` |
-| `saphyr` | `0.1.0` | `79830a82cc4eeea33aa46346f910d7cc1e576249a6fbe2fefab6ba89eba8a203` |
-| `saphyr-parser` | `0.1.0` | `7429158804c36e705d9423b7848018e535b3e92d439a763e364ee12670ef473b` |
+| `syn` | `3.0.9` | `d78c8dee4c7bf0e14673097256fed6142ce9d3b85a408189d07482442145823b` |
+| `saphyr` | `0.2.2` | `0662b098655e5e779a80041b640702e341cf3ede4560ecc103cf0ef098c8e33e` |
+| `saphyr-parser` | `0.2.2` | `6c6220586c3dacac54bfddec87af86ddb31862d29666e7e35cf4baf70a25d387` |
 
 `python3 scripts/check_admission_evidence.py` verifies these exact direct
 pins, feature selections and checksums against the manifest and isolated lock.

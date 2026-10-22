@@ -1,5 +1,24 @@
 # Changelog
 
+## 1.1.1 - Candidate
+
+- Refresh TLS trust roots and certificate verification, addressing
+  RUSTSEC-2026-0381 and RUSTSEC-2026-0382; thanks to the reporter of PR #14.
+- Update dependencies and develop on Rust 1.99.1 while preserving MSRV 1.92.
+- Follow Hetzner's load-balancer Primary IP and asynchronous deletion changes.
+- Refresh crates.io schema evidence; its 51-operation scope is unchanged.
+- See [maintenance release notes](release-notes/RELEASE_NOTES_1.1.1.md).
+
+## 1.1.0
+
+- Add the reviewed public crates.io API and Cargo registry workflows.
+- See [release notes](release-notes/RELEASE_NOTES_1.1.0.md).
+
+## 1.0.0
+
+- First stable provider-neutral foundation and Hetzner Cloud/Robot SDK.
+- See [release notes](release-notes/RELEASE_NOTES_1.0.0.md).
+
 ## 0.100.0 - 2026-08-19
 
 - Completed the cumulative v0.96-v0.100 request-fidelity, Server Metadata,

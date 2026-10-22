@@ -56,7 +56,7 @@ cloud	security	delete_certificate	204	empty	-	-
 cloud	cloud	delete_firewall	204	empty	-	-
 cloud	cloud	delete_floating_ip	204	empty	-	-
 cloud	cloud	delete_image	204	empty	-	-
-cloud	cloud	delete_load_balancer	204	empty	-	-
+cloud	cloud	delete_load_balancer	201	action	-	action
 cloud	cloud	delete_load_balancer_service	201	action	-	action
 cloud	cloud	delete_network	204	empty	-	-
 cloud	cloud	delete_network_route	201	action	-	action

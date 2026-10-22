@@ -23,7 +23,7 @@ provider identities, API models, request preparation, checked response
 decoding, authentication rules, and high-level workflows while reusing the
 provider-neutral execution contracts from `cloud-sdk`.
 
-Version `1.1.0` supports all 51 selected public crates.io API operations.
+Version `1.1.1` supports all 51 selected public crates.io API operations.
 Seven discovery, three catalog
 and five version operations, four download/statistics operations and six public
 account/ownership operations have checked blocking, local-async and Send-async

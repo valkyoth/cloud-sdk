@@ -16,16 +16,16 @@ def main():
     cases = [
         (FILES[4], "- Version: `1.1.5`", "- Version: `1.1.4`"),
         (FILES[4], "891efaba", "00000000"),
-        (FILES[5], "| `syn` | `3.0.6`", "| `syn` | `3.0.4`"),
-        (FILES[5], "8593e8e7", "00000000"),
-        (FILES[5], "79830a82", "00000000"),
-        (FILES[5], "74291588", "00000000"),
+        (FILES[5], "| `syn` | `3.0.9`", "| `syn` | `3.0.4`"),
+        (FILES[5], "d78c8dee", "00000000"),
+        (FILES[5], "0662b098", "00000000"),
+        (FILES[5], "6c622058", "00000000"),
         (FILES[5], "| `saphyr`", "| `other`"),
         (FILES[0], 'version = "=1.1.5"', 'version = "=1.1.4"'),
-        (FILES[2], 'version = "=3.0.6"', 'version = "=3.0.4"'),
+        (FILES[2], 'version = "=3.0.9"', 'version = "=3.0.4"'),
         (FILES[2], 'default-features = false', 'default-features = true'),
         (FILES[2], '"parsing", "visit"', '"parsing"'),
-        (FILES[3], 'checksum = "8593e8e7', 'checksum = "00000000'),
+        (FILES[3], 'checksum = "d78c8dee', 'checksum = "00000000'),
     ]
     for filename, before, after in cases:
         with tempfile.TemporaryDirectory() as directory:

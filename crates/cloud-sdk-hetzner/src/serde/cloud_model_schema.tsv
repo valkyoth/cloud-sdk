@@ -147,10 +147,14 @@ load_balancer	protection/delete	yes	boolean	-	-	-	-	-	-	-	-	-
 load_balancer	public_net	yes	object	-	-	-	-	-	-	-	-	-
 load_balancer	public_net/enabled	yes	boolean	-	-	-	-	-	-	-	-	-
 load_balancer	public_net/ipv4	yes	object	-	-	-	-	-	-	-	-	-
+load_balancer	public_net/ipv4/blocked	yes	boolean	-	-	-	-	-	-	-	-	-
 load_balancer	public_net/ipv4/dns_ptr	yes	null|string	-	-	-	-	-	-	-	-	-
+load_balancer	public_net/ipv4/id	yes	integer|null	1	9007199254740991	-	-	-	-	int64	-	-
 load_balancer	public_net/ipv4/ip	yes	null|string	-	-	-	-	-	-	-	-	-
 load_balancer	public_net/ipv6	yes	object	-	-	-	-	-	-	-	-	-
+load_balancer	public_net/ipv6/blocked	yes	boolean	-	-	-	-	-	-	-	-	-
 load_balancer	public_net/ipv6/dns_ptr	yes	null|string	-	-	-	-	-	-	-	-	-
+load_balancer	public_net/ipv6/id	yes	integer|null	1	9007199254740991	-	-	-	-	int64	-	-
 load_balancer	public_net/ipv6/ip	yes	null|string	-	-	-	-	-	-	-	-	-
 load_balancer	services	yes	array	-	-	-	-	-	-	-	-	-
 load_balancer	services[]/protocol	yes	string	-	-	-	-	-	-	-	-	http|https|tcp

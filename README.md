@@ -27,9 +27,9 @@
 
 | API | Status | Last Checked |
 | :--- | :--- | :---: |
-| [Hetzner Cloud](https://docs.hetzner.cloud/reference/cloud) | ✅ Ready to use | 2026/09/26 |
-| [Hetzner Robot](https://robot.hetzner.com/doc/webservice/en.html) | ✅ Ready to use | 2026/09/26 |
-| [crates.io](https://crates.io) | Supported in 1.1.0 | 2026/09/26 |
+| [Hetzner Cloud](https://docs.hetzner.cloud/reference/cloud) | ✅ Ready to use | 2026/10/22 |
+| [Hetzner Robot](https://robot.hetzner.com/doc/webservice/en.html) | ✅ Ready to use | 2026/10/22 |
+| [crates.io](https://crates.io) | Supported in 1.1.0 | 2026/10/22 |
 
 # cloud-sdk
 
@@ -46,7 +46,7 @@ fit their environment. The project emphasizes validated inputs, bounded
 memory use, caller-controlled behavior, cross-platform compatibility,
 security review, and reproducible release evidence.
 
-Version `1.1.0` supports Hetzner Cloud and Robot through `cloud-sdk-hetzner`,
+Version `1.1.1` supports Hetzner Cloud and Robot through `cloud-sdk-hetzner`,
 and the reviewed public crates.io API and Cargo Registry Web API through
 `cloud-sdk-cratesio`. Each provider documents its exact scope and security boundaries.
 
@@ -69,7 +69,7 @@ please report it so it can be fixed.
 | --- | --- |
 | License | `MIT OR Apache-2.0` |
 | MSRV | Rust `1.92.0` |
-| Pinned toolchain | Rust `1.98.1` |
+| Pinned toolchain | Rust `1.99.1` |
 | Default target | `no_std` |
 | Default runtime dependencies | only the first-party cleanup boundary and admitted `sanitization` primitive; provider crates remain transport-free |
 | Unsafe policy | first-party crates use `#![forbid(unsafe_code)]` |
@@ -98,7 +98,7 @@ matrix, release plan, tests, and pentest gates.
 ## Rust Version Support
 
 The minimum supported Rust version is Rust `1.92.0`. Repository verification
-uses pinned stable Rust `1.98.1` until the toolchain policy is updated.
+uses pinned stable Rust `1.99.1` until the toolchain policy is updated.
 
 v0.52.0 raised the MSRV from Rust 1.90 to 1.92 because Rust 1.90 and 1.91 hit
 [compiler issue #100013](https://github.com/rust-lang/rust/issues/100013) when
@@ -107,8 +107,8 @@ cross-thread async guarantee instead of weakening it for those two compilers.
 
 | Rust | Local Evidence |
 | --- | --- |
-| `1.92.0 - 1.98.0` | `cargo +<version> check --locked --workspace --all-targets --all-features` for every supported compiler and point release |
-| `1.98.1` | `scripts/checks.sh` |
+| `1.92.0 - 1.99.0` | `cargo +<version> check --locked --workspace --all-targets --all-features` for every supported compiler and point release |
+| `1.99.1` | `scripts/checks.sh` |
 
 Portable and native platform evidence is documented in
 [`docs/PLATFORM_SUPPORT.md`](https://github.com/valkyoth/cloud-sdk/blob/main/docs/PLATFORM_SUPPORT.md).

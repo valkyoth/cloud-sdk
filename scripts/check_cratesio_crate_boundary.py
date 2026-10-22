@@ -62,16 +62,16 @@ CREDENTIAL_SOURCES = {
     for name in ("mod", "context", "context_tests", "kind", "material", "policy", "secret", "tests")
 }
 EXPECTED_WORKSPACE_DEPENDENCIES = {
-    "base64-ng": {"version": "=2.0.4", "default-features": False},
-    "spdx": {"version": "=0.13.5", "default-features": False},
+    "base64-ng": {"version": "=2.1.0", "default-features": False},
+    "spdx": {"version": "=0.13.6", "default-features": False},
     "cloud-sdk-sanitization": {
         "path": "crates/cloud-sdk-sanitization",
-        "version": "1.1.0",
+        "version": "1.1.1",
         "default-features": False,
     },
     "cloud-sdk": {
         "path": "crates/cloud-sdk",
-        "version": "1.1.0",
+        "version": "1.1.1",
         "default-features": False,
     },
     "serde": {
@@ -79,7 +79,7 @@ EXPECTED_WORKSPACE_DEPENDENCIES = {
         "default-features": False,
         "features": ["alloc", "derive"],
     },
-    "serde_json": {"version": "=1.0.151", "default-features": False,
+    "serde_json": {"version": "=1.0.154", "default-features": False,
         "features": ["alloc"]},
 }
 
@@ -165,7 +165,7 @@ def validate(root: Path) -> None:
     package = manifest.get("package", {})
     if package.get("name") != "cloud-sdk-cratesio":
         raise BoundaryError("provider package name changed")
-    if package.get("version") != "1.1.0":
+    if package.get("version") != "1.1.1":
         raise BoundaryError("provider candidate version changed")
     for field, expected in EXPECTED_AUTO_TARGETS.items():
         if package.get(field) is not expected:

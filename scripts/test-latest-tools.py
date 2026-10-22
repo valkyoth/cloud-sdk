@@ -19,7 +19,7 @@ def fake_environment(directory: Path, *, stale: bool = False) -> tuple[dict[str,
     log = directory / "cargo.log"
     rustc = binary / "rustc"
     rustc.write_text(
-        "#!/bin/sh\nprintf '%s\\n' 'rustc 1.98.1 (test 2026-09-01)'\n",
+        "#!/bin/sh\nprintf '%s\\n' 'rustc 1.99.1 (test 2026-09-01)'\n",
         encoding="ascii",
     )
     rustc.chmod(0o755)

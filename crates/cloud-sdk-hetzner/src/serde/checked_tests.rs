@@ -19,6 +19,45 @@ pub(super) fn pagination() -> &'static str {
 }
 
 #[test]
+fn load_balancer_delete_requires_created_action_response() {
+    let body = format!(r#"{{"action":{}}}"#, action());
+    let expected = prepared(
+        "delete_load_balancer",
+        CLOUD_SERVICE_ID,
+        StatusCode::CREATED,
+    );
+    assert!(matches!(
+        decode_response(expected, response(StatusCode::CREATED, body.as_bytes()))
+            .map(|decoded| decoded.into_success()),
+        Ok(HetznerSuccess::Action(_))
+    ));
+    assert!(
+        decode_response(
+            prepared(
+                "delete_load_balancer",
+                CLOUD_SERVICE_ID,
+                StatusCode::CREATED
+            ),
+            empty_response(StatusCode::NO_CONTENT),
+        )
+        .is_err()
+    );
+    for invalid in [b"{}".as_slice(), b"", br#"{"action":null}"#] {
+        assert!(
+            decode_response(
+                prepared(
+                    "delete_load_balancer",
+                    CLOUD_SERVICE_ID,
+                    StatusCode::CREATED
+                ),
+                response(StatusCode::CREATED, invalid),
+            )
+            .is_err()
+        );
+    }
+}
+
+#[test]
 fn decodes_action_list_resource_and_paginated_resource_families() {
     let single = format!(r#"{{"action":{}}}"#, action());
     let decoded = decode_response(

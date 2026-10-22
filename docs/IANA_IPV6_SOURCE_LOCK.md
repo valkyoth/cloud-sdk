@@ -1,15 +1,23 @@
 # IANA IPv6 Source Lock
 
-Status: source-locked for `v0.12.0`.
+Status: source-locked; refreshed for the `1.1.1` maintenance candidate.
 
-Retrieved: 2026-07-11
+Retrieved: 2026-10-22
+
+The maintenance review observed new CSV digests, but the complete allocated
+prefix/designation/date table is unchanged. All special-purpose rows were
+reviewed: the existing conservative exclusions still cover special ranges
+inside admitted allocations; all remaining special prefixes are outside the
+ordinary allocation allowlist. No address range or runtime policy is widened.
+The original registry update dates below identify the allocation baseline;
+the refreshed digests bind the representations retrieved on the date above.
 
 ## Sources
 
 | Registry | Last updated | SHA-256 of CSV |
 | --- | --- | --- |
-| [IPv6 Global Unicast Address Space](https://www.iana.org/assignments/ipv6-unicast-address-assignments/ipv6-unicast-address-assignments.xhtml) | 2025-10-10 | `ebff425bb1acbbea29c4f28146930873faddd5ee57260e95b57ed9e04ea21dd8` |
-| [IPv6 Special-Purpose Address Space](https://www.iana.org/assignments/iana-ipv6-special-registry/iana-ipv6-special-registry.xhtml) | 2025-10-09 | `775feea0621dec8735a44fbf30f762e721e8f0a1b3ab7eb341961a88cfce2139` |
+| [IPv6 Global Unicast Address Space](https://www.iana.org/assignments/ipv6-unicast-address-assignments/ipv6-unicast-address-assignments.xhtml) | 2025-10-10 | `65d96c4fb7bfe5e314bb5832edb2f1957cfcfe764a7d983485a4e1704011ef18` |
+| [IPv6 Special-Purpose Address Space](https://www.iana.org/assignments/iana-ipv6-special-registry/iana-ipv6-special-registry.xhtml) | 2025-10-09 | `bf56772aef97fbf9b4a27c98b8511f2bb1ba96da4b9ccc12ab203a2496faba66` |
 
 Machine-readable sources:
 

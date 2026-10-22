@@ -74,20 +74,20 @@ def test_first_party_dependency_versions_are_exact() -> None:
             """```toml
 [dependencies]
 cloud-sdk = "0.99.0"
-cloud-sdk-reqwest = { version = "=1.1.0" }
+cloud-sdk-reqwest = { version = "=1.1.1" }
 ```
 """,
             encoding="ascii",
         )
         result = run(readme)
         assert result.returncode == 1, result
-        assert "cloud-sdk must use exact version =1.1.0" in result.stderr
+        assert "cloud-sdk must use exact version =1.1.1" in result.stderr
 
         readme.write_text(
             """```toml
 [dependencies]
-cloud-sdk = "=1.1.0"
-cloud-sdk-reqwest = { version = "=1.1.0" }
+cloud-sdk = "=1.1.1"
+cloud-sdk-reqwest = { version = "=1.1.1" }
 ```
 """,
             encoding="ascii",
@@ -126,7 +126,7 @@ def test_commonmark_toml_fences_are_enforced() -> None:
             )
             result = run(readme)
             assert result.returncode == 1, (opening, result)
-            assert "cloud-sdk must use exact version =1.1.0" in result.stderr
+            assert "cloud-sdk must use exact version =1.1.1" in result.stderr
 
 
 def test_dependency_tables_override_missing_or_incorrect_languages() -> None:
@@ -144,7 +144,7 @@ def test_dependency_tables_override_missing_or_incorrect_languages() -> None:
             )
             result = run(readme)
             assert result.returncode == 1, (opening, result)
-            assert "cloud-sdk must use exact version =1.1.0" in result.stderr
+            assert "cloud-sdk must use exact version =1.1.1" in result.stderr
 
 
 def test_cargo_dependency_table_variants_are_detected() -> None:
@@ -169,7 +169,7 @@ def test_cargo_dependency_table_variants_are_detected() -> None:
             )
             result = run(readme)
             assert result.returncode == 1, (example, result)
-            assert "cloud-sdk must use exact version =1.1.0" in result.stderr
+            assert "cloud-sdk must use exact version =1.1.1" in result.stderr
 
 
 def test_malformed_dotted_dependency_fails_closed() -> None:
@@ -217,7 +217,7 @@ def test_unterminated_toml_variants_fail_closed() -> None:
             assert "unterminated TOML fence" in result.stderr
 
         readme.write_text(
-            '```text\n[dependencies]\ncloud-sdk = "=1.1.0"\n',
+            '```text\n[dependencies]\ncloud-sdk = "=1.1.1"\n',
             encoding="ascii",
         )
         result = run(readme)

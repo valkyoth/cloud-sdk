@@ -24,4 +24,6 @@ pub const ENDPOINT_GROUPS: &[EndpointGroup] = &[
 ];
 
 #[cfg(test)]
+mod maintenance_tests;
+#[cfg(test)]
 mod tests;

@@ -86,6 +86,7 @@ fn write_create(
     output: &mut [u8],
 ) -> Result<usize, HetznerPreparationError> {
     object(output, |writer, first| {
+        super::load_balancer_public_net::write(request, writer, first)?;
         writer.field_string(first, "name", request.name().as_str())?;
         writer.field_string(
             first,

@@ -28,7 +28,7 @@
 Provider-neutral testing support for the main
 [`cloud-sdk`](https://crates.io/crates/cloud-sdk) crate and its provider crates.
 
-This crate is part of the cloud-sdk 1.1.0 release.
+This crate is part of the cloud-sdk 1.1.1 release.
 The default graph is no_std, allocation-free, network-free, filesystem-free,
 and runtime-free.
 

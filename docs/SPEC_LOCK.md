@@ -1,12 +1,24 @@
 # Hetzner API Source Lock
 
-Status: current source lock reviewed for the unreleased `1.1.0` candidate.
+Status: current source lock reviewed for the unreleased `1.1.1` candidate.
 
-Retrieved: 2026-09-26
+Retrieved: 2026-10-22
 Reference page: <https://docs.hetzner.cloud/reference/cloud>
 Changelog page: <https://docs.hetzner.cloud/changelog>
 
 ## Locked Specs
+
+### Reviewed Live Drift (2026-10-22)
+
+The inventory remains 222 operations, 209 active, with 444 parameter declarations.
+Load-balancer creation adds existing Primary IP selection through `public_net`.
+IPv4/IPv6 response objects now require nullable `id` and boolean `blocked` fields.
+Deletion changes from 204 with no body to 201 with an action; the operation
+association and checked response contract now follow that upstream change.
+Explicit page/per-page bounds match existing SDK validation. DNS pointer
+required/null semantics remain unchanged. Robot and Server Metadata are unchanged.
+The lock, generated request/response tables and fixtures are refreshed together.
+No authenticated or mutating API calls were used for this review.
 
 ### Reviewed Live Drift (2026-09-26)
 
@@ -68,8 +80,8 @@ Commit 8's pentest range; it is not publication authorization.
 
 | API | URL | OpenAPI | Title | Spec Version | Paths | Operations | SHA-256 | Last-Modified | ETag | Content-Length |
 | --- | --- | --- | --- | --- | ---: | ---: | --- | --- | --- | ---: |
-| `cloud` | <https://docs.hetzner.cloud/cloud.spec.json> | `3.1.2` | `Hetzner Cloud API` | `1.0.0` | 152 | 190 | `592b22eb5a71b960d4d4b9cd13a026f8948828bf7ca7c5d88ea73ce9259b0fd5` | not recorded | not recorded | 3508428 |
-| `hetzner` | <https://docs.hetzner.cloud/hetzner.spec.json> | `3.1.2` | `Hetzner API` | `1.0.0` | 23 | 32 | `0afcd318330d18896104f6f99459e41692956665ce45c11b8b304391a651e0f8` | `Tue, 08 Sep 2026 10:31:03 GMT` | `W/"7ed90-1a080923f95"` | 519568 |
+| `cloud` | <https://docs.hetzner.cloud/cloud.spec.json> | `3.1.2` | `Hetzner Cloud API` | `1.0.0` | 152 | 190 | `0f7f538a1d760d2e09a34a33ab411a9e29b52102721a2c4986aaf51cdb188c5d` | not recorded | not recorded | 3508428 |
+| `hetzner` | <https://docs.hetzner.cloud/hetzner.spec.json> | `3.1.2` | `Hetzner API` | `1.0.0` | 23 | 32 | `3afa18f135b62f4c6703a855fe0c5d5f5769f9bac8451a09819acc6a637cb688` | `Tue, 08 Sep 2026 10:31:03 GMT` | `W/"7ed90-1a080923f95"` | 519568 |
 
 Total source-locked operations: 222 (`cloud`: 190, `hetzner`: 32).
 

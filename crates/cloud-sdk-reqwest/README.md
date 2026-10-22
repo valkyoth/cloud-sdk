@@ -29,7 +29,7 @@ Optional provider-neutral transport adapter for the main
 [`cloud-sdk`](https://github.com/valkyoth/cloud-sdk) workspace and
 [`cloud-sdk`](https://crates.io/crates/cloud-sdk) crate.
 
-This crate is part of the cloud-sdk 1.1.0 release.
+This crate is part of the cloud-sdk 1.1.1 release.
 
 The crate remains no_std and transport-free by default. Its non-default
 `blocking-rustls`, `blocking-rustls-webpki-roots`, and `async-rustls` features

@@ -90,6 +90,19 @@ fn put(root: &mut Value, parent: &str, key: &str, value: Value) {
         .insert(key.into(), value);
 }
 #[test]
+fn reordered_nullable_branches_accept_null_and_reject_wrong_types() {
+    for field in ["published_by", "trustpub_data"] {
+        let mut value = fixture(1);
+        put(&mut value, "/version", field, Value::Null);
+        assert!(changed(request(1), &value).is_ok());
+        for invalid in [json!(false), json!(1), json!("invalid"), json!([])] {
+            put(&mut value, "/version", field, invalid);
+            assert!(changed(request(1), &value).is_err());
+        }
+    }
+}
+
+#[test]
 fn all_source_fixtures_decode_with_redacted_future_fields() {
     for (i, request) in requests().into_iter().enumerate() {
         let mut value = fixture(i);

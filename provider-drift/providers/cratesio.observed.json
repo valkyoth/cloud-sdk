@@ -1650,7 +1650,7 @@
           "content_types": [
             "application/json"
           ],
-          "fingerprint": "28a53d39b753d8bf7796fb097fc815473a0742da98055d9641074cd0bbcf8ddc"
+          "fingerprint": "4bf90d0dbe6759626d6e1b81e2305f76d267ef945b875a2e24bf4f38a8d9c966"
         }
       },
       {
@@ -2659,13 +2659,6 @@
         }
       },
       {
-        "id": "component/f9966e2fc3ccdab8769fcaec3cbe4e35",
-        "values": {
-          "fingerprint": "9f0e99aca4049c6dff07b884ae34386cd0ad5ef2a9a5119bc66372e91fa5a3fa",
-          "name": "LegacyCrateOwnerInvitation"
-        }
-      },
-      {
         "id": "component/fbebd57c48e70995d6b4f060c8637984",
         "values": {
           "fingerprint": "345e8c8186b84a15973e14923b33cdc7eaef027c201886f6b0ca08ce992399b2",
@@ -2731,7 +2724,7 @@
       {
         "id": "component/dd167905de0defcaf72de673ee44c074",
         "values": {
-          "fingerprint": "bb2dc468848c5ea3277997dd739f0ef446abd674c3be283d8995c6a2ba8ee4af",
+          "fingerprint": "b38f9fbf8c6dac2ccb75ab107068288fddf005b3cc7376efa9ff2cc3eeb74c60",
           "name": "Version"
         }
       },
@@ -2768,13 +2761,13 @@
     {
       "id": "cargo",
       "max_bytes": 524288,
-      "sha256": "2e349014e3bc95e7896f3e33ddbee2fdbb30de0a4ec58dca5dd8b1bd6f98a138",
+      "sha256": "3220debf0fb737663e4f3d2375137c90543f33a6c32cff105263fcf8d59a162d",
       "url": "https://doc.rust-lang.org/cargo/reference/registry-web-api.html"
     },
     {
       "id": "openapi",
       "max_bytes": 1048576,
-      "sha256": "3a4f3db90d4c43a3983fb26294216cc30ae5a5e4492838abe3bd3ab2b268b35e",
+      "sha256": "e0381435d584fb65afe67024840b371b8f65cb8904991bae354fff0d7ca920c6",
       "url": "https://crates.io/api/openapi.json"
     },
     {
@@ -2786,13 +2779,13 @@
     {
       "id": "policy",
       "max_bytes": 131072,
-      "sha256": "970a124f5d7978c62e0cf74bd85f9d15d6ef8a40b01648e25b8ca96a884d57ec",
+      "sha256": "5d9b41da21e93b6abd3d5b4d5735b400eb637e76b312c751065e5726ab4c022a",
       "url": "https://crates.io/data-access"
     },
     {
       "id": "policy-current",
       "max_bytes": 131072,
-      "sha256": "db5078a31e412c395321b95124ba5e4b3db7954e1d2a66a9a5847c3cbbaca802",
+      "sha256": "ca1ca051c6da4e9e2f9657fb2b82116f82729631f9a5b84332175f4efe76b145",
       "url": "https://raw.githubusercontent.com/rust-lang/crates.io/main/svelte/src/routes/data-access/%2Bpage.svelte"
     },
     {

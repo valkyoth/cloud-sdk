@@ -16,7 +16,7 @@ the request model and creates no second owned public-key representation.
 | --- | --- | --- | --- |
 | `base64-ng` | `2.0.3` | defaults disabled | MIT OR Apache-2.0 |
 | `md-5` | `0.11.0` | defaults disabled | MIT OR Apache-2.0 |
-| `sha2` | `0.11.0` | defaults disabled | MIT OR Apache-2.0 |
+| `sha2` | `0.11.1` | defaults disabled | MIT OR Apache-2.0 |
 
 All three packages are `no_std` and pinned exactly. `base64-ng` is an existing
 first-party dependency already admitted for bounded Basic authentication. The

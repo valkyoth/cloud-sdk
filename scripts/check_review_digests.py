@@ -17,6 +17,7 @@ CATEGORIES = {
         *(f"0.{minor}.0" for minor in range(32, 96)),
         "1.0.0",
         "1.1.0",
+        "1.1.1",
     },
     "MIGRATION": {*(f"0.{minor}.0" for minor in range(27, 96)), "1.0.0"},
     "PUBLIC_API_REVIEW": {
@@ -65,7 +66,7 @@ def validate_digest(prefix: str, historical: set[str]) -> set[str]:
     unexpected = actual - historical - future
     if unexpected:
         raise ValueError(f"{path.name} contains unexpected versions {sorted(unexpected)}")
-    for version in historical - {"0.95.0", "1.0.0", "1.1.0"}:
+    for version in historical - {"0.95.0", "1.0.0", "1.1.0", "1.1.1"}:
         source = f"/v{version}/docs/{prefix}_{version}.md"
         if source not in text:
             raise ValueError(f"{path.name} lacks signed-tag source for v{version}")

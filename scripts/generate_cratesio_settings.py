@@ -24,8 +24,8 @@ def structural(value):
 def render(document):
     expected = {
         "update_crate": {"type": "object", "required": ["crate"], "properties": {
-            "crate": {"oneOf": [{"type": "object", "properties": {
-                "trustpub_only": {"type": ["boolean", "null"]}}}]}}},
+            "crate": {"type": "object", "properties": {
+                "trustpub_only": {"type": ["boolean", "null"]}}}}},
         "update_version": {"type": "object", "required": ["version"], "properties": {
             "version": {"$ref": "#/components/schemas/VersionUpdate"}}},
     }

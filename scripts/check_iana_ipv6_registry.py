@@ -26,12 +26,12 @@ REGISTRIES = {
     "global-unicast": (
         "https://www.iana.org/assignments/ipv6-unicast-address-assignments/"
         "ipv6-unicast-address-assignments.csv",
-        "ebff425bb1acbbea29c4f28146930873faddd5ee57260e95b57ed9e04ea21dd8",
+        "65d96c4fb7bfe5e314bb5832edb2f1957cfcfe764a7d983485a4e1704011ef18",
     ),
     "special-purpose": (
         "https://www.iana.org/assignments/iana-ipv6-special-registry/"
         "iana-ipv6-special-registry-1.csv",
-        "775feea0621dec8735a44fbf30f762e721e8f0a1b3ab7eb341961a88cfce2139",
+        "bf56772aef97fbf9b4a27c98b8511f2bb1ba96da4b9ccc12ab203a2496faba66",
     ),
 }
 POLICY_EXCLUSIONS = {"2001::/23", "2002::/16"}

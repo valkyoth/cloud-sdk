@@ -3,16 +3,16 @@
 Status: admitted only through the mandatory `cloud-sdk-sanitization` boundary
 with default features disabled.
 
-Checked: 2026-09-04.
+Checked: 2026-10-22.
 
 ## Decision
 
 | Crate | Version | Role | License | Default features |
 | --- | --- | --- | --- | --- |
-| `sanitization` | `2.0.4` | volatile caller-buffer and owned-secret cleanup | MIT OR Apache-2.0 | disabled |
+| `sanitization` | `2.1.1` | volatile caller-buffer and owned-secret cleanup | MIT OR Apache-2.0 | disabled |
 
 The dependency is the first-party crate published from
-<https://github.com/valkyoth/sanitization>. Version `2.0.4` retains Rust 1.90
+<https://github.com/valkyoth/sanitization>. Version `2.1.1` retains Rust 1.90
 and `no_std`, and has no runtime dependencies with default features disabled.
 The upstream default `asm-compare` feature is deliberately not admitted.
 
@@ -66,7 +66,9 @@ workspace.
 The original major-version evidence remains in
 [`DEPENDENCY_REVIEW.md#v0320`](DEPENDENCY_REVIEW.md#v0320); the current patch
 checksum and review are recorded in
-[`DEPENDENCY_REVIEW.md#v110`](DEPENDENCY_REVIEW.md#v110).
+[`DEPENDENCY_REVIEW.md#v111`](DEPENDENCY_REVIEW.md#v111). The 1.1.1 maintenance
+refresh admits sanitization 2.1.1 without enabling additional features or
+changing the wrapper APIs. Optional interoperability dependencies remain absent.
 
 ## Verification
 

@@ -1,9 +1,9 @@
 # crates.io Source Lock
 
-Status: Commits 1 through 12 are accepted in the unreleased `1.1.0` train.
-Commit 13 adds [personal workflows](CRATESIO_PERSONAL_POLICY.md) and requires
-incremental pentest against accepted checkpoint `7d4c147b`.
-No tag or publication is authorized.
+Status: the full provider was published in `1.1.0`. The current `1.1.1`
+maintenance candidate refreshes reviewed upstream evidence and requires pentest
+and GitHub acceptance before publication. Earlier checkpoint records below
+describe their historical scope, not outstanding implementation work.
 See the [catalog contract](CRATESIO_CATALOG_POLICY.md),
 [discovery contract](CRATESIO_DISCOVERY_POLICY.md), [request policy](CRATESIO_REQUEST_POLICY.md),
 [credential contract](CRATESIO_CREDENTIAL_POLICY.md) and
@@ -22,7 +22,7 @@ reviewed Cargo overlap is
 
 ## Reviewed Sources
 
-The observation, refreshed on 2026-09-24, binds six official HTTPS representations:
+The observation, refreshed on 2026-10-22, binds six official HTTPS representations:
 
 | Evidence | Exact source | Bound |
 | --- | --- | --- |
@@ -181,6 +181,27 @@ the exact payloads, report, and candidate, apply all accepted artifacts
 together, run the full checks and pentest, and commit the result.
 Failed, timed-out, oversized, redirected, malformed, incomplete, or internally
 inconsistent observations leave accepted files untouched.
+
+## Reviewed Drift 2026-10-22
+
+The 1.1.1 maintenance review retains 51 operations and seven Cargo overlaps.
+`update_crate` now represents its settings body directly as an object instead
+of wrapping that same object in a one-branch `oneOf`. The generator and its
+negative tests follow the new exact representation. `Version` reorders the
+nullable `published_by` and `trustpub_data` alternatives without changing their
+accepted values. Catalog, version and reverse-dependency projections/fixtures
+are regenerated. Tests accept null and object values and reject wrong types.
+Fixture generation now selects a real string-enum member instead of placeholder
+text when the non-null alternative comes first.
+
+The unused `LegacyCrateOwnerInvitation` component is removed upstream. The
+public operation list and Cargo protocol classifications are unchanged.
+Cargo and deployed policy bytes changed; the current policy source only
+changes frontend import paths from `$lib` to `#lib`. Rate limits, identifying
+user-agent rules and preferred alternative data sources are unchanged.
+The pinned controller/source commit remains historical evidence at
+`9ae7f769cea32f38ebc2ea9ec2ce455b47641511`, not a claim to audit every backend
+commit. Live semantic and exact-source checks pass against the refreshed locks.
 
 ## Reviewed Drift 2026-09-15
 

@@ -36,16 +36,16 @@ def fixture() -> Path:
     (root / "Cargo.toml").write_text(
         "[workspace]\n"
         "[workspace.dependencies]\n"
-        "cloud-sdk = { path = \"crates/cloud-sdk\", version = \"1.1.0\", "
+        "cloud-sdk = { path = \"crates/cloud-sdk\", version = \"1.1.1\", "
         "default-features = false }\n"
         "cloud-sdk-sanitization = { path = \"crates/cloud-sdk-sanitization\", "
-        "version = \"1.1.0\", default-features = false }\n"
+        "version = \"1.1.1\", default-features = false }\n"
         "serde = { version = \"=1.0.229\", default-features = false, "
         "features = [\"alloc\", \"derive\"] }\n"
-        "serde_json = { version = \"=1.0.151\", default-features = false, features = [\"alloc\"] }\n"
+        "serde_json = { version = \"=1.0.154\", default-features = false, features = [\"alloc\"] }\n"
         "semver = { version = \"=1.0.28\", default-features = false }\n"
-        "spdx = { version = \"=0.13.5\", default-features = false }\n"
-        "base64-ng = { version = \"=2.0.4\", default-features = false }\n",
+        "spdx = { version = \"=0.13.6\", default-features = false }\n"
+        "base64-ng = { version = \"=2.1.0\", default-features = false }\n",
         encoding="ascii",
     )
     source = ROOT / checker.CRATE
@@ -55,7 +55,7 @@ def fixture() -> Path:
     other = root / "crates/cloud-sdk-hetzner"
     other.mkdir()
     (other / "Cargo.toml").write_text(
-        '[package]\nname = "cloud-sdk-hetzner"\nversion = "1.1.0"\n',
+        '[package]\nname = "cloud-sdk-hetzner"\nversion = "1.1.1"\n',
         encoding="ascii",
     )
     return root
@@ -228,7 +228,7 @@ def test_unrelated_crate_dependency_is_rejected() -> None:
     manifest = root / "crates/cloud-sdk-hetzner/Cargo.toml"
     manifest.write_text(
         manifest.read_text(encoding="ascii")
-        + '\n[dependencies]\ncloud-sdk-cratesio = "1.1.0"\n',
+        + '\n[dependencies]\ncloud-sdk-cratesio = "1.1.1"\n',
         encoding="ascii",
     )
     assert_rejected(root, "unrelated crate depends on provider")
@@ -239,7 +239,7 @@ def test_unrelated_crate_dependency_is_rejected() -> None:
     manifest.write_text(
         manifest.read_text(encoding="ascii")
         + '\n[dependencies]\nregistry = { package = "cloud-sdk-cratesio", '
-        'version = "1.1.0" }\n',
+        'version = "1.1.1" }\n',
         encoding="ascii",
     )
     assert_rejected(root, "unrelated crate depends on provider")

@@ -398,7 +398,7 @@ def test_committed_evidence_is_structurally_complete() -> None:
         )
     )
     fixtures = json.loads(generator.DEFAULT_FIXTURES.read_text(encoding="ascii"))
-    assert len(rows) == 737
+    assert len(rows) == 741
     assert {row["model"] for row in rows} == generator.ALL_EXPECTED_MODELS
     assert set(fixtures) == generator.ALL_EXPECTED_MODELS
     identities = [(row["model"], row["path"]) for row in rows]

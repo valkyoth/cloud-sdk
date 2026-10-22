@@ -2,9 +2,9 @@
 set -eu
 
 cloud_url="https://docs.hetzner.cloud/cloud.spec.json"
-cloud_sha256="592b22eb5a71b960d4d4b9cd13a026f8948828bf7ca7c5d88ea73ce9259b0fd5"
+cloud_sha256="0f7f538a1d760d2e09a34a33ab411a9e29b52102721a2c4986aaf51cdb188c5d"
 hetzner_url="https://docs.hetzner.cloud/hetzner.spec.json"
-hetzner_sha256="0afcd318330d18896104f6f99459e41692956665ce45c11b8b304391a651e0f8"
+hetzner_sha256="3afa18f135b62f4c6703a855fe0c5d5f5769f9bac8451a09819acc6a637cb688"
 
 require_text() {
     file="$1"

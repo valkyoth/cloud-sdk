@@ -1,9 +1,18 @@
 # Crate Version Matrix
 
-Status: `1.1.0` is prepared for final release qualification after the accepted
-full-service review and remediation retest. The plan selects six SDK packages;
-GitHub CI/CodeQL and explicit approval remain required before tagging or publishing.
-The preceding published stable baseline is `1.0.0`.
+Status: `1.1.1` is a maintenance candidate based on published `1.1.0`.
+All six packages are synchronized to `1.1.1`; publishing is disabled pending
+pentest, GitHub CI/CodeQL and explicit release approval. Scaleway remains on its
+separate development branch.
+
+| Package | Published baseline | Candidate | Publish now |
+| --- | --- | --- | --- |
+| `cloud-sdk` | `1.1.0` | `1.1.1` | No |
+| `cloud-sdk-hetzner` | `1.1.0` | `1.1.1` | No |
+| `cloud-sdk-cratesio` | `1.1.0` | `1.1.1` | No |
+| `cloud-sdk-reqwest` | `1.1.0` | `1.1.1` | No |
+| `cloud-sdk-sanitization` | `1.1.0` | `1.1.1` | No |
+| `cloud-sdk-testkit` | `1.1.0` | `1.1.1` | No |
 
 `cloud-sdk` is the provider-neutral entry point. Provider crates such as
 `cloud-sdk-hetzner` own their endpoint models in internal modules. Shared
@@ -18,6 +27,11 @@ workspace normally adds only one primary crate for each provider.
 | `dependency` | At public checkpoints, provider and boundary crates patch-bump when an internal dependency range must change. | Public checkpoint only |
 | `metadata` | At public checkpoints, use the independently required metadata version; the facade follows the tag. | Public checkpoint only |
 | `unchanged` | Keep the previous published version. | No |
+
+Stable maintenance releases with a nonzero patch number allow code fixes to
+advance exactly one patch on the same major/minor line. Pre-1.0 and new-minor
+code releases retain the independent-minor rule. This version policy does not
+waive API compatibility review, pentest, or publication approval.
 
 Every pre-1.0 tag advances `cloud-sdk` and receives incremental pentest
 evidence, but intermediate tags select no package for crates.io. Supporting

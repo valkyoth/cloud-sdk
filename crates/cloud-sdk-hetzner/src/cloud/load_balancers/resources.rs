@@ -3,6 +3,7 @@
 use cloud_sdk::Method;
 
 use crate::EndpointGroup;
+use crate::cloud::networks::primary_ips::PrimaryIpId;
 use crate::cloud::shared::{encode_query, write_id_path, write_static_path};
 use crate::labels::LabelSelector;
 use crate::pagination::{Page, PerPage, SortDirection};
@@ -181,6 +182,7 @@ pub struct LoadBalancerCreateRequest<'a> {
     algorithm: Option<LoadBalancerAlgorithm>,
     labels: Option<LoadBalancerLabels<'a>>,
     public_interface: Option<bool>,
+    public_net: Option<(Option<PrimaryIpId>, Option<PrimaryIpId>)>,
     network: Option<LoadBalancerNetworkId>,
     placement: Option<LoadBalancerPlacement<'a>>,
     services: Option<&'a [LoadBalancerService<'a>]>,
@@ -197,6 +199,7 @@ impl<'a> LoadBalancerCreateRequest<'a> {
             algorithm: None,
             labels: None,
             public_interface: None,
+            public_net: None,
             network: None,
             placement: None,
             services: None,
@@ -223,6 +226,27 @@ impl<'a> LoadBalancerCreateRequest<'a> {
     pub const fn with_public_interface(mut self, enabled: bool) -> Self {
         self.public_interface = Some(enabled);
         self
+    }
+
+    /// Selects existing Primary IPs at creation; `None` requests a system-managed IP.
+    ///
+    /// Hetzner verifies IP family, location, availability and assignment permissions.
+    /// Preparation rejects this option when the public interface is disabled,
+    /// regardless of builder call order. IPs cannot be changed after creation.
+    #[must_use]
+    pub const fn with_public_net(
+        mut self,
+        ipv4: Option<PrimaryIpId>,
+        ipv6: Option<PrimaryIpId>,
+    ) -> Self {
+        self.public_net = Some((ipv4, ipv6));
+        self
+    }
+
+    /// Returns explicit Primary IP selection, including system-managed intent.
+    #[must_use]
+    pub const fn public_net(self) -> Option<(Option<PrimaryIpId>, Option<PrimaryIpId>)> {
+        self.public_net
     }
 
     /// Attaches the new Load Balancer to a network.

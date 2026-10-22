@@ -100,8 +100,7 @@ endpoint_wire!(
         LoadBalancerEndpoint::Get(_) | LoadBalancerEndpoint::Delete(_) => RequestShape::None,
     },
     match endpoint {
-        LoadBalancerEndpoint::Create => ResponseProfile::JsonCreated,
-        LoadBalancerEndpoint::Delete(_) => ResponseProfile::NoContent,
+        LoadBalancerEndpoint::Create | LoadBalancerEndpoint::Delete(_) => ResponseProfile::JsonCreated,
         _ => ResponseProfile::JsonOk,
     },
     match endpoint {

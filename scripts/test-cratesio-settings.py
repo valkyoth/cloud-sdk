@@ -17,8 +17,8 @@ def fixture():
     for name, path in generator.PATHS.items():
         field = "crate" if name == "update_crate" else "version"
         body = {"type": "object", "required": [field], "properties": {field:
-            {"oneOf": [{"type": "object", "properties": {
-                "trustpub_only": {"type": ["boolean", "null"]}}}]}
+            {"type": "object", "properties": {
+                "trustpub_only": {"type": ["boolean", "null"]}}}
             if field == "crate" else {"$ref": "#/components/schemas/VersionUpdate"}}}
         schema = {"type": "object", "required": [field], "properties": {
             field: {"$ref": "#/components/schemas/" + field.capitalize()}}}
@@ -44,6 +44,10 @@ def main():
     original = copy.deepcopy(document)
     table = generator.render(document)
     assert document == original
+    changed = copy.deepcopy(document)
+    fields = changed["paths"][generator.PATHS["update_crate"]]["patch"]["requestBody"]["content"]["application/json"]["schema"]["properties"]
+    fields["crate"] = {"oneOf": [fields["crate"]]}
+    rejected(changed)
     for path in generator.PATHS.values():
         for kind in ("identity", "auth", "required", "field", "status", "response"):
             changed = copy.deepcopy(document)

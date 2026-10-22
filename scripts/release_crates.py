@@ -13,6 +13,7 @@ from pathlib import Path
 sys.dont_write_bytecode = True
 
 from release_state import verify_release_state, worktree_status
+from release_versions import CHANGE_KINDS, is_initial, validate_plan_entry
 from release_train import (
     parse_version,
     publication_allowed,
@@ -31,7 +32,6 @@ except ModuleNotFoundError:  # pragma: no cover - release host guard.
 
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_PLAN = ROOT / "release-crates.toml"
-CHANGE_KINDS = ("code", "dependency", "metadata", "unchanged")
 RETIRED_PACKAGES = frozenset(
     {
         "cloud-sdk-hetzner-reqwest",
@@ -78,10 +78,6 @@ def try_capture(command: list[str]) -> str | None:
 def load_toml(path: Path) -> dict:
     with path.open("rb") as handle:
         return tomllib.load(handle)
-
-
-def is_initial(previous: str) -> bool:
-    return previous == "none"
 
 
 def release_version(plan_path: Path = DEFAULT_PLAN) -> str:
@@ -149,125 +145,6 @@ def release_plan(plan_path: Path) -> dict:
     return context
 
 
-def validate_plan_entry(
-    package_name: str,
-    entry: dict,
-    release: str,
-    stage: str = "public",
-) -> None:
-    previous = entry.get("previous_version")
-    version = entry.get("version")
-    change = entry.get("change")
-    publish = entry.get("publish")
-    reason = entry.get("reason")
-    if not all(isinstance(value, str) for value in (previous, version, change, reason)):
-        raise RuntimeError(f"{package_name} has incomplete release plan metadata")
-    if change not in CHANGE_KINDS:
-        raise RuntimeError(f"{package_name} has invalid change kind {change!r}")
-    if not isinstance(publish, bool):
-        raise RuntimeError(f"{package_name} publish must be true or false")
-
-    planned_version = parse_version(version)
-    release_parts = parse_version(release)
-
-    if stage == "candidate":
-        if publish:
-            raise RuntimeError(f"{package_name} cannot publish at candidate stage")
-        if planned_version != release_parts:
-            raise RuntimeError(
-                f"{package_name} must match candidate version {release}"
-            )
-        if is_initial(previous):
-            if change != "code":
-                raise RuntimeError(
-                    f"{package_name} initial candidate must be a code change"
-                )
-        elif change not in {"code", "metadata"}:
-            raise RuntimeError(
-                f"{package_name} candidate change must be code or metadata"
-            )
-        return
-
-    if stage == "internal":
-        if publish:
-            raise RuntimeError(f"{package_name} cannot publish at internal stage")
-        if package_name == "cloud-sdk":
-            if planned_version != release_parts:
-                raise RuntimeError(
-                    f"{package_name} must always match release version {release}"
-                )
-            if change == "unchanged":
-                raise RuntimeError(f"{package_name} cannot be unchanged in a release")
-        elif not is_initial(previous) and planned_version != parse_version(previous):
-            raise RuntimeError(
-                f"{package_name} must retain its published version at internal stage"
-            )
-        return
-
-    if is_initial(previous):
-        if change != "code":
-            raise RuntimeError(f"{package_name} initial release must be a code change")
-        if planned_version != release_parts:
-            raise RuntimeError(
-                f"{package_name} initial release version must be {release}"
-            )
-        if not publish:
-            raise RuntimeError(f"{package_name} initial release must publish")
-        return
-
-    previous_version = parse_version(previous)
-    if package_name == "cloud-sdk":
-        if planned_version != release_parts:
-            raise RuntimeError(
-                f"{package_name} must always match release version {release}"
-            )
-        if not publish:
-            raise RuntimeError(f"{package_name} must publish for every release")
-        if change == "unchanged":
-            raise RuntimeError(f"{package_name} cannot be unchanged in a release")
-
-    if change == "code":
-        if package_name == "cloud-sdk":
-            expected = release_parts
-            error = f"{package_name} has code changes, so version must be {release}"
-        else:
-            expected = (previous_version[0], previous_version[1] + 1, 0)
-            error = (
-                f"{package_name} has code changes, so independent crate "
-                f"version must be {expected[0]}.{expected[1]}.{expected[2]}"
-            )
-        if planned_version != expected:
-            raise RuntimeError(error)
-        if not publish:
-            raise RuntimeError(f"{package_name} has code changes but publish is false")
-    elif change == "metadata":
-        if planned_version != release_parts:
-            raise RuntimeError(
-                f"{package_name} has metadata changes, so version must be {release}"
-            )
-        if not publish:
-            raise RuntimeError(
-                f"{package_name} has metadata changes but publish is false"
-            )
-    elif change == "dependency":
-        same_line = planned_version[:2] == previous_version[:2]
-        patch_bump = planned_version[2] > previous_version[2]
-        if not same_line or not patch_bump:
-            raise RuntimeError(
-                f"{package_name} dependency-only bumps must stay on the existing "
-                "minor line and increase only the patch number"
-            )
-        if not publish:
-            raise RuntimeError(
-                f"{package_name} has dependency-only changes but publish is false"
-            )
-    else:
-        if planned_version != previous_version:
-            raise RuntimeError(
-                f"{package_name} is unchanged but version differs from previous_version"
-            )
-        if publish:
-            raise RuntimeError(f"{package_name} is unchanged but publish is true")
 
 
 def require_clean_tree(*, allow_dirty: bool) -> None:

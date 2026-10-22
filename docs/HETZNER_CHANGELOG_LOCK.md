@@ -2,16 +2,26 @@
 
 Status: current operational source reviewed after stable `1.0.0`.
 
-Retrieved: 2026-09-26
+Retrieved: 2026-10-22
 
 Official source:
 <https://docs.hetzner.cloud/changelog/feed.rss>
 
 Normalized semantic SHA-256:
-`4d90c175aa281e7254db8b4304c4e2afa306cbf7e90025cf65eed9733822e094`
+`6f2da2458e3cd4cb3bad55c086c9934243bc1f28dc5b3c929fc52234da8099e8`
 
 Latest reviewed entry:
-<https://docs.hetzner.cloud/changelog#2026-09-23-primary-ips-unassigned>
+<https://docs.hetzner.cloud/changelog#2026-10-15-server-subnet-type-deprecation>
+
+The October 22 maintenance review covers the October 5 load-balancer Primary IP
+selection and deletion-action changes. Creation now accepts existing IP IDs;
+deletion returns a 201 action rather than a 204 empty response. The corresponding
+request preparation, response schema and operation association are updated.
+The October 15 server subnet-type deprecation permits existing subnets until
+April 15, 2027. The October 12 Link-header deprecation does not affect the SDK's
+JSON metadata pagination. The October 1 datacenter retirement affects excluded
+deprecated operations. September 30 explicit-null TTL and DNS pointer semantics
+are already enforced. No credentialed or mutating API calls were made.
 
 The September 26 candidate review adds Network members (September 15) through
 the prepared request, bounded response model and service client layers. The

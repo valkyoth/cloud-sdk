@@ -146,6 +146,8 @@ impl CursorTransport {
     }
 
     fn inspect_request(&self, request: AuthenticatedRequest<'_, '_>) -> Result<usize, ()> {
+        // The replacement `try_update` is unavailable on our Rust 1.92 MSRV.
+        #[allow(deprecated)]
         let call = self
             .calls
             .fetch_update(Ordering::AcqRel, Ordering::Acquire, |value| {

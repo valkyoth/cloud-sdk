@@ -81,6 +81,7 @@ mod compute;
 mod dns_rrsets;
 mod dns_zones;
 mod firewalls;
+mod load_balancer_public_net;
 mod load_balancers;
 mod network;
 mod security;

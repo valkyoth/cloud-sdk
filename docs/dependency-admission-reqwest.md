@@ -6,29 +6,29 @@ and `cloud-sdk-reqwest/async-rustls`,
 with reqwest default features disabled. The internal `fuzzing` feature aliases
 `blocking-rustls` only for the isolated fuzz workspace.
 
-Checked: 2026-09-26 for the platform verifier; prior admissions below retain their review dates.
+Checked: 2026-10-22 for maintenance pins; prior admissions below retain their review dates.
 
 ## Decision
 
 | Crate | Version | Role | Default features |
 | --- | --- | --- | --- |
 | `reqwest` | `0.13.5` | blocking/async HTTP client and URL/header types | disabled |
-| `base64-ng` | `2.0.4` | bounded RFC 4648 Basic authorization encoding | disabled |
+| `base64-ng` | `2.1.0` | bounded RFC 4648 Basic authorization encoding | disabled |
 | `bytes` | `1.12.1` | sanitized owned async request-body handoff | disabled |
 | `http` | `1.5.0` | raw request and response-head representation | disabled |
 | `http-body-util` | `0.1.5` | raw body ownership and response-frame access | disabled |
-| `hyper` | `1.11.1` | bounded raw HTTP/1 implementation | disabled |
+| `hyper` | `1.12.0` | bounded raw HTTP/1 implementation | disabled |
 | `hyper-rustls` | `0.27.10` | raw rustls HTTPS connector | disabled |
 | `hyper-util` | `0.1.21` | raw client, connector, and Tokio adapters | disabled |
-| `tokio` | `1.53.1` | opt-in reqwest and raw executor runtime | disabled |
+| `tokio` | `1.54.1` | opt-in reqwest and raw executor runtime | disabled |
 | `url` | `2.5.8` | authority-preserving endpoint parsing | transitive |
-| `rustls` | `0.23.45` | TLS implementation | transitive |
+| `rustls` | `0.23.46` | TLS implementation | transitive |
 | `rustls-platform-verifier` | `0.7.1` | platform trust-store verification | transitive |
-| `webpki-roots` | `1.0.9` | deterministic Mozilla trust-root snapshot | disabled |
-| `aws-lc-rs` | `1.18.1` | rustls cryptographic provider | transitive |
-| `aws-lc-sys` | `0.45.0` | bundled native AWS-LC implementation | disabled |
-| `cloud-sdk-sanitization` | `1.1.0` | mandatory core and adapter-owned secret-buffer cleanup | disabled |
-| `sanitization` | `2.1.0` | reviewed volatile cleanup primitive | disabled |
+| `webpki-roots` | `1.0.10` | deterministic Mozilla trust-root snapshot | disabled |
+| `aws-lc-rs` | `1.18.2` | rustls cryptographic provider | transitive |
+| `aws-lc-sys` | `0.46.0` | bundled native AWS-LC implementation | disabled |
+| `cloud-sdk-sanitization` | `1.1.1` | mandatory core and adapter-owned secret-buffer cleanup | disabled |
+| `sanitization` | `2.1.1` | reviewed volatile cleanup primitive | disabled |
 
 The exact repository graph is pinned by `Cargo.lock`, checked by `cargo deny`,
 and recorded in the generated SBOM. Applications own their downstream
@@ -51,7 +51,7 @@ authenticated package checksum rather than copying unauthenticated source
 trees. The original v0.24 admission is recorded in
 [`DEPENDENCY_REVIEW.md#v0240`](DEPENDENCY_REVIEW.md#v0240). Current native
 archive checksums and update evidence are recorded in
-[`DEPENDENCY_REVIEW.md#v110`](DEPENDENCY_REVIEW.md#v110).
+[`DEPENDENCY_REVIEW.md#v111`](DEPENDENCY_REVIEW.md#v111).
 
 The version review used the reqwest 0.13.5 crate metadata, feature list, API
 documentation, and upstream source:
@@ -82,6 +82,20 @@ while tightening high-assurance target gating. The Hyper patch preserves the
 HTTP/1 features and dependency boundary used by the raw executor. The AWS-LC
 pair adds fail-closed AEAD/cipher/digest contract checks, secret cleanup, and
 native-build environment hardening; the SDK still enables no FIPS feature.
+
+## 1.1.1 Maintenance Review
+
+The root-store and verifier updates address RUSTSEC-2026-0381 and
+RUSTSEC-2026-0382. The deterministic-root feature now admits webpki-roots
+1.0.10; applicable platform graphs also resolve webpki-root-certs 1.0.10 and
+rustls-webpki 0.103.16. Platform trust stores remain OS-managed and must be
+kept current independently. Certificate verification is not disabled.
+
+The admitted Hyper, Tokio, Rustls and AWS-LC updates preserve the existing
+feature selections. Basic authorization continues to use the default-disabled
+base64-ng scalar/secret APIs; new optional SIMD adapters are not enabled.
+No system AWS-LC or FIPS backend is admitted. Complete package-record hashes
+are bound in the maintenance dependency review and refreshed SBOMs.
 
 ## Commit 20 Platform Verifier Review
 
@@ -116,7 +130,7 @@ rustls platform verification, and the required Tokio adapters.
 
 `blocking-rustls-webpki-roots` enables the blocking and sanitization
 boundaries with an explicit AWS-LC provider, direct rustls configuration, and
-`webpki-roots 1.0.9`. Its client receives only the compiled Mozilla snapshot.
+`webpki-roots 1.0.10`. Its client receives only the compiled Mozilla snapshot.
 Reqwest still compiles its platform-verifier graph, but that verifier is not
 installed into this preconfigured client. Root changes require a dependency
 update; host enterprise roots, private PKI, revocation checking, and pinning
