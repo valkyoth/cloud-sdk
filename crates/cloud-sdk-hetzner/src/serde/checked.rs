@@ -296,12 +296,18 @@ fn validate_expected_identity(
     let matches = match (expected, success) {
         (ExpectedResponseIdentity::None, _) => true,
         (
-            ExpectedResponseIdentity::CloudActionResource { id, resource_type },
+            ExpectedResponseIdentity::CloudAction {
+                id,
+                resource_type,
+                command,
+            },
             HetznerSuccess::Action(action),
-        ) => action
-            .resources()
-            .iter()
-            .any(|resource| resource.id().get() == id && resource.resource_type() == resource_type),
+        ) => {
+            action.command() == command
+                && action.resources().iter().any(|resource| {
+                    resource.id().get() == id && resource.resource_type() == resource_type
+                })
+        }
         (ExpectedResponseIdentity::StorageBox(expected), HetznerSuccess::StorageBox(value)) => {
             value.id() == expected
         }

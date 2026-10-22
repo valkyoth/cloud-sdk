@@ -147,6 +147,15 @@ Every endpoint adapter must also declare an explicit response-identity policy;
 there is no trait or macro default. AST coverage rejects omitted declarations,
 and source-locked tests enumerate every ID-bearing Storage Box endpoint
 variant and expected parent/resource identity.
-`docs/RESPONSE_IDENTITY_CLASSES.tsv` separately source-locks the 11 operations
+`docs/RESPONSE_IDENTITY_CLASSES.tsv` separately enumerates the operations
 with exact-resource or parent-resource checks; all omitted operations use the
 explicit `None` descriptor class.
+
+Load-balancer deletion binds both the requested `load_balancer` resource ID
+and the exact `delete_load_balancer` action command. This command is documented
+in Hetzner's October 5, 2026 changelog entry, covered by the semantic digest in
+[the changelog source lock](HETZNER_CHANGELOG_LOCK.md). OpenAPI only specifies
+a required string, so its generic action example is not the command authority.
+Both typed response-decoding paths reject different commands, wrong resource
+IDs/types and empty resource lists. A matching action acknowledges initiation;
+callers still need to check the action status and poll completion as appropriate.

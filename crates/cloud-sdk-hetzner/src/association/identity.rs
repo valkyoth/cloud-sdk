@@ -11,10 +11,11 @@ pub(crate) enum ExpectedResponseIdentity {
     /// The operation has no currently modeled response-identity contract.
     #[default]
     None,
-    /// An action must reference this Cloud resource.
-    CloudActionResource {
+    /// An action must execute this command on this Cloud resource.
+    CloudAction {
         id: u64,
         resource_type: &'static str,
+        command: &'static str,
     },
     /// One Storage Box must match this identifier.
     StorageBox(u64),
@@ -36,7 +37,7 @@ impl ExpectedResponseIdentity {
     pub(crate) const fn class(self) -> super::ResponseIdentityClass {
         match self {
             Self::None => super::ResponseIdentityClass::None,
-            Self::CloudActionResource { .. } | Self::StorageBox(_) | Self::StorageBoxType(_) => {
+            Self::CloudAction { .. } | Self::StorageBox(_) | Self::StorageBoxType(_) => {
                 super::ResponseIdentityClass::ExactResource
             }
             Self::StorageBoxSnapshot {

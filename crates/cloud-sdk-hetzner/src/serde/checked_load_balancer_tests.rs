@@ -10,13 +10,17 @@ use crate::association::{AssociatedOperation, operations::DeleteLoadBalancer};
 use crate::cloud::load_balancers::{LoadBalancerEndpoint, LoadBalancerId};
 
 pub(super) fn deletion_body(resources: &str) -> String {
+    action_body(resources, "delete_load_balancer")
+}
+
+fn action_body(resources: &str, command: &str) -> String {
     format!(
-        r#"{{"action":{{"id":42,"command":"delete_load_balancer","status":"running","progress":10,"started":"2026-07-16T00:00:00Z","finished":null,"resources":{resources},"error":null}}}}"#
+        r#"{{"action":{{"id":42,"command":"{command}","status":"running","progress":10,"started":"2026-07-16T00:00:00Z","finished":null,"resources":{resources},"error":null}}}}"#
     )
 }
 
 #[test]
-fn typed_deletion_binds_action_resources_in_both_decode_paths() {
+fn typed_deletion_binds_action_command_and_resources_in_both_decode_paths() {
     let id = LoadBalancerId::new(7).unwrap_or_else(|| unreachable!("valid load balancer fixture"));
     for checked in [false, true] {
         for (resources, matches) in [
@@ -33,31 +37,39 @@ fn typed_deletion_binds_action_resources_in_both_decode_paths() {
             ),
             ("[]", false),
         ] {
-            let mut target = [0; 256];
-            let mut body = [0; 256];
-            let prepared = AssociatedOperation::<DeleteLoadBalancer, _>::endpoint(
-                LoadBalancerEndpoint::Delete(id),
-            )
-            .unwrap_or_else(|_| unreachable!("valid deletion association"))
-            .prepare_typed(PreparationStorage::new(&mut target, &mut body))
-            .unwrap_or_else(|_| unreachable!("valid deletion preparation"));
-            let payload = deletion_body(resources);
-            let fixture = response(StatusCode::CREATED, payload.as_bytes());
-            let decoded = if checked {
-                decode_typed_checked_response::<DeleteLoadBalancer>(prepared, fixture)
-            } else {
-                decode_typed_response::<DeleteLoadBalancer>(prepared, fixture)
-            };
-            if matches {
-                assert!(matches!(
-                    decoded.map(|value| value.into_success()),
-                    Ok(HetznerSuccess::Action(_))
-                ));
-            } else {
-                assert_decode_error(
-                    decoded,
-                    HetznerDecodeError::Model(ResponseModelError::ResponseIdentityMismatch),
-                );
+            for command in [
+                "delete_load_balancer",
+                "change_protection",
+                "attach_to_network",
+                "delete_load_balancer_service",
+                "DELETE_LOAD_BALANCER",
+            ] {
+                let mut target = [0; 256];
+                let mut body = [0; 256];
+                let prepared = AssociatedOperation::<DeleteLoadBalancer, _>::endpoint(
+                    LoadBalancerEndpoint::Delete(id),
+                )
+                .unwrap_or_else(|_| unreachable!("valid deletion association"))
+                .prepare_typed(PreparationStorage::new(&mut target, &mut body))
+                .unwrap_or_else(|_| unreachable!("valid deletion preparation"));
+                let payload = action_body(resources, command);
+                let fixture = response(StatusCode::CREATED, payload.as_bytes());
+                let decoded = if checked {
+                    decode_typed_checked_response::<DeleteLoadBalancer>(prepared, fixture)
+                } else {
+                    decode_typed_response::<DeleteLoadBalancer>(prepared, fixture)
+                };
+                if matches && command == "delete_load_balancer" {
+                    assert!(matches!(
+                        decoded.map(|value| value.into_success()),
+                        Ok(HetznerSuccess::Action(_))
+                    ));
+                } else {
+                    assert_decode_error(
+                        decoded,
+                        HetznerDecodeError::Model(ResponseModelError::ResponseIdentityMismatch),
+                    );
+                }
             }
         }
     }

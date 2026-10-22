@@ -21,7 +21,8 @@ No tag or crates.io publication is authorized by this document.
 ## Hetzner
 
 - Bind typed load-balancer deletion responses to the requested load-balancer
-  ID and resource type. Missing or unrelated action resources fail closed.
+  ID, resource type and source-locked `delete_load_balancer` command. Missing
+  or unrelated action resources and different commands fail closed.
 - Restrict `CloudResourceId` (and its aliases, including Primary IP IDs) to
   `1..=9_007_199_254_740_991`, matching the provider schema. This validation
   correction rejects previously accepted invalid inputs; valid identifiers

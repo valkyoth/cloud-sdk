@@ -17,6 +17,10 @@ The October 22 maintenance review covers the October 5 load-balancer Primary IP
 selection and deletion-action changes. Creation now accepts existing IP IDs;
 deletion returns a 201 action rather than a 204 empty response. The corresponding
 request preparation, response schema and operation association are updated.
+The October 5 entry "Deleting a Load Balancer now returns an Action" names
+`delete_load_balancer` as the returned action. This digest-bound command, not
+OpenAPI's generic `start_resource` example, is required by typed deletion
+response validation together with the requested resource type and ID.
 The October 15 server subnet-type deprecation permits existing subnets until
 April 15, 2027. The October 12 Link-header deprecation does not affect the SDK's
 JSON metadata pagination. The October 1 datacenter retirement affects excluded

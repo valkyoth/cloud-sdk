@@ -124,9 +124,10 @@ endpoint_wire!(
         _ => CostIntent::NoKnownCost,
     },
     identity endpoint => match endpoint {
-        LoadBalancerEndpoint::Delete(id) => crate::association::ExpectedResponseIdentity::CloudActionResource {
+        LoadBalancerEndpoint::Delete(id) => crate::association::ExpectedResponseIdentity::CloudAction {
             id: id.get(),
             resource_type: "load_balancer",
+            command: "delete_load_balancer",
         },
         _ => crate::association::ExpectedResponseIdentity::None,
     }
