@@ -1,6 +1,7 @@
 operation_id	response_identity
 create_storage_box_snapshot	parent-resource
 create_storage_box_subaccount	parent-resource
+delete_load_balancer	exact-resource
 get_storage_box	exact-resource
 get_storage_box_snapshot	exact-resource
 get_storage_box_subaccount	exact-resource

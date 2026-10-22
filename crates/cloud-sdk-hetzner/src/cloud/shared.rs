@@ -10,6 +10,8 @@ use crate::request::{EndpointPath, EndpointPathError};
 pub const MAX_CLOUD_NAME_BYTES: usize = 128;
 /// Maximum Cloud resource text bytes admitted by this SDK layer.
 pub const MAX_CLOUD_TEXT_BYTES: usize = 1024;
+/// Largest Cloud resource identifier admitted by the provider schema (2^53 - 1).
+pub const MAX_CLOUD_RESOURCE_ID: u64 = 9_007_199_254_740_991;
 
 /// Error returned while building Cloud resource request components.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
@@ -43,14 +45,14 @@ impl_static_error!(CloudRequestError,
     Self::InvalidType => "cloud request type is invalid",
 );
 
-/// Nonzero Cloud resource identifier.
+/// Cloud resource identifier in `1..=MAX_CLOUD_RESOURCE_ID`.
 #[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub struct CloudResourceId(u64);
 
 impl CloudResourceId {
-    /// Creates a nonzero identifier.
+    /// Creates an identifier within the provider's inclusive bounds.
     pub const fn new(value: u64) -> Option<Self> {
-        if value == 0 {
+        if value == 0 || value > MAX_CLOUD_RESOURCE_ID {
             return None;
         }
         Some(Self(value))

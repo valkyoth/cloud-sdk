@@ -11,6 +11,33 @@ fn request() -> LoadBalancerCreateRequest<'static> {
 }
 
 #[test]
+fn cloud_resource_ids_enforce_provider_bounds() {
+    use crate::cloud::shared::{CloudResourceId, MAX_CLOUD_RESOURCE_ID};
+    for value in [1, MAX_CLOUD_RESOURCE_ID] {
+        let id = CloudResourceId::new(value)
+            .unwrap_or_else(|| unreachable!("boundary identifier must be accepted"));
+        assert_eq!(id.get(), value);
+    }
+    for value in [0, 9_007_199_254_740_992, u64::MAX] {
+        assert!(CloudResourceId::new(value).is_none());
+        assert!(PrimaryIpId::new(value).is_none());
+    }
+}
+
+#[test]
+fn public_net_serializes_maximum_primary_ip_ids_exactly() {
+    use crate::cloud::shared::MAX_CLOUD_RESOURCE_ID;
+    let id = PrimaryIpId::new(MAX_CLOUD_RESOURCE_ID)
+        .unwrap_or_else(|| unreachable!("maximum primary IP identifier must be valid"));
+    let mut output = [0_u8; 256];
+    let len = request()
+        .with_public_net(Some(id), Some(id))
+        .write_body(&mut output)
+        .unwrap_or_else(|_| unreachable!("maximum identifiers must encode"));
+    assert_eq!(output.get(..len), Some(br#"{"public_net":{"ipv4":9007199254740991,"ipv6":9007199254740991},"name":"edge","load_balancer_type":"lb11"}"#.as_slice()));
+}
+
+#[test]
 fn existing_primary_ips_and_system_managed_intent_are_encoded() {
     let Some(id) = PrimaryIpId::new(42) else {
         unreachable!("primary IP fixture must be valid");

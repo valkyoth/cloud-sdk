@@ -20,7 +20,8 @@ pub(super) fn pagination() -> &'static str {
 
 #[test]
 fn load_balancer_delete_requires_created_action_response() {
-    let body = format!(r#"{{"action":{}}}"#, action());
+    let body =
+        super::checked_load_balancer_tests::deletion_body(r#"[{"id":7,"type":"load_balancer"}]"#);
     let expected = prepared(
         "delete_load_balancer",
         CLOUD_SERVICE_ID,

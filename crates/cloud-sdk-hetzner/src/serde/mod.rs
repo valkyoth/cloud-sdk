@@ -62,6 +62,8 @@ mod checked_dns_zone_security_tests;
 #[cfg(test)]
 mod checked_fixtures;
 #[cfg(test)]
+mod checked_load_balancer_tests;
+#[cfg(test)]
 mod checked_pagination_tests;
 #[cfg(test)]
 mod checked_security_resource_tests;

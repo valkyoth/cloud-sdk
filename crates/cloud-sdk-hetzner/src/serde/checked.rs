@@ -295,6 +295,13 @@ fn validate_expected_identity(
 ) -> Result<(), HetznerDecodeError> {
     let matches = match (expected, success) {
         (ExpectedResponseIdentity::None, _) => true,
+        (
+            ExpectedResponseIdentity::CloudActionResource { id, resource_type },
+            HetznerSuccess::Action(action),
+        ) => action
+            .resources()
+            .iter()
+            .any(|resource| resource.id().get() == id && resource.resource_type() == resource_type),
         (ExpectedResponseIdentity::StorageBox(expected), HetznerSuccess::StorageBox(value)) => {
             value.id() == expected
         }

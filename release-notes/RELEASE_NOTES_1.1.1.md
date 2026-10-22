@@ -20,6 +20,12 @@ No tag or crates.io publication is authorized by this document.
 
 ## Hetzner
 
+- Bind typed load-balancer deletion responses to the requested load-balancer
+  ID and resource type. Missing or unrelated action resources fail closed.
+- Restrict `CloudResourceId` (and its aliases, including Primary IP IDs) to
+  `1..=9_007_199_254_740_991`, matching the provider schema. This validation
+  correction rejects previously accepted invalid inputs; valid identifiers
+  and public signatures are unchanged. Robot identifiers are unaffected.
 - Load-balancer creation can select existing IPv4 and IPv6 Primary IPs with
   `with_public_net`. Null selections retain provider-assigned addresses.
   Supplying this object with a disabled public interface fails preparation.

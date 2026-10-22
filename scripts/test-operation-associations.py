@@ -86,7 +86,11 @@ def main() -> int:
             by_id["list_servers"].response_identity == "none",
             "default response identity changed",
         ),
-        (len(generator.read_response_identities()) == 11, "identity count changed"),
+        (
+            by_id["delete_load_balancer"].response_identity == "exact-resource",
+            "deletion action identity changed",
+        ),
+        (len(generator.read_response_identities()) == 12, "identity count changed"),
     )
     for condition, message in expectations:
         require(condition, message)

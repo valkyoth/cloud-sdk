@@ -123,7 +123,13 @@ endpoint_wire!(
         LoadBalancerEndpoint::Create => CostIntent::MayIncurCost,
         _ => CostIntent::NoKnownCost,
     },
-    identity endpoint => { let _ = endpoint; crate::association::ExpectedResponseIdentity::None }
+    identity endpoint => match endpoint {
+        LoadBalancerEndpoint::Delete(id) => crate::association::ExpectedResponseIdentity::CloudActionResource {
+            id: id.get(),
+            resource_type: "load_balancer",
+        },
+        _ => crate::association::ExpectedResponseIdentity::None,
+    }
 );
 
 query_wire!(LoadBalancerListRequest<'_>, request => {
