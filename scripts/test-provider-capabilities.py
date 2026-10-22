@@ -29,6 +29,11 @@ def main() -> None:
     )
     with tempfile.TemporaryDirectory() as temporary:
         path = Path(temporary) / "README.md"
+        stale_source = source.replace("| 1.1.1 |", "| 1.1.0 |")
+        assert stale_source != source
+        path.write_text(stale_source, encoding="utf-8")
+        stale = run(path)
+        assert stale.returncode == 1, stale
         current_client = (
             "End-to-end client | Complete named workflows for all 209 active "
             "Cloud, DNS, Security, and Console Storage Box operations; "
@@ -55,7 +60,7 @@ def main() -> None:
 
         metadata = (
             "Server Metadata | Complete strict contracts for all seven canonical "
-            "credential-free link-local reads | 1.1.0"
+            "credential-free link-local reads | 1.1.1"
         )
         path.write_text(
             source.replace(metadata, "Server Metadata | Planned | v0.98"),
@@ -68,7 +73,7 @@ def main() -> None:
         ambiguous = run(path)
         assert ambiguous.returncode == 1, ambiguous
 
-    print("5 provider capability documentation tests passed.")
+    print("6 provider capability documentation tests passed.")
 
 
 if __name__ == "__main__":
