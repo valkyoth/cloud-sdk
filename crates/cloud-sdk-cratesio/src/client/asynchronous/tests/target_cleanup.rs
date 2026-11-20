@@ -17,7 +17,8 @@ enum Exit {
 
 #[test]
 fn invitation_runners_clear_the_entire_target_after_dispatch() {
-    use std::panic::{AssertUnwindSafe, catch_unwind};
+    use crate::std as test_std;
+    use test_std::panic::{AssertUnwindSafe, catch_unwind};
     let _lock = TEST_GATE_LOCK.lock().fixture("gate");
     let token = operations::token(CredentialOrigin::Production);
     for mode in 0..3 {
