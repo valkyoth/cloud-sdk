@@ -39,35 +39,33 @@ impl PermitClock for FixedClock {
 }
 
 #[test]
-fn public_client_inventory_matches_every_active_source_locked_operation() {
+fn public_client_inventory_matches_active_and_supported_retiring_operations() {
     let source: serde_json::Value = serde_json::from_str(include_str!(
         "../../../tests/fixtures/robot-api/v0.74.0.json"
     ))
     .unwrap_or_else(|_| unreachable!("Robot inventory fixture failed"));
-    let active = source
+    let supported = source
         .get("operations")
         .and_then(serde_json::Value::as_array)
         .unwrap_or_else(|| unreachable!("Robot operation inventory is not an array"))
         .iter()
         .filter(|operation| {
-            operation.get("status").and_then(serde_json::Value::as_str) == Some("active")
+            matches!(
+                (
+                    operation.get("status").and_then(serde_json::Value::as_str),
+                    operation.get("id").and_then(serde_json::Value::as_str)
+                ),
+                (Some("active"), _) | (Some("deprecated"), Some("update_ip" | "update_subnet"))
+            )
         })
         .collect::<Vec<_>>();
     assert_eq!(ROBOT_CLIENT_METHODS.len(), 89);
-    assert_eq!(active.len(), ROBOT_CLIENT_METHODS.len());
-    for (source, client) in active.into_iter().zip(ROBOT_CLIENT_METHODS) {
-        assert_eq!(
-            source.get("id").and_then(serde_json::Value::as_str),
-            Some(client.id())
-        );
-        assert_eq!(
-            source.get("method").and_then(serde_json::Value::as_str),
-            Some(client.method().as_str()),
-        );
-        assert_eq!(
-            source.get("path").and_then(serde_json::Value::as_str),
-            Some(client.path())
-        );
+    assert_eq!(supported.len(), ROBOT_CLIENT_METHODS.len());
+    for (source, client) in supported.into_iter().zip(ROBOT_CLIENT_METHODS) {
+        let field = |key: &str| source.get(key).and_then(serde_json::Value::as_str);
+        assert_eq!(field("id"), Some(client.id()));
+        assert_eq!(field("method"), Some(client.method().as_str()));
+        assert_eq!(field("path"), Some(client.path()));
     }
 }
 

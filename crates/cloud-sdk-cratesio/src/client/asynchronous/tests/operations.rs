@@ -101,6 +101,36 @@ fn yank_unyank_and_owner_permits_have_three_mode_wire_parity() {
     );
 }
 #[test]
+fn scoped_invitations_have_three_mode_parity() {
+    use invitations::{Decision, Filter, InvitationId, InvitationPermit};
+    let _lock = TEST_GATE_LOCK.lock().fixture("gate");
+    let token = token(CredentialOrigin::Production);
+    parity(
+        || {
+            InvitationPermit::list(
+                &token,
+                Filter::Crate(name()),
+                crate::query::PerPage::DEFAULT,
+                None,
+            )
+        },
+        Fixture::new(
+            Method::Get,
+            "/api/v1/crate_owner_invitations?crate_name=serde&per_page=10",
+            b"",
+            br#"{"crate_owner_invitations":[],"users":[],"meta":{"next_page":null}}"#,
+            200,
+        ),
+    );
+    parity(
+        || InvitationPermit::confirm_update(&token, InvitationId::new(4294967296).fixture("invitation"),Decision::Revoke),
+        Fixture::new(Method::Patch, "/api/v1/crate_owner_invitations/4294967296",
+            br#"{"crate_owner_invitation":{"state":"revoked"}}"#,
+            br#"{"crate_owner_invitation":{"id":4294967296,"state":"revoked","invitee_id":3,"inviter_id":7,"crate_id":42,"crate_name":"serde","created_at":"2026-10-21T00:00:00Z","expires_at":"2026-11-21T00:00:00Z"}}"#,200),
+    );
+}
+
+#[test]
 fn personal_api_permits_have_three_mode_wire_parity() {
     let _lock = TEST_GATE_LOCK.lock().fixture("gate");
     let token = token(CredentialOrigin::Production);

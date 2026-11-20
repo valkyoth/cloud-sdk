@@ -1,6 +1,7 @@
 //! Explicit personal mutations. Permits bind one action to one credential.
 //! Server-side identity, expiry and permission checks remain authoritative.
 mod decode;
+pub mod invitations;
 mod permit;
 mod request;
 mod schema_table;

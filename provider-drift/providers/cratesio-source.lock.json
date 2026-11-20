@@ -1,7 +1,7 @@
 {
   "artifacts": {
     "cargo_compatibility_sha256": "f9d81284ebe8c0102c2987e98ab031f747b57a9bf250700a6e7666a1e8ecebd4",
-    "operations_sha256": "10aea99156c41a5a29550aac26ecf0460633c7e406abc068831827ceb8f047dc"
+    "operations_sha256": "833bffba24ee3193b7cb187aaf34438e1d53d779c5ddad739b7e06b08004299d"
   },
   "cargo": {
     "instruction_targets": 1,
@@ -14,8 +14,8 @@
       "cookie",
       "trustpub_token"
     ],
-    "operations": 51,
-    "paths": 40,
+    "operations": 53,
+    "paths": 42,
     "version": "3.1.0"
   },
   "policy": {
@@ -30,8 +30,8 @@
       "database-dumps"
     ]
   },
-  "reviewed_at": "2026-10-22",
-  "source_commit": "9ae7f769cea32f38ebc2ea9ec2ce455b47641511",
+  "reviewed_at": "2026-11-20",
+  "source_commit": "e37aa705b096b0f64b8ad5c0312d8e8fc8637315",
   "sources": [
     {
       "accept": "text/html",
@@ -40,7 +40,7 @@
       "max_bytes": 524288,
       "media_type": "text/html",
       "redirects": [],
-      "sha256": "3220debf0fb737663e4f3d2375137c90543f33a6c32cff105263fcf8d59a162d",
+      "sha256": "07e24024c88da15dc2b2adca6438e9cc7660bcdfde385112c9d2f543f31d8d03",
       "size_bytes": 37753,
       "url": "https://doc.rust-lang.org/cargo/reference/registry-web-api.html"
     },
@@ -51,20 +51,20 @@
       "max_bytes": 1048576,
       "media_type": "application/json",
       "redirects": [],
-      "sha256": "e0381435d584fb65afe67024840b371b8f65cb8904991bae354fff0d7ca920c6",
-      "size_bytes": 91177,
+      "sha256": "52530470354c80f92fcbf941717d8ffbd9e118e5f8c6e8105c95cdb9277f8b59",
+      "size_bytes": 96562,
       "url": "https://crates.io/api/openapi.json"
     },
     {
       "accept": "text/plain",
-      "final_url": "https://raw.githubusercontent.com/rust-lang/crates.io/9ae7f769cea32f38ebc2ea9ec2ce455b47641511/src/openapi.rs",
+      "final_url": "https://raw.githubusercontent.com/rust-lang/crates.io/e37aa705b096b0f64b8ad5c0312d8e8fc8637315/src/openapi.rs",
       "id": "openapi-source",
       "max_bytes": 131072,
       "media_type": "text/plain",
       "redirects": [],
       "sha256": "05319ccd6c1fa9e0e3ac9acd86fca932ccd1100358c5e395427b6322ce4d7810",
       "size_bytes": 5671,
-      "url": "https://raw.githubusercontent.com/rust-lang/crates.io/9ae7f769cea32f38ebc2ea9ec2ce455b47641511/src/openapi.rs"
+      "url": "https://raw.githubusercontent.com/rust-lang/crates.io/e37aa705b096b0f64b8ad5c0312d8e8fc8637315/src/openapi.rs"
     },
     {
       "accept": "text/html",
@@ -73,8 +73,8 @@
       "max_bytes": 131072,
       "media_type": "text/html",
       "redirects": [],
-      "sha256": "5d9b41da21e93b6abd3d5b4d5735b400eb637e76b312c751065e5726ab4c022a",
-      "size_bytes": 5399,
+      "sha256": "c481c8f6e0428984a6fa468cf728e01be75c11304a6d3897efc019c8a4c38c36",
+      "size_bytes": 5502,
       "url": "https://crates.io/data-access"
     },
     {
@@ -90,14 +90,14 @@
     },
     {
       "accept": "text/plain",
-      "final_url": "https://raw.githubusercontent.com/rust-lang/crates.io/9ae7f769cea32f38ebc2ea9ec2ce455b47641511/svelte/src/routes/data-access/%2Bpage.svelte",
+      "final_url": "https://raw.githubusercontent.com/rust-lang/crates.io/e37aa705b096b0f64b8ad5c0312d8e8fc8637315/svelte/src/routes/data-access/%2Bpage.svelte",
       "id": "policy-source",
       "max_bytes": 131072,
       "media_type": "text/plain",
       "redirects": [],
-      "sha256": "db5078a31e412c395321b95124ba5e4b3db7954e1d2a66a9a5847c3cbbaca802",
+      "sha256": "ca1ca051c6da4e9e2f9657fb2b82116f82729631f9a5b84332175f4efe76b145",
       "size_bytes": 5458,
-      "url": "https://raw.githubusercontent.com/rust-lang/crates.io/9ae7f769cea32f38ebc2ea9ec2ce455b47641511/svelte/src/routes/data-access/%2Bpage.svelte"
+      "url": "https://raw.githubusercontent.com/rust-lang/crates.io/e37aa705b096b0f64b8ad5c0312d8e8fc8637315/svelte/src/routes/data-access/%2Bpage.svelte"
     }
   ]
 }

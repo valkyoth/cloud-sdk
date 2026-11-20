@@ -123,7 +123,7 @@
           "active_count": 209,
           "count": 222,
           "path": "docs/API_FINGERPRINTS.tsv",
-          "sha256": "d9a1aac9bb39eccbe49b4ba625fd673da9951e44d2c727a3f7a2a62c10106190"
+          "sha256": "528b063d6ede3afca81d81cd51a584109adec8d2544078e243e4472fd1ec5fae"
         }
       },
       {
@@ -192,7 +192,7 @@
     {
       "id": "cloud-openapi",
       "max_bytes": 33554432,
-      "sha256": "0f7f538a1d760d2e09a34a33ab411a9e29b52102721a2c4986aaf51cdb188c5d",
+      "sha256": "3f90e2a03d37da90cde0b14744419bde101bb20829d0d870c0c3b95c5b3d1225",
       "url": "https://docs.hetzner.cloud/cloud.spec.json"
     },
     {

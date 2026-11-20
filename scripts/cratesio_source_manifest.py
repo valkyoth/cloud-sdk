@@ -122,8 +122,8 @@ def validate_lock(lock: dict[str, Any]) -> None:
         raise SourceLockError("crates.io artifact digest is invalid")
     if lock["openapi"] != {
         "version": "3.1.0",
-        "paths": 40,
-        "operations": 51,
+        "paths": 42,
+        "operations": 53,
         "auth_schemes": ["api_token", "cookie", "trustpub_token"],
     }:
         raise SourceLockError("crates.io OpenAPI summary changed")

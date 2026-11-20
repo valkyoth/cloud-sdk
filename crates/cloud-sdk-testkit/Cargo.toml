@@ -1,11 +1,10 @@
 [package]
 name = "cloud-sdk-testkit"
 description = "Provider-neutral mock transport and fixture boundary for cloud-sdk."
-version = "1.1.1"
+version = "1.1.2"
 edition.workspace = true
 rust-version.workspace = true
 license.workspace = true
-homepage.workspace = true
 repository.workspace = true
 readme = "README.md"
 

@@ -62,16 +62,16 @@ CREDENTIAL_SOURCES = {
     for name in ("mod", "context", "context_tests", "kind", "material", "policy", "secret", "tests")
 }
 EXPECTED_WORKSPACE_DEPENDENCIES = {
-    "base64-ng": {"version": "=2.1.0", "default-features": False},
+    "base64-ng": {"version": "=2.1.1", "default-features": False},
     "spdx": {"version": "=0.13.6", "default-features": False},
     "cloud-sdk-sanitization": {
         "path": "crates/cloud-sdk-sanitization",
-        "version": "1.1.1",
+        "version": "1.1.2",
         "default-features": False,
     },
     "cloud-sdk": {
         "path": "crates/cloud-sdk",
-        "version": "1.1.1",
+        "version": "1.1.2",
         "default-features": False,
     },
     "serde": {
@@ -165,7 +165,7 @@ def validate(root: Path) -> None:
     package = manifest.get("package", {})
     if package.get("name") != "cloud-sdk-cratesio":
         raise BoundaryError("provider package name changed")
-    if package.get("version") != "1.1.1":
+    if package.get("version") != "1.1.2":
         raise BoundaryError("provider candidate version changed")
     for field, expected in EXPECTED_AUTO_TARGETS.items():
         if package.get(field) is not expected:
@@ -250,7 +250,7 @@ def validate(root: Path) -> None:
         *(f"versions/{name}.rs" for name in ("mod", "request", "models", "decode", "schema_table", "client", "client/tests", "tests", "tests/pagination")),
         *(f"downloads/{name}.rs" for name in ("mod", "request", "models", "decode", "schema_table", "client", "client/tests", "tests", "artifact", "artifact/asynchronous", "artifact/tests")),
         *(f"accounts/{name}.rs" for name in ("mod", "request", "models", "decode", "schema_table", "client", "client/tests", "tests")),
-        *(f"accounts/personal/{name}.rs" for name in ("mod", "request", "permit", "decode", "schema_table", "client", "tests", "tests/execution", "tests/admission")),
+        *(f"accounts/personal/{name}.rs" for name in ("mod", "request", "permit", "decode", "schema_table", "client", "tests", "tests/execution", "tests/admission", "invitations")),
         *(f"accounts/tokens/{name}.rs" for name in ("mod", "request", "models", "decode", "schema_table", "client", "tests", "tests/execution")),
         *(f"settings/{name}.rs" for name in ("mod", "request", "decode", "schema_table", "client", "tests", "tests/execution")),
         *(f"wire/{name}.rs" for name in (

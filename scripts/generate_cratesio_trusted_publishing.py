@@ -11,14 +11,14 @@ from check_cratesio_request_policy import BASE
 ROOT = Path(__file__).resolve().parents[1]
 OUTPUT = ROOT / "crates/cloud-sdk-cratesio/src/trusted_publishing"
 SOURCES = {
-    "src/controllers/trustpub/github_configs/create.rs": (6554, "2edf1a142f933f0b0fbc202777ca615cd1ad573423302e4a9b0f0340b73380be"),
-    "src/controllers/trustpub/gitlab_configs/create.rs": (5370, "1cd641c18dd5848956605a968732a6c0459a4c85bcb32df491937d4545e1aba3"),
-    "src/controllers/trustpub/github_configs/list.rs": (9113, "77c61f7abdef8825e03f3b153aef0a69374ffd2c2041d3a3e3ac27e1fa116b2a"),
-    "src/controllers/trustpub/gitlab_configs/list.rs": (9067, "1bf62c8beab17eae28d14417c650febd6c64eeeea03303fca9926d28fd4c4261"),
-    "src/controllers/trustpub/github_configs/delete.rs": (4078, "5b5a4df728ffc1c5f3bc9af159844d0794fbc7dace785ec6c3e7f09676cff689"),
-    "src/controllers/trustpub/gitlab_configs/delete.rs": (4076, "141d893136bf0c94147c15b60d30ae12005307721a84539316be9079f6475281"),
-    "src/controllers/trustpub/tokens/exchange/mod.rs": (16254, "fcab24787373533d138a9fa26de09d3457ae8b54be80c7a89cd96ecfc95210c9"),
-    "src/controllers/trustpub/tokens/revoke/mod.rs": (1571, "447dd7ec4da30664cd09e02b796235f2f2828e6c6e669ed4fc5eaccc3e8eb2a6"),
+    "src/controllers/trustpub/github_configs/create.rs": (6565, "85460e50db0c115cc23451e57fd6197cc669ccb664d8322ecaf70772716582e3"),
+    "src/controllers/trustpub/gitlab_configs/create.rs": (5354, "739086dfa16706c2e398e9f9ce6d1aab00e825f69951d4286d7c33bcebcf0afa"),
+    "src/controllers/trustpub/github_configs/list.rs": (9074, "d7a16ed1c0799c69a56a415c48e5489d3768568c49d2b64449de36c8b725e77f"),
+    "src/controllers/trustpub/gitlab_configs/list.rs": (9028, "eccf2abfa2626fd3444cf729363419eca2cf67d3a92558629d5bdea386cd9f55"),
+    "src/controllers/trustpub/github_configs/delete.rs": (4298, "caf8d1269ec7c5609691da8d64f4b0a6c7a3d7e701fb1f99085adac39a96c30d"),
+    "src/controllers/trustpub/gitlab_configs/delete.rs": (4296, "03f411797d93aec45115bf19a687fcea2804a09bab90929fb8bd2ef9920b9495"),
+    "src/controllers/trustpub/tokens/exchange/mod.rs": (16401, "af7c3c6ac826a720d15f7c514426a342628e76bb6e429d92935ab8f5396229ef"),
+    "src/controllers/trustpub/tokens/revoke/mod.rs": (1584, "e2d55fd3b8fcb80361e444c437c0fe8c0cc9ee2bebbdf4fa6b799d59540d045f"),
     "crates/crates_io_trustpub/src/github/validation.rs": (8185, "9f3d5d323ec97014f08328f8cdf9bce0561f6e0e23037197eb9f383e3082bed4"),
     "crates/crates_io_trustpub/src/gitlab/validation.rs": (9334, "7c762f8fe8d4d6c3a842f58d14db8db78b1f472de1c69febc63233cd19ea98b5"),
     "crates/crates_io_trustpub/src/github/claims.rs": (16251, "3dadafe8ccd055af7caf31da44082cd91fe5be2511fc4bb90faca199720d606b"),

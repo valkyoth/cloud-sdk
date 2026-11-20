@@ -6,11 +6,13 @@ use super::ResponseModelError;
 use super::cloud_constraints::{validate_format, validate_pattern};
 
 const TABLE: &str = include_str!("../cloud_model_schema.tsv");
+const LEGACY_FIELDS: &str = include_str!("../cloud_model_legacy.tsv");
 
 pub(super) fn validate_model(model: &str, value: &Value) -> Result<(), ResponseModelError> {
     value.as_object().ok_or(ResponseModelError::WrongType)?;
     let mut found = false;
-    for line in TABLE.lines().skip(1) {
+    // Retired fields remain optional but retain their old types on older responses.
+    for line in TABLE.lines().skip(1).chain(LEGACY_FIELDS.lines()) {
         let mut fields = line.split('\t');
         let Some(row_model) = fields.next() else {
             return Err(ResponseModelError::SchemaMismatch);
@@ -19,17 +21,7 @@ pub(super) fn validate_model(model: &str, value: &Value) -> Result<(), ResponseM
             continue;
         }
         found = true;
-        let mut descriptor = Descriptor::parse(&mut fields)?;
-        // The 2026-09-08 changelog announces removal on 2026-11-02.
-        // Preserve the exact OpenAPI table and validate legacy values if present.
-        if matches!(
-            (model, descriptor.path),
-            ("image" | "server_type" | "load_balancer_type", "deprecated")
-                | ("server", "image/deprecated" | "server_type/deprecated")
-                | ("load_balancer", "load_balancer_type/deprecated")
-        ) {
-            descriptor.required = false;
-        }
+        let descriptor = Descriptor::parse(&mut fields)?;
         validate_path(model, value, descriptor.path, descriptor)?;
     }
     if !found {

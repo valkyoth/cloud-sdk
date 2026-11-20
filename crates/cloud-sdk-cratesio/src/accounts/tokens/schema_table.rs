@@ -7,7 +7,7 @@ pub(super) const NODES: &[Node] = &[
     Node::Array(0),
     Node::Nullable(1),
     Node::Timestamp,
-    Node::Enum(&["publish-new","publish-update","trusted-publishing","yank","change-owners"]),
+    Node::Enum(&["publish-new","publish-update","trusted-publishing","yank","change-owners","crate-owner-invitations"]),
     Node::Array(4),
     Node::Nullable(5),
     Node::Timestamp,

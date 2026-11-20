@@ -16,7 +16,7 @@ from urllib.parse import parse_qsl
 ROOT = Path(__file__).resolve().parents[1]
 FIXTURE = ROOT / "tests" / "fixtures" / "robot-wire" / "v0.42.0.json"
 SOURCE_URL = "https://robot.hetzner.com/doc/webservice/en.html"
-SOURCE_SHA256 = "4b396790acc449f47b2b3b893f8eff759c0c25196dc38b1e5e92a12c9704771a"
+SOURCE_SHA256 = "9f19edaa1a90d5987fe8e58d0cb3868fc64cbed8177aa0fdcbbe012dbc058018"
 MAX_SOURCE_BYTES = 8 * 1024 * 1024
 TIMEOUT_SECONDS = 60
 
@@ -75,7 +75,7 @@ def validate_protocol(fixture: dict[str, Any]) -> None:
     require(
         source
         == {
-            "retrieved": "2026-07-30",
+            "retrieved": "2026-11-20",
             "url": SOURCE_URL,
             "sha256": SOURCE_SHA256,
         },

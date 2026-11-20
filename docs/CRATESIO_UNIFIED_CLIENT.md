@@ -212,7 +212,7 @@ emitted after all three facade calls, decoded results, exact wire assertions,
 call counts and scratch-cleanup assertions pass. Only public operation IDs and
 execution modes are emitted, never targets, tokens or payloads.
 
-Current measured result: **51/51** operation rows have blocking/local/Send
+Current measured result: **53/53** operation rows have blocking/local/Send
 witnesses. Publication now executes through the same provider runners used by
 the bundled adapters, with independent Cargo framing bytes, exact raw/Bearer
 authorization checks, partial writes, checked crate/warning responses and

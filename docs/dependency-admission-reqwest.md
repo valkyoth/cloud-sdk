@@ -6,15 +6,15 @@ and `cloud-sdk-reqwest/async-rustls`,
 with reqwest default features disabled. The internal `fuzzing` feature aliases
 `blocking-rustls` only for the isolated fuzz workspace.
 
-Checked: 2026-10-22 for maintenance pins; prior admissions below retain their review dates.
+Checked: 2026-11-20 for maintenance pins; prior admissions below retain their review dates.
 
 ## Decision
 
 | Crate | Version | Role | Default features |
 | --- | --- | --- | --- |
 | `reqwest` | `0.13.5` | blocking/async HTTP client and URL/header types | disabled |
-| `base64-ng` | `2.1.0` | bounded RFC 4648 Basic authorization encoding | disabled |
-| `bytes` | `1.12.1` | sanitized owned async request-body handoff | disabled |
+| `base64-ng` | `2.1.1` | bounded RFC 4648 Basic authorization encoding | disabled |
+| `bytes` | `1.12.2` | sanitized owned async request-body handoff | disabled |
 | `http` | `1.5.0` | raw request and response-head representation | disabled |
 | `http-body-util` | `0.1.5` | raw body ownership and response-frame access | disabled |
 | `hyper` | `1.12.0` | bounded raw HTTP/1 implementation | disabled |
@@ -24,11 +24,11 @@ Checked: 2026-10-22 for maintenance pins; prior admissions below retain their re
 | `url` | `2.5.8` | authority-preserving endpoint parsing | transitive |
 | `rustls` | `0.23.46` | TLS implementation | transitive |
 | `rustls-platform-verifier` | `0.7.1` | platform trust-store verification | transitive |
-| `webpki-roots` | `1.0.10` | deterministic Mozilla trust-root snapshot | disabled |
-| `aws-lc-rs` | `1.18.2` | rustls cryptographic provider | transitive |
-| `aws-lc-sys` | `0.46.0` | bundled native AWS-LC implementation | disabled |
-| `cloud-sdk-sanitization` | `1.1.1` | mandatory core and adapter-owned secret-buffer cleanup | disabled |
-| `sanitization` | `2.1.1` | reviewed volatile cleanup primitive | disabled |
+| `webpki-roots` | `1.0.12` | deterministic Mozilla trust-root snapshot | disabled |
+| `aws-lc-rs` | `1.19.0` | rustls cryptographic provider | transitive |
+| `aws-lc-sys` | `0.47.0` | bundled native AWS-LC implementation | disabled |
+| `cloud-sdk-sanitization` | `1.1.2` | mandatory core and adapter-owned secret-buffer cleanup | disabled |
+| `sanitization` | `2.2.0` | reviewed volatile cleanup primitive | disabled |
 
 The exact repository graph is pinned by `Cargo.lock`, checked by `cargo deny`,
 and recorded in the generated SBOM. Applications own their downstream
@@ -130,7 +130,7 @@ rustls platform verification, and the required Tokio adapters.
 
 `blocking-rustls-webpki-roots` enables the blocking and sanitization
 boundaries with an explicit AWS-LC provider, direct rustls configuration, and
-`webpki-roots 1.0.10`. Its client receives only the compiled Mozilla snapshot.
+`webpki-roots 1.0.12`. Its client receives only the compiled Mozilla snapshot.
 Reqwest still compiles its platform-verifier graph, but that verifier is not
 installed into this preconfigured client. Root changes require a dependency
 update; host enterprise roots, private PKI, revocation checking, and pinning

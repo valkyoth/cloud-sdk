@@ -54,6 +54,7 @@ impl TokenOperation {
 /// }
 /// ```
 pub struct TokenPermit<'a> {
+    pub(super) extended_scopes: bool,
     pub(super) operation: TokenOperation,
     pub(super) id: Option<NumericId>,
     pub(super) credential: &'a ApiToken,
@@ -62,15 +63,26 @@ impl<'a> TokenPermit<'a> {
     /// Authorizes one read of this token's metadata, not a mutation.
     pub const fn inspect(id: NumericId, credential: &'a ApiToken) -> Self {
         Self {
+            extended_scopes: false,
             operation: TokenOperation::Inspect,
             id: Some(id),
             credential,
+        }
+    }
+    /// Inspect a token using the complete source-locked scope vocabulary.
+    /// Read the result with `TokenMetadata::all_endpoint_scopes`. The original
+    /// `inspect` rejects scopes not representable in its public enum.
+    pub const fn inspect_all_scopes(id: NumericId, credential: &'a ApiToken) -> Self {
+        Self {
+            extended_scopes: true,
+            ..Self::inspect(id, credential)
         }
     }
     /// Explicit destructive confirmation for this exact ID and credential.
     /// A successful acknowledgement does not prove the ID existed upstream.
     pub const fn confirm_revoke(id: NumericId, credential: &'a ApiToken) -> Self {
         Self {
+            extended_scopes: false,
             operation: TokenOperation::Revoke,
             id: Some(id),
             credential,
@@ -80,6 +92,7 @@ impl<'a> TokenPermit<'a> {
     /// An error may follow successful revocation. Never automatically retry.
     pub const fn confirm_revoke_current(credential: &'a ApiToken) -> Self {
         Self {
+            extended_scopes: false,
             operation: TokenOperation::RevokeCurrent,
             id: None,
             credential,

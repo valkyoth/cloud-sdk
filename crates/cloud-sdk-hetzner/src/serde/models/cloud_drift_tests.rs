@@ -210,6 +210,33 @@ fn every_target_health_branch_checks_new_fields() {
 }
 
 #[test]
+fn volume_assignee_is_nullable_but_requires_a_typed_bounded_id_when_present() {
+    let mut value = fixture("volume");
+    for assignee in [
+        Value::Null,
+        json!({"type":"server","id":9007199254740991_u64}),
+    ] {
+        value
+            .as_object_mut()
+            .unwrap_or_else(|| unreachable!("volume"))
+            .insert("assignee".into(), assignee);
+        assert!(decode("volume", &value).is_ok());
+    }
+    for invalid in [
+        json!({}),
+        json!({"type":true,"id":1}),
+        json!({"type":"server","id":0}),
+        json!({"type":"server","id":9007199254740992_u64}),
+    ] {
+        value
+            .as_object_mut()
+            .unwrap_or_else(|| unreachable!("volume"))
+            .insert("assignee".into(), invalid);
+        assert!(decode("volume", &value).is_err());
+    }
+}
+
+#[test]
 fn announced_legacy_deprecated_removal_does_not_relax_present_types() {
     for (model, pointer, required) in [
         ("image", "", "deprecation"),
@@ -224,7 +251,7 @@ fn announced_legacy_deprecated_removal_does_not_relax_present_types() {
             .pointer_mut(pointer)
             .and_then(Value::as_object_mut)
             .unwrap_or_else(|| unreachable!("legacy owner"));
-        assert!(object.remove("deprecated").is_some());
+        assert!(!object.contains_key("deprecated"));
         let result = decode(model, &value);
         assert!(result.is_ok(), "{model} {pointer}: {:?}", result.err());
         let mut missing = value.clone();

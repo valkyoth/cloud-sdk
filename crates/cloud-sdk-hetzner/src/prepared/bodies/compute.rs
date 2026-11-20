@@ -308,7 +308,7 @@ fn write_volume_create(
         match request.placement() {
             VolumeCreatePlacement::Server { server, automount } => {
                 writer.field_bool(first, "automount", automount)?;
-                writer.field_u64(first, "server", server.get())?;
+                write_volume_assignee(writer, first, server)?;
             }
             VolumeCreatePlacement::Location(location) => {
                 writer.field_string(first, "location", location.as_str())?;
@@ -337,8 +337,21 @@ fn write_volume_attach(
 ) -> Result<usize, HetznerPreparationError> {
     object(output, |writer, first| {
         writer.field_bool(first, "automount", request.automount())?;
-        writer.field_u64(first, "server", request.server().get())
+        write_volume_assignee(writer, first, request.server())
     })
+}
+
+fn write_volume_assignee(
+    writer: &mut JsonWriter<'_, '_>,
+    first: &mut bool,
+    server: crate::cloud::volumes::VolumeServerId,
+) -> Result<(), HetznerPreparationError> {
+    writer.field(first, "assignee")?;
+    writer.begin_object()?;
+    let mut nested = true;
+    writer.field_string(&mut nested, "type", "server")?;
+    writer.field_u64(&mut nested, "id", server.get())?;
+    writer.end_object()
 }
 
 fn write_volume_protection(

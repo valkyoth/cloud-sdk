@@ -124,11 +124,12 @@ impl<'a> PersonalRequest<'a> {
     pub const fn unfollow(name: CrateName<'a>) -> Self {
         Self(Action::Follow(name, false))
     }
-    /// Accept this invitation. Path and body always use the same crate ID.
+    /// Legacy crate-ID route. New integrations should use
+    /// [`InvitationPermit::confirm_update`](super::invitations::InvitationPermit::confirm_update).
     pub const fn accept_invitation(crate_id: NumericId) -> Self {
         Self(Action::Invitation(crate_id, true))
     }
-    /// Decline this invitation. This consumes the pending invitation upstream.
+    /// Legacy crate-ID route; this consumes the pending invitation upstream.
     pub const fn decline_invitation(crate_id: NumericId) -> Self {
         Self(Action::Invitation(crate_id, false))
     }

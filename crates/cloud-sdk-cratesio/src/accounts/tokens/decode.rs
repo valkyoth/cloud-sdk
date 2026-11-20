@@ -79,7 +79,11 @@ impl TokenPermit<'_> {
                         .try_reserve_exact(values.len())
                         .map_err(|_| Error::Allocation)?;
                     for value in values {
-                        parsed.push(value.with_text(EndpointScope::parse)??);
+                        if !self.extended_scopes
+                            || !value.with_text(|s| s == "crate-owner-invitations")?
+                        {
+                            parsed.push(value.with_text(EndpointScope::parse)??);
+                        }
                     }
                     Some(parsed)
                 };

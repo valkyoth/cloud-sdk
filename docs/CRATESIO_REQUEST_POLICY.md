@@ -12,15 +12,15 @@ shared low-level query schema advertises page. No tag or publication is authoriz
 
 The [public source lock](CRATESIO_SOURCE_LOCK.md) defines the complete OpenAPI
 and Cargo registry contract. Supplementary implementation evidence is pinned
-to `rust-lang/crates.io` commit `9ae7f769cea32f38ebc2ea9ec2ce455b47641511`:
+to `rust-lang/crates.io` commit `e37aa705b096b0f64b8ad5c0312d8e8fc8637315`:
 
-- [identifier validation](https://github.com/rust-lang/crates.io/blob/9ae7f769cea32f38ebc2ea9ec2ce455b47641511/crates/crates_io_validation/src/lib.rs)
+- [identifier validation](https://github.com/rust-lang/crates.io/blob/e37aa705b096b0f64b8ad5c0312d8e8fc8637315/crates/crates_io_validation/src/lib.rs)
   caps ASCII crate names at 64 and version text at 150 characters;
-- [publish validation](https://github.com/rust-lang/crates.io/blob/9ae7f769cea32f38ebc2ea9ec2ce455b47641511/src/controllers/krate/publish.rs)
+- [publish validation](https://github.com/rust-lang/crates.io/blob/e37aa705b096b0f64b8ad5c0312d8e8fc8637315/src/controllers/krate/publish.rs)
   parses Cargo SemVer and limits keywords to 20 bytes;
-- [keyword validation](https://github.com/rust-lang/crates.io/blob/9ae7f769cea32f38ebc2ea9ec2ce455b47641511/crates/crates_io_database/src/models/keyword.rs)
+- [keyword validation](https://github.com/rust-lang/crates.io/blob/e37aa705b096b0f64b8ad5c0312d8e8fc8637315/crates/crates_io_database/src/models/keyword.rs)
   admits ASCII alphanumerics followed by alphanumerics, hyphens, underscores or plus;
-- [pagination](https://github.com/rust-lang/crates.io/blob/9ae7f769cea32f38ebc2ea9ec2ce455b47641511/src/controllers/helpers/pagination.rs)
+- [pagination](https://github.com/rust-lang/crates.io/blob/e37aa705b096b0f64b8ad5c0312d8e8fc8637315/src/controllers/helpers/pagination.rs)
   defaults to ten entries, caps `per_page` at 100, and keeps seek payloads opaque.
 
 The request-policy checker pins all four complete source files by size and

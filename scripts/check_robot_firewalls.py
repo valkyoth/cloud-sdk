@@ -19,7 +19,7 @@ RECONCILE_SOURCE = ROOT / "crates/cloud-sdk-hetzner/src/robot/firewall/reconcile
 EXCHANGE_SOURCE = ROOT / "crates/cloud-sdk-hetzner/src/robot/firewall/exchange.rs"
 NAME_SOURCE = ROOT / "crates/cloud-sdk-hetzner/src/robot/firewall/types.rs"
 MAX_BYTES = 64 * 1024
-FIXTURE_SHA256 = "238cec5b8cc51546483cae4336eedc65d644eb27e69179b5f70173702abc8538"
+FIXTURE_SHA256 = "8d2039c3a15d04b4df7b4bff22de064c1aa3962bb8cc0d56e2fd5679c82a06c7"
 
 
 def fail(message: str) -> None:

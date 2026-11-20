@@ -64,7 +64,10 @@ omission never silently becomes unrestricted access. Null endpoint scopes mean
 the provider's legacy scope; null crate scopes mean unrestricted crates. Empty
 lists remain distinct. Scope metadata is never promoted to local authorization.
 
-Known endpoint scopes have typed variants. Unknown variants fail for source
+The original inspector exposes the five original typed variants and rejects
+tokens carrying newer scopes. Use `TokenPermit::inspect_all_scopes` and
+`TokenMetadata::all_endpoint_scopes` to inspect the complete validated
+list, including `crate-owner-invitations`. Unknown wire values fail for source
 review. Crate patterns remain inert bounded strings, not a local authorization
 matcher. Each scope list is capped at 128 entries, names at 1024 bytes and crate
 patterns at 256 bytes. Oversize data fails without truncation. RFC3339 timestamps

@@ -10,9 +10,9 @@ from typing import Any
 
 ROOT = Path(__file__).resolve().parents[1]
 LOCK = ROOT / "tests/fixtures/robot-reset/v0.82.0.json"
-LOCK_SHA256 = "a51e48739b69afd3f27290a2daaf360951e565667234700c5325d1be5a475444"
+LOCK_SHA256 = "6c2b659b61a0f6ae229cc1273446f89af283cbe44c3ef231c68b2b91b5507d77"
 MAX_LOCK_BYTES = 16 * 1024
-SOURCE_SHA256 = "4b396790acc449f47b2b3b893f8eff759c0c25196dc38b1e5e92a12c9704771a"
+SOURCE_SHA256 = "9f19edaa1a90d5987fe8e58d0cb3868fc64cbed8177aa0fdcbbe012dbc058018"
 PREPARE_SOURCE = ROOT / "crates/cloud-sdk-hetzner/src/robot/reset/prepare.rs"
 EXCHANGE_SOURCE = ROOT / "crates/cloud-sdk-hetzner/src/robot/reset/exchange.rs"
 CORE_PREPARED_SOURCE = ROOT / "crates/cloud-sdk/src/operation/prepared.rs"
@@ -95,7 +95,7 @@ def validate_contract(value: dict[str, Any]) -> None:
     require(value.get("schema_version") == 1, "schema version changed")
     require(
         value.get("source") == {
-            "retrieved": "2026-08-12",
+            "retrieved": "2026-11-20",
             "url": "https://robot.hetzner.com/doc/webservice/en.html",
             "sha256": SOURCE_SHA256,
         },

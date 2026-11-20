@@ -21,7 +21,7 @@ aws-lc-sys` chain while rejecting active `ring` or FIPS backends.
 
 ## Cryptographic Native Code
 
-- `aws-lc-rs 1.18.2` selects bundled `aws-lc-sys 0.46.0` for admitted native
+- `aws-lc-rs 1.19.0` selects bundled `aws-lc-sys 0.47.0` for admitted native
   transport builds. The repository forces `AWS_LC_SYS_USE_SYSTEM=0`, rejects
   target-specific override variables, and tests every native Cargo entry point
   for this policy. The exact bundled source archive is authenticated by Cargo's

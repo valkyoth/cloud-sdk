@@ -11,12 +11,12 @@ ROOT = Path(__file__).resolve().parent.parent
 DEFAULT_README = ROOT / "crates" / "cloud-sdk-hetzner" / "README.md"
 HEADER = "| Capability | Current coverage | Release status |"
 EXPECTED = (
-    ("Request models", "Complete for all 209 non-deprecated operations", "1.1.1"),
-    ("Path/query encoding", "Complete for all 209 non-deprecated operations", "1.1.1"),
+    ("Request models", "Complete for all 209 non-deprecated operations", "1.1.2"),
+    ("Path/query encoding", "Complete for all 209 non-deprecated operations", "1.1.2"),
     (
         "Body serialization",
         "Complete for all 91 non-deprecated operations with request bodies",
-        "1.1.1",
+        "1.1.2",
     ),
     (
         "Success response models",
@@ -26,30 +26,30 @@ EXPECTED = (
         "and Console Storage Boxes, types, snapshots, subaccounts, and "
         "folders; operation-branded typed execution guards decode through "
         "`decode_associated_checked_response`",
-        "1.1.1",
+        "1.1.2",
     ),
     (
         "Error response models",
         "Complete checked typed API error decoding for all active operations",
-        "1.1.1",
+        "1.1.2",
     ),
     (
         "End-to-end client",
         "Complete named workflows for all 209 active Cloud, DNS, Security, "
         "and Console Storage Box operations; custom-endpoint execution remains unavailable",
-        "1.1.1",
+        "1.1.2",
     ),
     (
         "Robot client",
-        "Complete typed contracts for all 89 active Robot operations; 45 read-only "
+        "Complete typed contracts for all 89 supported Robot operations; 45 read-only "
         "routes execute directly and every state change remains permit-gated",
-        "1.1.1",
+        "1.1.2",
     ),
     (
         "Server Metadata",
         "Complete strict contracts for all seven canonical credential-free "
         "link-local reads",
-        "1.1.1",
+        "1.1.2",
     ),
 )
 

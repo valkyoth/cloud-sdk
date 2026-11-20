@@ -10,9 +10,9 @@ from typing import Any
 
 ROOT = Path(__file__).resolve().parents[1]
 LOCK = ROOT / "tests/fixtures/robot-ip/v0.80.0.json"
-LOCK_SHA256 = "b37a0c6259eaae354b3e691db0974882823a5d008545d8bb4bcf6d2f69c54247"
+LOCK_SHA256 = "a1ce097e6a7caaa889b9966a0f112f61d93f52d458eddb9490bd6157ffce32e1"
 MAX_LOCK_BYTES = 32 * 1024
-SOURCE_SHA256 = "4b396790acc449f47b2b3b893f8eff759c0c25196dc38b1e5e92a12c9704771a"
+SOURCE_SHA256 = "9f19edaa1a90d5987fe8e58d0cb3868fc64cbed8177aa0fdcbbe012dbc058018"
 
 OPERATIONS = {
     "robot_list_ips": ("GET", "/ip", "ip-list"),

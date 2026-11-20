@@ -19,9 +19,9 @@ check_output() {
     fi
 }
 
-check_output Rust 'rustc 1.99.1 ' rustc --version
-check_output cargo-deny 'cargo-deny 0.20.2' cargo deny --version
-check_output cargo-audit 'cargo-audit-audit 0.22.2' cargo audit --version
+check_output Rust 'rustc 1.100.0 ' rustc --version
+check_output cargo-deny 'cargo-deny 0.22.0' cargo deny --version
+check_output cargo-audit 'cargo-audit-audit 0.23.0' cargo audit --version
 check_output cargo-sbom 'cargo-sbom 0.10.0' cargo sbom --version
 check_output cargo-fuzz 'cargo-fuzz 0.13.2' cargo fuzz --version
 
@@ -41,8 +41,8 @@ check_registry() {
     fi
 }
 
-check_registry cargo-deny 0.20.2
-check_registry cargo-audit 0.22.2
+check_registry cargo-deny 0.22.0
+check_registry cargo-audit 0.23.0
 check_registry cargo-sbom 0.10.0
 check_registry cargo-fuzz 0.13.2
 

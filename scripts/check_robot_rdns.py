@@ -10,8 +10,8 @@ from typing import Any
 
 ROOT = Path(__file__).resolve().parents[1]
 LOCK = ROOT / "tests/fixtures/robot-rdns/v0.86.0.json"
-LOCK_SHA256 = "0baecb5e6b4db7dcc63326eb49a5b588d49c4f8b8b8be7238c3f62b8e98b0717"
-SOURCE_SHA256 = "4b396790acc449f47b2b3b893f8eff759c0c25196dc38b1e5e92a12c9704771a"
+LOCK_SHA256 = "64ac9ad6c9ead40dbf26b8c8e52eecfc81c888e8b992b6661474292395ac63b3"
+SOURCE_SHA256 = "9f19edaa1a90d5987fe8e58d0cb3868fc64cbed8177aa0fdcbbe012dbc058018"
 MAX_LOCK_BYTES = 16 * 1024
 
 OPERATIONS = [
@@ -79,7 +79,7 @@ def read_lock() -> tuple[dict[str, Any], bytes]:
 def validate_contract(value: dict[str, Any]) -> None:
     require(set(value) == {"schema_version", "source", "operations", "quota", "policy"}, "top-level fields changed")
     require(value["schema_version"] == 1, "schema version changed")
-    require(value["source"] == {"retrieved": "2026-08-13", "url": "https://robot.hetzner.com/doc/webservice/en.html", "sha256": SOURCE_SHA256}, "source identity changed")
+    require(value["source"] == {"retrieved": "2026-11-20", "url": "https://robot.hetzner.com/doc/webservice/en.html", "sha256": SOURCE_SHA256}, "source identity changed")
     require(value["quota"] == {"requests": 500, "seconds": 3600}, "quota changed")
     require(value["policy"] == POLICY, "security policy changed")
     operations = value.get("operations")

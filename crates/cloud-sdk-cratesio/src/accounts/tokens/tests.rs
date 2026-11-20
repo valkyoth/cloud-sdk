@@ -118,6 +118,25 @@ fn metadata_is_bound_protected_and_scopes_are_explicit() {
         .with_expiry(|expiry| assert_eq!(expiry, Some("2027-01-01T12:00:00Z")))
         .fixture("expiry");
     assert_eq!(format!("{value:?}"), "TokenMetadata([redacted])");
+    let wire = RECORD.replace("\"yank\"", "\"crate-owner-invitations\"");
+    assert!(decode(&permit, wire.as_bytes()).is_err());
+    let full = TokenPermit::inspect_all_scopes(id(42), &token);
+    let TokenResponse::Metadata(extended) = decode(&full, wire.as_bytes()).fixture("new scope")
+    else {
+        unreachable!("wrong variant")
+    };
+    assert_eq!(
+        extended.endpoint_scopes(),
+        Some([EndpointScope::PublishUpdate].as_slice())
+    );
+    extended
+        .all_endpoint_scopes()
+        .fixture("scopes")
+        .fixture("scoped")
+        .last()
+        .fixture("new scope")
+        .with_text(|s| assert_eq!(s, "crate-owner-invitations"))
+        .fixture("text");
     for empty in ["null", "[]"] {
         let wire = RECORD
             .replace("[\"private-*\"]", empty)

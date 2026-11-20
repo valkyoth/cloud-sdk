@@ -117,6 +117,32 @@
         }
       },
       {
+        "id": "operation/list_crate_owner_invitations",
+        "values": {
+          "admitted": [
+            "api_token"
+          ],
+          "fingerprint": "f0d4f707a47da40a74429ce7588e4fe04efea1e797a669a1ab8a4e34f55fbb32",
+          "observed": [
+            "cookie",
+            "api_token"
+          ]
+        }
+      },
+      {
+        "id": "operation/update_crate_owner_invitation",
+        "values": {
+          "admitted": [
+            "api_token"
+          ],
+          "fingerprint": "f0d4f707a47da40a74429ce7588e4fe04efea1e797a669a1ab8a4e34f55fbb32",
+          "observed": [
+            "cookie",
+            "api_token"
+          ]
+        }
+      },
+      {
         "id": "operation/list_crates",
         "values": {
           "admitted": [
@@ -798,6 +824,32 @@
         }
       },
       {
+        "id": "openapi/list_crate_owner_invitations",
+        "values": {
+          "cargo_contract": false,
+          "classification": "included",
+          "deprecated": false,
+          "fingerprint": "d6fee38c3f79bf4e813164a2ab95a2f8464cb0de85beb25d55677ba935bd6b35",
+          "method": "GET",
+          "path": "/api/v1/crate_owner_invitations",
+          "policy": "public-openapi",
+          "stability": "experimental"
+        }
+      },
+      {
+        "id": "openapi/update_crate_owner_invitation",
+        "values": {
+          "cargo_contract": false,
+          "classification": "included",
+          "deprecated": false,
+          "fingerprint": "7118eee9790d85dce1466587725c1ac425ba0e5f13cd2d37849afe3ca63f4926",
+          "method": "PATCH",
+          "path": "/api/v1/crate_owner_invitations/{id}",
+          "policy": "public-openapi",
+          "stability": "experimental"
+        }
+      },
+      {
         "id": "openapi/list_crates",
         "values": {
           "cargo_contract": true,
@@ -1153,12 +1205,12 @@
         "values": {
           "cargo_contract": false,
           "classification": "included",
-          "deprecated": false,
-          "fingerprint": "c497d667281bee5d4fb73f256dab385bf4d6c5ff96046b094f36d085665ab547",
+          "deprecated": true,
+          "fingerprint": "3de37159810c6e551df7ca9bc25e93d2e05e155d9febdcbfc7b142db6bcaa78c",
           "method": "PUT",
           "path": "/api/v1/me/crate_owner_invitations/{crate_id}",
           "policy": "public-openapi",
-          "stability": "experimental"
+          "stability": "deprecated-experimental"
         }
       },
       {
@@ -1609,6 +1661,50 @@
             "application/json"
           ],
           "fingerprint": "7bd65484b7a8d488ed0ddb9d4d2c83a2f2b5ada528d599328b621e2b044fc9b2",
+          "statuses": [
+            "200",
+            "4XX",
+            "5XX"
+          ]
+        }
+      },
+      {
+        "id": "request/list_crate_owner_invitations",
+        "values": {
+          "content_types": [],
+          "fingerprint": "d4c01ad2922d8d6d5499798e06a3e5ecc26d25fe01243489439c7f6b12a70152"
+        }
+      },
+      {
+        "id": "response/list_crate_owner_invitations",
+        "values": {
+          "content_types": [
+            "application/json"
+          ],
+          "fingerprint": "7e479e8d0eff51946dfaa46ffd387e5aaa2db1d5a6cae51a9dc1f1a86fa01fbe",
+          "statuses": [
+            "200",
+            "4XX",
+            "5XX"
+          ]
+        }
+      },
+      {
+        "id": "request/update_crate_owner_invitation",
+        "values": {
+          "content_types": [
+            "application/json"
+          ],
+          "fingerprint": "bcd653163e5953e16ae2f8c05c8583f39d938d2af2df0d9d952e895eee24e659"
+        }
+      },
+      {
+        "id": "response/update_crate_owner_invitation",
+        "values": {
+          "content_types": [
+            "application/json"
+          ],
+          "fingerprint": "47a8ab9e195468886e0afcf107048ec7dfe85551a1d9cd03a2bde7adc148fcdb",
           "statuses": [
             "200",
             "4XX",
@@ -2675,8 +2771,15 @@
       {
         "id": "component/1b44ff147f5230918b99b0a9c5ce266d",
         "values": {
-          "fingerprint": "10e8b126e25173171e01a45907018745c756902c60c7649c79b7a583c3441d36",
+          "fingerprint": "229b8a62ae2c1fc22aa87870ff4708fa84e48d7f04fb5b7028fad526a580728d",
           "name": "CrateOwnerInvitation"
+        }
+      },
+      {
+        "id": "component/c66328d971889e1acc9449a06024085f",
+        "values": {
+          "fingerprint": "6b731817b2f754a56eb697018638669ce5fe70e6d76beeaecccf659d6aa392ac",
+          "name": "CrateOwnerInvitationState"
         }
       },
       {
@@ -2689,7 +2792,7 @@
       {
         "id": "component/eccf816d559b427727594c81eced61da",
         "values": {
-          "fingerprint": "6558a37eb9ca3908d6e1e1153a18b12c4fc7a55969f5d798dd1dbb9d9db8e35a",
+          "fingerprint": "66469dd1a0c6242e39da190b3bd63ddc89ce52d6ef6e2dd6eaa5dca13671ea9d",
           "name": "EndpointScope"
         }
       },
@@ -2822,25 +2925,25 @@
     {
       "id": "cargo",
       "max_bytes": 524288,
-      "sha256": "3220debf0fb737663e4f3d2375137c90543f33a6c32cff105263fcf8d59a162d",
+      "sha256": "07e24024c88da15dc2b2adca6438e9cc7660bcdfde385112c9d2f543f31d8d03",
       "url": "https://doc.rust-lang.org/cargo/reference/registry-web-api.html"
     },
     {
       "id": "openapi",
       "max_bytes": 1048576,
-      "sha256": "e0381435d584fb65afe67024840b371b8f65cb8904991bae354fff0d7ca920c6",
+      "sha256": "52530470354c80f92fcbf941717d8ffbd9e118e5f8c6e8105c95cdb9277f8b59",
       "url": "https://crates.io/api/openapi.json"
     },
     {
       "id": "openapi-source",
       "max_bytes": 131072,
       "sha256": "05319ccd6c1fa9e0e3ac9acd86fca932ccd1100358c5e395427b6322ce4d7810",
-      "url": "https://raw.githubusercontent.com/rust-lang/crates.io/9ae7f769cea32f38ebc2ea9ec2ce455b47641511/src/openapi.rs"
+      "url": "https://raw.githubusercontent.com/rust-lang/crates.io/e37aa705b096b0f64b8ad5c0312d8e8fc8637315/src/openapi.rs"
     },
     {
       "id": "policy",
       "max_bytes": 131072,
-      "sha256": "5d9b41da21e93b6abd3d5b4d5735b400eb637e76b312c751065e5726ab4c022a",
+      "sha256": "c481c8f6e0428984a6fa468cf728e01be75c11304a6d3897efc019c8a4c38c36",
       "url": "https://crates.io/data-access"
     },
     {
@@ -2852,8 +2955,8 @@
     {
       "id": "policy-source",
       "max_bytes": 131072,
-      "sha256": "db5078a31e412c395321b95124ba5e4b3db7954e1d2a66a9a5847c3cbbaca802",
-      "url": "https://raw.githubusercontent.com/rust-lang/crates.io/9ae7f769cea32f38ebc2ea9ec2ce455b47641511/svelte/src/routes/data-access/%2Bpage.svelte"
+      "sha256": "ca1ca051c6da4e9e2f9657fb2b82116f82729631f9a5b84332175f4efe76b145",
+      "url": "https://raw.githubusercontent.com/rust-lang/crates.io/e37aa705b096b0f64b8ad5c0312d8e8fc8637315/svelte/src/routes/data-access/%2Bpage.svelte"
     }
   ]
 }

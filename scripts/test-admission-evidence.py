@@ -14,18 +14,18 @@ FILES = (
 def main():
     checker.validate(checker.ROOT)
     cases = [
-        (FILES[4], "- Version: `1.1.5`", "- Version: `1.1.4`"),
-        (FILES[4], "891efaba", "00000000"),
-        (FILES[5], "| `syn` | `3.0.9`", "| `syn` | `3.0.4`"),
-        (FILES[5], "d78c8dee", "00000000"),
-        (FILES[5], "0662b098", "00000000"),
-        (FILES[5], "6c622058", "00000000"),
+        (FILES[4], "- Version: `1.1.6`", "- Version: `1.1.4`"),
+        (FILES[4], "e5e76742", "00000000"),
+        (FILES[5], "| `syn` | `3.0.10`", "| `syn` | `3.0.4`"),
+        (FILES[5], "4ae9ccbe", "00000000"),
+        (FILES[5], "239ada95", "00000000"),
+        (FILES[5], "c98d2738", "00000000"),
         (FILES[5], "| `saphyr`", "| `other`"),
-        (FILES[0], 'version = "=1.1.5"', 'version = "=1.1.4"'),
-        (FILES[2], 'version = "=3.0.9"', 'version = "=3.0.4"'),
+        (FILES[0], 'version = "=1.1.6"', 'version = "=1.1.4"'),
+        (FILES[2], 'version = "=3.0.10"', 'version = "=3.0.4"'),
         (FILES[2], 'default-features = false', 'default-features = true'),
         (FILES[2], '"parsing", "visit"', '"parsing"'),
-        (FILES[3], 'checksum = "d78c8dee', 'checksum = "00000000'),
+        (FILES[3], 'checksum = "4ae9ccbe', 'checksum = "00000000'),
     ]
     for filename, before, after in cases:
         with tempfile.TemporaryDirectory() as directory:

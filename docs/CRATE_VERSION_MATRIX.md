@@ -1,18 +1,18 @@
 # Crate Version Matrix
 
-Status: `1.1.1` is a maintenance candidate based on published `1.1.0`.
-All six packages are synchronized to `1.1.1`; publishing is disabled pending
+Status: `1.1.2` is a maintenance candidate based on published `1.1.1`.
+All six packages are synchronized to `1.1.2`; publishing is disabled pending
 pentest, GitHub CI/CodeQL and explicit release approval. Scaleway remains on its
 separate development branch.
 
 | Package | Published baseline | Candidate | Publish now |
 | --- | --- | --- | --- |
-| `cloud-sdk` | `1.1.0` | `1.1.1` | No |
-| `cloud-sdk-hetzner` | `1.1.0` | `1.1.1` | No |
-| `cloud-sdk-cratesio` | `1.1.0` | `1.1.1` | No |
-| `cloud-sdk-reqwest` | `1.1.0` | `1.1.1` | No |
-| `cloud-sdk-sanitization` | `1.1.0` | `1.1.1` | No |
-| `cloud-sdk-testkit` | `1.1.0` | `1.1.1` | No |
+| `cloud-sdk` | `1.1.1` | `1.1.2` | No |
+| `cloud-sdk-hetzner` | `1.1.1` | `1.1.2` | No |
+| `cloud-sdk-cratesio` | `1.1.1` | `1.1.2` | No |
+| `cloud-sdk-reqwest` | `1.1.1` | `1.1.2` | No |
+| `cloud-sdk-sanitization` | `1.1.1` | `1.1.2` | No |
+| `cloud-sdk-testkit` | `1.1.1` | `1.1.2` | No |
 
 `cloud-sdk` is the provider-neutral entry point. Provider crates such as
 `cloud-sdk-hetzner` own their endpoint models in internal modules. Shared

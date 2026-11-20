@@ -251,6 +251,7 @@ impl RobotSubnetTrafficUpdate {
 }
 
 /// Updates traffic-warning settings for one subnet.
+/// Hetzner schedules removal of this endpoint on January 12, 2027.
 pub struct RobotSubnetUpdateRequest {
     pub(super) address: RobotSubnetAddress,
     pub(super) update: RobotSubnetTrafficUpdate,

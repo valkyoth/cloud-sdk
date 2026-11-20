@@ -2,7 +2,7 @@
 
 ## Decision
 
-Admit exact `rustix 1.1.5` only as a Unix-target development dependency of
+Admit exact `rustix 1.1.6` only as a Unix-target development dependency of
 `cloud-sdk-hetzner`, with default features disabled and only `fs`, `process`,
 and `std` enabled.
 
@@ -25,13 +25,13 @@ policy. `rustix` provides the required operations through a maintained safe API.
 
 ## Reviewed Boundary
 
-- Version: `1.1.5`
+- Version: `1.1.6`
 - Registry checksum:
-  `891efababe418670775f199f0d233d84843c227a0949a883ce15b37c78d6629d`
+  `e5e76742e5294153d4dde1207dbec5bdd81eef6fabdc0d2118babadabfd858aa`
 - License: `Apache-2.0 WITH LLVM-exception OR Apache-2.0 OR MIT`
 - Declared MSRV: Rust `1.65`
 - Direct features: `fs`, `process`, `std`
-- Locked syscall support: `errno 0.3.14` and `linux-raw-sys 0.12.1`
+- Locked syscall support: `errno 0.3.15` and `linux-raw-sys 0.12.1`
 
 Cargo registry metadata and the resulting exact locked graph were reviewed on
 2026-09-24. Cargo Deny, RustSec, complete-SBOM, platform, MSRV, package, and

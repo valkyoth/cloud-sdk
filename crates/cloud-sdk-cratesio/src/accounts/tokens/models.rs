@@ -51,9 +51,21 @@ impl TokenMetadata {
     pub fn with_name<R>(&self, inspect: impl FnOnce(&str) -> R) -> Result<R, Error> {
         self.fields.required("name")?.with_text(inspect)
     }
-    /// None means upstream's legacy scope, not an empty permission set.
+    /// Projection onto the original five endpoint scopes. None identifies a
+    /// legacy token. Use `all_endpoint_scopes` for the complete checked list.
     pub fn endpoint_scopes(&self) -> Option<&[EndpointScope]> {
         self.endpoints.as_deref()
+    }
+    /// All schema-validated endpoint scope names, including
+    /// `crate-owner-invitations`. None denotes legacy (unscoped) credentials,
+    /// which the invitation endpoints do not accept.
+    pub fn all_endpoint_scopes(&self) -> Result<Option<&[DiscoveryValue]>, Error> {
+        let scopes = self.fields.required("endpoint_scopes")?;
+        if scopes.is_null() {
+            Ok(None)
+        } else {
+            scopes.array().map(Some)
+        }
     }
     /// None means unrestricted crate scopes; Some(empty) remains distinct.
     /// Patterns are inert metadata, not interpreted as local authorization.

@@ -43,14 +43,14 @@ blocking_tree=$(cargo tree -p cloud-sdk-reqwest --no-default-features \
     --features blocking-rustls --edges normal)
 for dependency in \
     'http v1.5.0' \
-    'base64-ng v2.1.0' \
+    'base64-ng v2.1.1' \
     'http-body-util v0.1.5' \
     'hyper v1.12.0' \
     'hyper-rustls v0.27.10' \
     'hyper-util v0.1.21' \
     'reqwest v0.13.5' \
-    'cloud-sdk-sanitization v1.1.1' \
-    'sanitization v2.1.1' \
+    'cloud-sdk-sanitization v1.1.2' \
+    'sanitization v2.2.0' \
     'rustls v0.23.46'; do
     if ! printf '%s\n' "$blocking_tree" | grep -Fq "$dependency"; then
         echo "reqwest boundary: admitted dependency $dependency is missing" >&2
@@ -67,16 +67,16 @@ fi
 async_tree=$(cargo tree -p cloud-sdk-reqwest --no-default-features \
     --features async-rustls --edges normal)
 for dependency in \
-    'bytes v1.12.1' \
-    'base64-ng v2.1.0' \
+    'bytes v1.12.2' \
+    'base64-ng v2.1.1' \
     'http-body-util v0.1.5' \
     'hyper v1.12.0' \
     'hyper-rustls v0.27.10' \
     'hyper-util v0.1.21' \
     'reqwest v0.13.5' \
     'tokio v1.54.1' \
-    'cloud-sdk-sanitization v1.1.1' \
-    'sanitization v2.1.1' \
+    'cloud-sdk-sanitization v1.1.2' \
+    'sanitization v2.2.0' \
     'rustls v0.23.46'; do
     if ! printf '%s\n' "$async_tree" | grep -Fq "$dependency"; then
         echo "reqwest boundary: admitted async dependency $dependency is missing" >&2

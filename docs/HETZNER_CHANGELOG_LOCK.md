@@ -2,16 +2,20 @@
 
 Status: current operational source reviewed after stable `1.0.0`.
 
-Retrieved: 2026-10-22
+Retrieved: 2026-11-20
 
 Official source:
 <https://docs.hetzner.cloud/changelog/feed.rss>
 
 Normalized semantic SHA-256:
-`6f2da2458e3cd4cb3bad55c086c9934243bc1f28dc5b3c929fc52234da8099e8`
+`16598af75bd97e263065fad901b4ab085e0257d8483e7a509fa67c1b033fde7d`
 
 Latest reviewed entry:
-<https://docs.hetzner.cloud/changelog#2026-10-15-server-subnet-type-deprecation>
+<https://docs.hetzner.cloud/changelog#2026-11-12-fedora-43-image-is-deprecated>
+
+The November review covers the new Volume assignee contract (October 27),
+removal of the legacy deprecated field (November 2), and the Fedora 43
+image deprecation (November 12). The SDK does not select an OS image by default.
 
 The October 22 maintenance review covers the October 5 load-balancer Primary IP
 selection and deletion-action changes. Creation now accepts existing IP IDs;

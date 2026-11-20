@@ -112,6 +112,85 @@ fn notification_batches_reject_ambiguity_and_excess() {
 }
 
 #[test]
+fn scoped_invitations_reject_unrelated_or_contradictory_responses() {
+    use cloud_sdk::incremental_json::IncrementalJsonDecoder;
+    use invitations::{Decision, Filter, InvitationId, InvitationPermit};
+    let token = token();
+    let list = InvitationPermit::list(
+        &token,
+        Filter::Invitee(id(3)),
+        crate::query::PerPage::DEFAULT,
+        None,
+    );
+    let update = InvitationPermit::confirm_update(
+        &token,
+        InvitationId::new(19).fixture("id"),
+        Decision::Accept,
+    );
+    let item = r#"{"id":19,"crate_id":4,"inviter_id":2,"invitee_id":3,"state":"pending","crate_name":"serde","created_at":"2026-10-21T00:00:00Z","expires_at":"2026-11-21T00:00:00Z"}"#;
+    let check = |permit: &InvitationPermit<'_>, body: &str| {
+        let mut builder = crate::discovery::value::Builder::default();
+        let mut parser = IncrementalJsonDecoder::new();
+        parser.push(body.as_bytes(), &mut builder).fixture("parse");
+        parser.finish(&mut builder).fixture("finish");
+        permit.check_tree(builder.finish().fixture("tree"))
+    };
+    let page = |items: &str| {
+        format!(r#"{{"crate_owner_invitations":[{items}],"users":[],"meta":{{"next_page":null}}}}"#)
+    };
+    assert!(check(&list, &page(item)).is_ok());
+    let user = r#"{"id":3,"login":"user","name":null,"avatar":null,"url":"https://example.org","github_username_matches":true,"created_at":null}"#;
+    let with_users =
+        |users: &str| page(item).replace("\"users\":[]", &format!("\"users\":[{users}]"));
+    assert!(check(&list, &with_users(user)).is_ok());
+    assert!(check(&list, &with_users(&user.replace("\"id\":3", "\"id\":12"))).is_err());
+    assert!(check(&list, &with_users(&format!("{user},{user}"))).is_err());
+    for bad in [
+        item.replace("pending", "accepted"),
+        item.replace("\"invitee_id\":3", "\"invitee_id\":4"),
+        format!("{item},{item}"),
+    ] {
+        assert!(check(&list, &page(&bad)).is_err());
+    }
+    let reply = format!(r#"{{"crate_owner_invitation":{item}}}"#).replace("pending", "accepted");
+    assert!(check(&update, &reply).is_ok());
+    for bad in [
+        reply.replace("19,", "18,"),
+        reply.replace("accepted", "declined"),
+        reply.replace("\"crate_id\":4", "\"crate_id\":0"),
+    ] {
+        assert!(check(&update, &bad).is_err());
+    }
+}
+
+#[test]
+fn scoped_invitation_transitions_use_the_documented_body_and_id_bounds() {
+    use cloud_sdk::incremental_json::IncrementalJsonDecoder;
+    use invitations::{Decision, InvitationId, InvitationPermit};
+    let token = token();
+    assert!(InvitationId::new(0).is_err());
+    assert!(InvitationId::new(u64::MAX).is_err());
+    let id = InvitationId::new(i64::MAX as u64).fixture("maximum");
+    for decision in [Decision::Accept, Decision::Decline, Decision::Revoke] {
+        let permit = InvitationPermit::confirm_update(&token, id, decision);
+        let mut builder = crate::discovery::value::Builder::default();
+        let mut parser = IncrementalJsonDecoder::new();
+        parser
+            .push(permit.wire_body().1, &mut builder)
+            .fixture("parse");
+        parser.finish(&mut builder).fixture("finish");
+        crate::catalog::schema::validate_table(
+            &builder.finish().fixture("tree"),
+            schema_table::UPDATE_CRATE_OWNER_INVITATION_BODY,
+            0,
+            schema_table::NODES,
+        )
+        .fixture("source schema");
+        assert!(permit.write_target(&mut [0; 4]).is_err());
+    }
+}
+
+#[test]
 fn serialized_bodies_match_source_projections_and_scoped_storage_is_cleared() {
     use super::schema_table as s;
     use crate::discovery::value::Builder;

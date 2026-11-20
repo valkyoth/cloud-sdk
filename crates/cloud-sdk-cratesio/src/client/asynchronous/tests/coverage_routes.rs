@@ -157,6 +157,11 @@ pub(super) const ROUTES: &[(&str, &str, &str)] = &[
         "/api/v1/category_slugs",
     ),
     (
+        "list_crate_owner_invitations",
+        "GET",
+        "/api/v1/crate_owner_invitations",
+    ),
+    (
         "list_crates",
         "GET",
         "/api/v1/crates",
@@ -235,6 +240,11 @@ pub(super) const ROUTES: &[(&str, &str, &str)] = &[
         "update_crate",
         "PATCH",
         "/api/v1/crates/{name}",
+    ),
+    (
+        "update_crate_owner_invitation",
+        "PATCH",
+        "/api/v1/crate_owner_invitations/{id}",
     ),
     (
         "update_email_notifications",

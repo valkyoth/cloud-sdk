@@ -9,6 +9,8 @@ from generate_cratesio_catalog import projection
 ROOT = Path(__file__).resolve().parents[1]
 OUTPUT = ROOT / "crates/cloud-sdk-cratesio/src/accounts/personal/schema_table.rs"
 PATHS = {
+    "list_crate_owner_invitations": ("get", "/api/v1/crate_owner_invitations"),
+    "update_crate_owner_invitation": ("patch", "/api/v1/crate_owner_invitations/{id}"),
     "confirm_user_email": ("put", "/api/v1/confirm/{email_token}"),
     "follow_crate": ("put", "/api/v1/crates/{name}/follow"),
     "unfollow_crate": ("delete", "/api/v1/crates/{name}/follow"),
@@ -27,14 +29,14 @@ def render(document):
         if op["operationId"] != name:
             raise ValueError("personal operation identity changed")
         roots[name.upper()] = op["responses"]["200"]["content"]["application/json"]["schema"]
-        if name in ("update_user", "handle_crate_owner_invitation"):
+        if name in ("update_user", "handle_crate_owner_invitation", "update_crate_owner_invitation"):
             roots[name.upper() + "_BODY"] = op["requestBody"]["content"]["application/json"]["schema"]
         elif "requestBody" in op:
             raise ValueError("personal operation acquired an unreviewed body")
     table = projection(document, roots)
     table = table.replace("use super::schema::Node;", "use crate::catalog::schema::Node;").replace(
         "generate_cratesio_catalog.py", "generate_cratesio_personal.py")
-    for name in ("HANDLE_CRATE_OWNER_INVITATION_BODY", "UPDATE_USER_BODY"):
+    for name in ("HANDLE_CRATE_OWNER_INVITATION_BODY", "UPDATE_USER_BODY", "UPDATE_CRATE_OWNER_INVITATION_BODY"):
         table = table.replace(f"pub(super) const {name}:", f"#[cfg(test)]\npub(super) const {name}:")
     return table
 
@@ -50,7 +52,7 @@ def main():
         OUTPUT.write_text(result, encoding="ascii")
     elif OUTPUT.read_text(encoding="ascii") != result:
         raise ValueError("personal projections are stale")
-    print("8 personal response and 2 documented body projections passed.")
+    print("10 personal response and 3 documented body projections passed.")
 
 
 if __name__ == "__main__":

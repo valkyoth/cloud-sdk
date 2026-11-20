@@ -139,6 +139,11 @@ implementation!(
     permit
 );
 implementation!(
+    crate::accounts::personal::invitations::InvitationPermit<'r>,
+    crate::discovery::DiscoveryValue,
+    permit
+);
+implementation!(
     crate::accounts::personal::PersonalPermit<'r>,
     crate::accounts::personal::PersonalResponse,
     permit

@@ -9,6 +9,59 @@ mod sealed {
     pub trait Operation {}
 }
 
+use crate::accounts::personal::invitations::InvitationPermit;
+impl sealed::Operation for InvitationPermit<'_> {}
+impl BlockingRegistryOperation for InvitationPermit<'_> {
+    type Response = crate::discovery::DiscoveryValue;
+    fn run<T: BlockingAuthorizedRawHttpExecutor + BoundUserAgent + ?Sized>(
+        self,
+        c: &RegistryClient<'_, T>,
+        buffers: RegistryBuffers<'_>,
+    ) -> Result<Self::Response, DiscoveryExecutionError<T::Error>> {
+        use super::prepared::Permit;
+        use crate::discovery::{
+            DiscoveryClient, DiscoveryError as Error, DiscoveryExecutionError as Failure,
+        };
+        use cloud_sdk::transport::{MediaType, RequestHeader, RequestHeaders, ResponseBuffer};
+        let mut guard = super::buffers::Guard::new(buffers);
+        let buffers = guard.parts();
+        let client = if c.staging {
+            DiscoveryClient::staging(c.executor, c.identity, c.maximum)
+        } else {
+            DiscoveryClient::production(c.executor, c.identity, c.maximum)
+        }
+        .map_err(Failure::Model)?;
+        client.verify().map_err(Failure::Model)?;
+        if Permit::origin(&self).endpoint() != client.endpoint {
+            return Err(Failure::Model(Error::Binding));
+        }
+        let mut target = [0; crate::query::MAX_TARGET_BYTES];
+        let mut secret = cloud_sdk_sanitization::SecretBuffer::new(buffers.credential);
+        let p = self
+            .prepare(c.executor, &mut target, &mut secret, buffers.body, 0)
+            .map_err(Failure::Model)?;
+        let mut response = ResponseBuffer::new(buffers.response, c.maximum, buffers.headers);
+        let headers = [
+            RequestHeader::accept(MediaType::JSON),
+            RequestHeader::new("accept-encoding", "identity")
+                .map_err(|_| Failure::Model(Error::Value))?,
+            RequestHeader::new("content-type", "application/json")
+                .map_err(|_| Failure::Model(Error::Value))?,
+        ];
+        let n = if p.body.is_empty() { 2 } else { 3 };
+        let headers = RequestHeaders::new(headers.get(..n).ok_or(Failure::Model(Error::Limit))?)
+            .map_err(|_| Failure::Model(Error::Value))?;
+        let wire = TransportRequest::new(p.material.method(), p.material.target())
+            .with_headers(headers)
+            .with_body(p.body);
+        let policy = client.policy().map_err(Failure::Model)?;
+        let mut attempt = client.gate.begin().map_err(Failure::Schedule)?;
+        dispatch(c.executor, p.material, wire, policy, response.writer())
+            .map_err(Failure::Transport)?;
+        self.finish(&client, response, &mut attempt)
+    }
+}
+
 impl sealed::Operation for crate::accounts::cargo::CargoOwnersRequest<'_> {}
 impl BlockingRegistryOperation for crate::accounts::cargo::CargoOwnersRequest<'_> {
     type Response = crate::accounts::cargo::CargoOwners;

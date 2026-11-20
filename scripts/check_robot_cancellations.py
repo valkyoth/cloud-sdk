@@ -10,9 +10,9 @@ from typing import Any
 
 ROOT = Path(__file__).resolve().parents[1]
 LOCK = ROOT / "tests/fixtures/robot-cancellation/v0.79.0.json"
-LOCK_SHA256 = "588621f059b6cc73b39090223b25b7099efeb4f229bae44a8ec93febbe62d4a7"
+LOCK_SHA256 = "9250c45137dbda0242f6362de10a0349b1ddfb5538071e17144280f384dce9e4"
 MAX_LOCK_BYTES = 32 * 1024
-SOURCE_SHA256 = "4b396790acc449f47b2b3b893f8eff759c0c25196dc38b1e5e92a12c9704771a"
+SOURCE_SHA256 = "9f19edaa1a90d5987fe8e58d0cb3868fc64cbed8177aa0fdcbbe012dbc058018"
 
 OPERATIONS = {
     "robot_get_server_cancellation": ("GET", "/server/{server-number}/cancellation"),
@@ -61,7 +61,7 @@ def validate_contract(value: dict[str, Any]) -> None:
     require(value.get("schema_version") == 1, "schema version changed")
     require(
         value.get("source") == {
-            "retrieved": "2026-08-10",
+            "retrieved": "2026-11-20",
             "url": "https://robot.hetzner.com/doc/webservice/en.html",
             "sha256": SOURCE_SHA256,
         },

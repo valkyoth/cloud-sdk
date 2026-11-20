@@ -3,7 +3,7 @@
 Status: admitted only in the excluded, non-published
 `tools/prepared-coverage-check` package.
 
-Checked: 2026-10-22.
+Checked: 2026-11-20.
 
 The 0.2.2 YAML refresh rejects raw NUL input and duplicate mapping keys by
 default. Existing bounded event preflight and workflow rejection regressions
@@ -13,9 +13,9 @@ remain enabled; duplicate-key permissive loading is not selected.
 
 | Component | Version | Role | License | Rust |
 | --- | --- | --- | --- | --- |
-| `syn` | `3.0.9` | Rust source and macro-input parser | MIT OR Apache-2.0 | 1.71 |
-| `saphyr` | `0.2.2` | bounded YAML document parser | MIT OR Apache-2.0 | 1.85.0 |
-| `saphyr-parser` | `0.2.2` | pre-DOM YAML event validation | MIT OR Apache-2.0 | 1.85.0 |
+| `syn` | `3.0.10` | Rust source and macro-input parser | MIT OR Apache-2.0 | 1.71 |
+| `saphyr` | `0.3.4` | bounded YAML document parser | MIT OR Apache-2.0 | 1.85.0 |
+| `saphyr-parser` | `0.3.4` | pre-DOM YAML event validation | MIT OR Apache-2.0 | 1.85.0 |
 | `proc-macro2` | `1.0.107` | transitive token representation | MIT OR Apache-2.0 | 1.68 |
 | `unicode-ident` | `1.0.27` | transitive identifier tables | Unicode-3.0 | 1.71 |
 
@@ -28,9 +28,9 @@ capability is intentionally provided by this tool.
 
 | Direct package | Version | Registry checksum |
 | --- | --- | --- |
-| `syn` | `3.0.9` | `d78c8dee4c7bf0e14673097256fed6142ce9d3b85a408189d07482442145823b` |
-| `saphyr` | `0.2.2` | `0662b098655e5e779a80041b640702e341cf3ede4560ecc103cf0ef098c8e33e` |
-| `saphyr-parser` | `0.2.2` | `6c6220586c3dacac54bfddec87af86ddb31862d29666e7e35cf4baf70a25d387` |
+| `syn` | `3.0.10` | `4ae9ccbea3a7b0b09443036490c8f34a8b1b760fd345e5c0dae0aac718faea79` |
+| `saphyr` | `0.3.4` | `239ada9508355b353044d043e5806c6d84030234503b62ccb8785f549cd9359b` |
+| `saphyr-parser` | `0.3.4` | `c98d2738e44a25e6ba2e6d83d91805648df204768abc96f4f1278cb3d5c90bbe` |
 
 `python3 scripts/check_admission_evidence.py` verifies these exact direct
 pins, feature selections and checksums against the manifest and isolated lock.

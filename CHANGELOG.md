@@ -1,6 +1,14 @@
 # Changelog
 
-## 1.1.1 - Candidate
+## 1.1.2 - Candidate
+
+- Develop and test on Rust 1.100.0 with an MSRV of 1.92.
+- Refresh dependency pins, TLS roots, fuzz tooling and CI security tools.
+- Use Hetzner Volume assignees and track the retiring Robot traffic-warning routes.
+- Support scoped crates.io invitation listing and updates in all three execution modes.
+- See the [maintenance release notes](release-notes/RELEASE_NOTES_1.1.2.md).
+
+## 1.1.1
 
 - Refresh TLS trust roots and certificate verification, addressing
   RUSTSEC-2026-0381 and RUSTSEC-2026-0382; thanks to the reporter of PR #14.

@@ -5,6 +5,8 @@ use cloud_sdk::Method;
 // Source-locked API-token operations. Tests compare the complete table with
 // CRATESIO_API_SCOPE.tsv so additions and authentication changes need review.
 pub(super) const API_ROUTES: &[(Method, &str)] = &[
+    (Method::Get, "/api/v1/crate_owner_invitations"),
+    (Method::Patch, "/api/v1/crate_owner_invitations/{id}"),
     (Method::Get, "/api/v1/crates"),
     (Method::Put, "/api/v1/crates/new"),
     (Method::Patch, "/api/v1/crates/{name}"),

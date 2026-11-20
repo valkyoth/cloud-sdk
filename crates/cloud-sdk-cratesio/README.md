@@ -23,7 +23,16 @@ provider identities, API models, request preparation, checked response
 decoding, authentication rules, and high-level workflows while reusing the
 provider-neutral execution contracts from `cloud-sdk`.
 
-Version `1.1.1` supports all 51 selected public crates.io API operations.
+Version `1.1.2` supports all 53 selected public crates.io API operations.
+
+Use `accounts::personal::invitations::InvitationPermit` for filtered invitation
+lists or a single accept, decline, or revoke by **invitation ID**. Invitees need
+the `crate-owner-invitations` token scope; crate owners listing or revoking use
+`change-owners`. Legacy unscoped tokens are not accepted. The older crate-ID
+handler remains available for compatibility. Inspect all token scope names with
+`TokenPermit::inspect_all_scopes` and `TokenMetadata::all_endpoint_scopes`.
+The original inspector rejects an unrepresentable scope rather than reporting
+an incomplete list to existing callers.
 Seven discovery, three catalog
 and five version operations, four download/statistics operations and six public
 account/ownership operations have checked blocking, local-async and Send-async
@@ -43,7 +52,7 @@ Trusted publishing adds GitHub/GitLab configuration management, unverified OIDC
 preflight and exchange, and protected temporary-token revocation.
 Authentication preparation, endpoint, query and response foundations
 are available. The blocking/local/Send facade, official bundled constructors and
-anonymous artifact streaming have three-mode fixture coverage for all 51 API
+anonymous artifact streaming have three-mode fixture coverage for all 53 API
 operations. Seven operations overlap the stable Cargo Registry Web API;
 other public operations remain subject to crates.io's experimental API policy.
 Private routes, browser sessions, archive creation and registry hosting are
@@ -79,7 +88,7 @@ outside this provider's scope.
 | Cargo publish | bounded metadata, exact little-endian framing, borrowed/streaming archives, API or temporary token consent and checked warnings; opt-in bundled blocking/local-async/Send-async upload |
 | Trusted publishing | GitHub/GitLab list/create/delete, assertion exchange and temporary-token revocation; local deadline/crate restrictions, not a JWT authenticator; three-mode unified execution |
 | Artifact streaming | opt-in bundled static-origin live body sources and SHA-256; caller-supplied transactional sink remains required |
-| Unified execution | blocking, local-async and Send-async typed reads and permits, including secret-path personal operations, plus streaming publish methods accepting a source; all 51 operations have three-mode fixture coverage |
+| Unified execution | blocking, local-async and Send-async typed reads and permits, including secret-path personal operations, plus streaming publish methods accepting a source; all 53 operations have three-mode fixture coverage |
 
 See the [qualification record](https://github.com/valkyoth/cloud-sdk/blob/main/docs/CRATESIO_CANDIDATE.md)
 for tested guarantees and deployment boundaries.

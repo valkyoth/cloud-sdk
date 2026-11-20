@@ -88,7 +88,7 @@ SPECS = {
 }
 
 PINNED_SPEC_SHA256 = {
-    "cloud": "0f7f538a1d760d2e09a34a33ab411a9e29b52102721a2c4986aaf51cdb188c5d",
+    "cloud": "3f90e2a03d37da90cde0b14744419bde101bb20829d0d870c0c3b95c5b3d1225",
     "hetzner": "3afa18f135b62f4c6703a855fe0c5d5f5769f9bac8451a09819acc6a637cb688",
 }
 

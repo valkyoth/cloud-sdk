@@ -21,7 +21,7 @@ EXCHANGE_SOURCE = ROOT / "crates/cloud-sdk-hetzner/src/robot/vswitch/exchange.rs
 PERMIT_SOURCE = ROOT / "crates/cloud-sdk-hetzner/src/robot/vswitch/permit.rs"
 TYPES_SOURCE = ROOT / "crates/cloud-sdk-hetzner/src/robot/vswitch/types.rs"
 MAX_BYTES = 64 * 1024
-FIXTURE_SHA256 = "e316e5d105a1d58c6868df1b014eb874082ca35f46e0efec131c5c988848f93c"
+FIXTURE_SHA256 = "46bad14e7a64a31795632f24d9935c9a26ef9d90856593154ddd1b66738a961b"
 
 
 def fail(message: str) -> None:

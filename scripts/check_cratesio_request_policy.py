@@ -12,36 +12,36 @@ from cratesio_source_fetch import fetch_source
 from cratesio_source_error import SourceLockError
 
 ROOT = Path(__file__).resolve().parents[1]
-COMMIT = "9ae7f769cea32f38ebc2ea9ec2ce455b47641511"
+COMMIT = "e37aa705b096b0f64b8ad5c0312d8e8fc8637315"
 BASE = f"https://raw.githubusercontent.com/rust-lang/crates.io/{COMMIT}/"
 SOURCES = {
-    "src/controllers/version/yank.rs": (2967, "5fa0d4232a2573afef9b2ac46cfc5f72da0ed5bd2d5eadd43ebd397d5c81444b"),
-    "src/controllers/krate/update.rs": (6992, "e25ac91f4ab7768cba806a17720612c0317bfdb6171e848ebac1114031269385"),
-    "src/controllers/version/update.rs": (6201, "8b5bcedd44217f9e22bd6ea04f742594c6ac67e4a0e69a446fc306a870acfc43"),
-    "src/controllers/token.rs": (11452, "c4838d6809617e2a33793199e127ae98885641ede3f2612942e14dd3c6d4951d"),
-    "src/controllers/user/update.rs": (4853, "7a15cf721fd7b403da57fcf6033d4db8a6402d24e56aa441c242f88d62d3d53e"),
-    "src/controllers/user/email_verification.rs": (3524, "ea1edff60d9b7ceac1d60db31f8858d26a6439c281360afe6e34c890af9a1e66"),
-    "src/controllers/user/email_notifications.rs": (3217, "042421c58901842bd391f7cf8aeb56e7a29225a8057b40e5fa89cafb927bdd9b"),
-    "src/controllers/krate/follow.rs": (4144, "32abacd91d16da1215761a26e8c1ec4914b856cb1090b4a51fb9c5c1aea2e202"),
-    "src/controllers/crate_owner_invitation.rs": (16298, "b72d39867300739ffa98af4171fc7ce9d68f7267d8e26c160be0dc59d35c12b2"),
+    "src/controllers/version/yank.rs": (2973, "be6d39543023d81c98eb7dc2392bc96cdbb03cdef34075e79437b74d051782af"),
+    "src/controllers/krate/update.rs": (7281, "d8608ef4b7e0c207423f257bf8c1f11bdb32975869ee4cda6282936d7c92cea0"),
+    "src/controllers/version/update.rs": (6194, "e12743c911d524b931b41fc80153db9424e4629506d7da1bdb5574b0281124e9"),
+    "src/controllers/token.rs": (11490, "931f184de5b06f3713e1f3842bcdc13283c3a515dc98ddc3db1171280fb7b875"),
+    "src/controllers/user/update.rs": (4881, "b2e5bc645b025670b923dc332bbf404895947f0b99795db6e2e27d807ef5e68e"),
+    "src/controllers/user/email_verification.rs": (3764, "d8ce3e5d1bd9ecd61855e6c76abe8fc0fe9f7ba5d81fcdd1f262f81ef1144750"),
+    "src/controllers/user/email_notifications.rs": (3230, "8dcd046e1d4203427540bc24a75afbbe2eb1052c16acbaa8bbca4f424105b74a"),
+    "src/controllers/krate/follow.rs": (4197, "c9eea899901aa1d7affc3b2f968e2062838c5f84f696accae99056a74faab30f"),
+    "src/controllers/crate_owner_invitation.rs": (20736, "41b16c0f37353b18c2d60e369c1b4432385d0b5bb2eafe45ef331e2c2412135e"),
     "crates/crates_io_database/tests/canon_username.rs": (1097, "b8b793aa0eb28dd2ab6bd0b767a0805a641019bae1a4cc668c0c36566a8ddd39"),
-    "src/controllers/user/other.rs": (5429, "bf1554948af0d26afa1c1c61f1a018456c709ce85609a49a0a34c45fa7817bf9"),
-    "src/controllers/team.rs": (1348, "d2606bb65fc398be6eb4d5ae74bdf1ab5aaa86a03fd1dd40c52e9b53a38fa8bb"),
-    "src/controllers/krate/owners.rs": (21192, "6106fd7ae3210d57be773aa289469e60179b30cffc23f78a7379dd3bc7c51675"),
-    "src/controllers/krate/downloads.rs": (7221, "d50cb0cfb90890d6e8de02e1149e832a4736a2d368182ef4fdc4031e891f009b"),
-    "src/controllers/version/downloads.rs": (4178, "7f753dd7d850c6e0fb589844611218f66b135130beea922b1be3f1047ef83a6d"),
-    "src/controllers/krate/rev_deps.rs": (3374, "5bb31ff9028dd03f20a08a5ea8dfbeb763581da75c71c4f5f86c678780a5ca13"),
-    "src/controllers/krate/versions.rs": (11701, "151d1abc74d66d14067d29d0bcbda0bef4be661d5bb02df3db3b680f9fb2ea65"),
-    "src/controllers/version/readme.rs": (1714, "ab3c306d9f0e57d64c0d54aedc66b0ce4342bd44472d659f774a2157b09a7097"),
+    "src/controllers/user/other.rs": (5446, "3ac97197f2e023fcbbbe710d921bdf1fede042b13589129f7d38714ceac06f81"),
+    "src/controllers/team.rs": (1357, "9faaa3c9ed6f1e94ed76cb34319aa70764145d0da591fb321d7bb4a7940bd180"),
+    "src/controllers/krate/owners.rs": (29817, "5978cb34728d50aa1ebd11d1bde0c26ec2824d55f3efb477bbb9f19ad8812f6e"),
+    "src/controllers/krate/downloads.rs": (7293, "2a1e7cb2a931f5b0852fd145f62351dcc6e039af31bbfc1417b3bdc5941b507a"),
+    "src/controllers/version/downloads.rs": (4389, "9bf674031f86cf160d297fd20171867da04c8ce261eeede3410ac1e6af189eb3"),
+    "src/controllers/krate/rev_deps.rs": (3387, "c9ed6499ccf2f6538e5dd1e3d5f11277a8a10bd3aaeb1e3e70c2c64762ad42e1"),
+    "src/controllers/krate/versions.rs": (11710, "4a03de16908afafacccedeb206cd7fd7a86ad8bbed9125ab5b2dfa7c9231f62b"),
+    "src/controllers/version/readme.rs": (1742, "52c964ddcf2465d51299976236221d1c4de09445c0e30ede5265f2924de3e8f6"),
     "src/controllers/version/authors.rs": (876, "e9b6133bd5e2f1a6526ffe80161d91cb89142fa1f79f4dc668eb4a7995ee4658"),
-    "src/controllers/version/dependencies.rs": (1818, "14209ad97c6388ae03960736eb41bcd241a9daf2b8a7cb888b2b4a1d578d2b19"),
-    "src/controllers/krate/search.rs": (33752, "2cb58c5f07e84ac84e2b452434bf9d06506940344b606999ff93ce0e9c0b76cd"),
-    "src/controllers/krate/metadata.rs": (12234, "fd3035a3b92df1c268768183de89f5d5b42f115649eb1170d8dd4b1ceb678e2e"),
-    "src/controllers/category.rs": (5934, "5b097ddf3861ed8e720c371460493cf25a219e28dc3c0172763d5a40f9baa6df"),
-    "src/controllers/keyword.rs": (4091, "eff3511ce8695ad2496ad19d01a7a5136d8be1da07e4b498820fc81748a6adf0"),
-    "crates/crates_io_validation/src/lib.rs": (12829, "02872dd2803f5ebefbedb7d6d3f8cd3b8c2137e041e0c42a6b01d85b04d1d8a4"),
-    "src/controllers/helpers/pagination.rs": (23556, "e65573b6888acdbde657946297203980804afbf3525476d6be20a011a7442a53"),
-    "src/controllers/krate/publish.rs": (42593, "4dd23414ff79b5eb1ff63b9ebf320de3c07de245b46d54a9b511a0dbf110d004"),
+    "src/controllers/version/dependencies.rs": (1827, "4472318fa0ff54aceec778780a6ecf9b463bbfbecff2deb364aa9839d7e72377"),
+    "src/controllers/krate/search.rs": (34131, "7b3edaa2b3d11625d172d43d07cb6ed667666c37e1c7e3bcc2d66a8665a13bc9"),
+    "src/controllers/krate/metadata.rs": (12252, "5047343f0a804cef130f7db533812b49dbe1521a0c58df057b73034f7c5927a9"),
+    "src/controllers/category.rs": (5949, "f2c5aac350751d18486ca5379e15e61880db61e84de71bd74b4770290945bb07"),
+    "src/controllers/keyword.rs": (4101, "01a5909ec7ed6976bdb614335af3fa03ed3fab212345c339d6573bf53cd13549"),
+    "crates/crates_io_validation/src/lib.rs": (12813, "d2747b30b5f0241110cbd6e84c197975d72529e2f21a1e3c9242b8937615a48b"),
+    "src/controllers/helpers/pagination.rs": (23575, "507334f94048c1c2f77b4494e6fd48d03c5b3b1ac252f84b57d1cc70b9f0fd3a"),
+    "src/controllers/krate/publish.rs": (44717, "35df1c9b9eb693f98a0c4a642858052333397301633af3f266ec8cf25c24c750"),
     "crates/crates_io_database/src/models/keyword.rs": (3662, "6817786f81454e55ebf0de77f44042c2d46f96fff7ef0aa24c94c86fd5cb1299"),
 }
 PATHS = {
@@ -107,6 +107,11 @@ def validate(root: Path, online: bool = False, fetcher=fetch_source) -> None:
             if names:
                 actual[(method, path)] = names
     desired = {("get", PATHS[name]): keys for name, keys in expected.items()}
+    # The controller disables numbered pages; the authenticated request type
+    # admits one filter and seek pagination instead of the generic query API.
+    desired[("get", "/api/v1/crate_owner_invitations")] = {
+        "crate_name", "invitee_id", "page", "per_page", "seek"
+    }
     if actual != desired:
         raise PolicyError("public query parameter inventory changed; update typed coverage and tests")
     for path, (size, digest) in SOURCES.items():

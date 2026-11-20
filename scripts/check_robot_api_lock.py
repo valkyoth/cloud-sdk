@@ -20,14 +20,14 @@ from typing import Any, Iterator
 ROOT = Path(__file__).resolve().parents[1]
 LOCK = ROOT / "tests" / "fixtures" / "robot-api" / "v0.74.0.json"
 SOURCE_URL = "https://robot.hetzner.com/doc/webservice/en.html"
-SOURCE_SHA256 = "4b396790acc449f47b2b3b893f8eff759c0c25196dc38b1e5e92a12c9704771a"
+SOURCE_SHA256 = "9f19edaa1a90d5987fe8e58d0cb3868fc64cbed8177aa0fdcbbe012dbc058018"
 MAX_LOCK_BYTES = 256 * 1024
 MAX_SOURCE_BYTES = 8 * 1024 * 1024
 TIMEOUT_SECONDS = 60
 TOTAL_FETCH_SECONDS = 90
 OPERATIONS_POLICY_SHA256 = (
-    "896e23812d536999ad0deb1509fec9a23"
-    "f92eae28ca0a404e11063b3644a5d76"
+    "f3d74d3c3d34069c5888bb84f2fa9698"
+    "e5bf545ed8f4c020a1b847dc02f38292"
 )
 ID = re.compile(r"^[a-z][a-z0-9]*(?:_[a-z0-9]+)*$")
 HEADING = re.compile(r"^(GET|POST|PUT|DELETE) (/\S+)$")
@@ -167,7 +167,7 @@ def validate_metadata(lock: dict[str, Any]) -> None:
     require(
         lock.get("source")
         == {
-            "retrieved": "2026-08-10",
+            "retrieved": "2026-11-20",
             "url": SOURCE_URL,
             "sha256": SOURCE_SHA256,
         },
@@ -179,7 +179,7 @@ def validate_metadata(lock: dict[str, Any]) -> None:
         "wire source-lock relationship changed",
     )
     require(
-        lock.get("inventory") == {"total": 105, "active": 89, "deprecated": 16},
+        lock.get("inventory") == {"total": 105, "active": 87, "deprecated": 18},
         "inventory totals changed",
     )
     require(lock.get("protocol") == expected_protocol(), "protocol policy changed")
@@ -232,14 +232,15 @@ def validate_operations(lock: dict[str, Any]) -> None:
         require(operation["milestone"] == expected_milestone, f"wrong milestone for {operation_id}")
         is_storage = operation["path"].startswith("/storagebox")
         require(is_storage == (operation["group"] == "legacy_storage_box"), "storage group mismatch")
-        expected_status = "deprecated" if is_storage else "active"
+        retiring = route in {("POST", "/ip/{ip}"), ("POST", "/subnet/{net-ip}")}
+        expected_status = "deprecated" if is_storage or retiring else "active"
         require(operation["status"] == expected_status, f"wrong status for {operation_id}")
         active += operation["status"] == "active"
         deprecated += operation["status"] == "deprecated"
         group_counts[operation["group"]] += 1
         ids.add(operation_id)
         routes.add(route)
-    require((active, deprecated) == (89, 16), "active/deprecated counts changed")
+    require((active, deprecated) == (87, 18), "active/deprecated counts changed")
     expected_counts = {name: value[0] for name, value in GROUPS.items()}
     require(group_counts == expected_counts, "operation group counts changed")
     canonical = json.dumps(
@@ -349,7 +350,7 @@ def main() -> int:
     require(LOCK.is_relative_to(ROOT / "tests" / "fixtures"), "lock entered a publishable crate")
     if args.fetch:
         validate_source(lock, fetch_source())
-    print("Robot API lock: 89 active and 16 deprecated operations passed.")
+    print("Robot API lock: 87 active and 18 deprecated operations passed.")
     return 0
 
 

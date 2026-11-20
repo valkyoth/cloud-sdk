@@ -72,7 +72,6 @@ image	created_from	yes	null|object	-	-	-	-	-	-	-	-	-
 image	created_from/id	yes	integer	-	-	-	-	-	-	int64	-	-
 image	created_from/name	yes	string	-	-	-	-	-	-	-	-	-
 image	deleted	yes	null|string	-	-	-	-	-	-	-	-	-
-image	deprecated	yes	null|string	-	-	-	-	-	-	date-time	-	-
 image	deprecation	yes	null|object	-	-	-	-	-	-	-	-	-
 image	deprecation/announced	yes	string	-	-	-	-	-	-	date-time	-	-
 image	deprecation/unavailable_after	yes	string	-	-	-	-	-	-	date-time	-	-
@@ -105,7 +104,6 @@ load_balancer	included_traffic	yes	integer	-	-	-	-	-	-	int64	-	-
 load_balancer	ingoing_traffic	yes	integer|null	-	-	-	-	-	-	int64	-	-
 load_balancer	labels	yes	object	-	-	-	-	-	-	-	-	-
 load_balancer	load_balancer_type	yes	object	-	-	-	-	-	-	-	-	-
-load_balancer	load_balancer_type/deprecated	yes	null|string	-	-	-	-	-	-	date-time	-	-
 load_balancer	load_balancer_type/deprecation	yes	null|object	-	-	-	-	-	-	-	-	-
 load_balancer	load_balancer_type/deprecation/announced	yes	string	-	-	-	-	-	-	date-time	-	-
 load_balancer	load_balancer_type/deprecation/unavailable_after	yes	string	-	-	-	-	-	-	date-time	-	-
@@ -257,7 +255,6 @@ load_balancer	targets[type=ip]/health_status[]/status	yes	string	-	-	-	-	-	-	-	-
 load_balancer	targets[type=ip]/ip	yes	object	-	-	-	-	-	-	-	-	-
 load_balancer	targets[type=ip]/ip/ip	yes	string	-	-	-	-	-	-	-	-	-
 load_balancer	targets[type=ip]/type	yes	string	-	-	-	-	-	-	-	-	ip
-load_balancer_type	deprecated	yes	null|string	-	-	-	-	-	-	date-time	-	-
 load_balancer_type	deprecation	yes	null|object	-	-	-	-	-	-	-	-	-
 load_balancer_type	deprecation/announced	yes	string	-	-	-	-	-	-	date-time	-	-
 load_balancer_type	deprecation/unavailable_after	yes	string	-	-	-	-	-	-	date-time	-	-
@@ -432,7 +429,6 @@ server	image/created_from	yes	null|object	-	-	-	-	-	-	-	-	-
 server	image/created_from/id	yes	integer	-	-	-	-	-	-	int64	-	-
 server	image/created_from/name	yes	string	-	-	-	-	-	-	-	-	-
 server	image/deleted	yes	null|string	-	-	-	-	-	-	-	-	-
-server	image/deprecated	yes	null|string	-	-	-	-	-	-	date-time	-	-
 server	image/deprecation	yes	null|object	-	-	-	-	-	-	-	-	-
 server	image/deprecation/announced	yes	string	-	-	-	-	-	-	date-time	-	-
 server	image/deprecation/unavailable_after	yes	string	-	-	-	-	-	-	date-time	-	-
@@ -517,7 +513,6 @@ server	server_type/architecture	yes	string	-	-	-	-	-	-	-	-	x86|arm
 server	server_type/category	no	string	-	-	-	-	-	-	-	-	-
 server	server_type/cores	yes	number	-	-	-	-	-	-	-	-	-
 server	server_type/cpu_type	yes	string	-	-	-	-	-	-	-	-	shared|dedicated
-server	server_type/deprecated	yes	boolean	-	-	-	-	-	-	-	-	-
 server	server_type/deprecation	no	null|object	-	-	-	-	-	-	-	-	-
 server	server_type/deprecation/announced	yes	string	-	-	-	-	-	-	date-time	-	-
 server	server_type/deprecation/unavailable_after	yes	string	-	-	-	-	-	-	date-time	-	-
@@ -554,7 +549,6 @@ server_type	architecture	yes	string	-	-	-	-	-	-	-	-	x86|arm
 server_type	category	no	string	-	-	-	-	-	-	-	-	-
 server_type	cores	yes	number	-	-	-	-	-	-	-	-	-
 server_type	cpu_type	yes	string	-	-	-	-	-	-	-	-	shared|dedicated
-server_type	deprecated	yes	boolean	-	-	-	-	-	-	-	-	-
 server_type	deprecation	no	null|object	-	-	-	-	-	-	-	-	-
 server_type	deprecation/announced	yes	string	-	-	-	-	-	-	date-time	-	-
 server_type	deprecation/unavailable_after	yes	string	-	-	-	-	-	-	date-time	-	-
@@ -697,6 +691,9 @@ storage_box_type	prices[]/setup_fee/net	yes	string	-	-	-	-	-	-	decimal	-	-
 storage_box_type	size	yes	integer	-	-	-	-	-	-	int64	-	-
 storage_box_type	snapshot_limit	yes	integer|null	-	-	-	-	-	-	-	-	-
 storage_box_type	subaccounts_limit	yes	integer	-	-	-	-	-	-	-	-	-
+volume	assignee	yes	null|object	-	-	-	-	-	-	-	-	-
+volume	assignee/id	yes	integer	1	9007199254740991	-	-	-	-	int64	-	-
+volume	assignee/type	yes	string	-	-	-	-	-	-	-	-	-
 volume	created	yes	string	-	-	-	-	-	-	date-time	-	-
 volume	format	yes	null|string	-	-	-	-	-	-	-	-	-
 volume	id	yes	integer	1	9007199254740991	-	-	-	-	int64	-	-

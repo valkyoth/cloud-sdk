@@ -38,26 +38,26 @@ cloud	POST	/floating_ips/{id}/actions/change_dns_ptr	Floating IP Actions	change_
 cloud	POST	/floating_ips/{id}/actions/change_protection	Floating IP Actions	change_floating_ip_protection	no	no	no	starts-action	07372a938c20499811e9facc02637e1cece06c498caed1868de52f30ebdda4f9
 cloud	POST	/floating_ips/{id}/actions/unassign	Floating IP Actions	unassign_floating_ip	no	no	no	starts-action	ea0dfdcbc042bad815c9a68de90c0bb2669c57acf8a3d8e5b46f93e932f48467
 cloud	GET	/floating_ips/{id}/actions/{action_id}	Floating IP Actions	get_floating_ip_action	yes	no	no	resource-action-get	b33274d2921071106b4c617279365de72238ea5d4d4b633c3d40e4ba534de3fa
-cloud	GET	/images	Images	list_images	no	yes	yes	none	f7e3151cef31982121ef0c2e7d0e7ab72368637c37584b603961084d9da50081
+cloud	GET	/images	Images	list_images	no	yes	yes	none	0bc4859e3b779b21b7c74d9b5748201a73214b1b9e0e6cb233b1489f53d64b47
 cloud	GET	/images/actions	Image Actions	list_images_actions	no	yes	yes	action-list	a78b5f2c656d4e31e0dcb96366a89971e668349f109284b8c4dd215c25b49df5
 cloud	GET	/images/actions/{id}	Image Actions	get_images_action	no	no	no	action-get	1c64d44db8b7af3c0148991c2ad9502918ab457b40ccb8099e624ec04b8a23de
 cloud	DELETE	/images/{id}	Images	delete_image	no	no	no	none	25e2e7777f0ae97300b0ba7b1e526aca7864f55354c016cd82a77652993adeb3
-cloud	GET	/images/{id}	Images	get_image	no	no	no	none	e33567157fc0e8ef189f7c06f72dfc2e7f79339854bcfc1969c55b7e6f339329
-cloud	PUT	/images/{id}	Images	update_image	no	no	no	none	b5f27072048cc782870e4e53ba96b16fb4fd917efca502ca6e715eb495d0dce7
+cloud	GET	/images/{id}	Images	get_image	no	no	no	none	0b7014db3d585a94aafdc3d06e7c01b630e67c28c2270686e27a861e348c455f
+cloud	PUT	/images/{id}	Images	update_image	no	no	no	none	4efcf97c5b24ce00c77f5cc658ede51bf267aaa51fc464405f881a2641fe2d0b
 cloud	GET	/images/{id}/actions	Image Actions	list_image_actions	no	yes	yes	action-list	b88b2837ad94fe3408d74e13c1a1a37b276636ac48f9c2aa3ed745d7baed9edb
 cloud	POST	/images/{id}/actions/change_protection	Image Actions	change_image_protection	no	no	no	starts-action	90b921f50b3131498b25df236f056c3be453aca1d32ae3fcdd141781543dbf7a
 cloud	GET	/images/{id}/actions/{action_id}	Image Actions	get_image_action	yes	no	no	resource-action-get	ca65c8fc12f13ab853fe9c99e2bd0f591fa6284cdfe8bba7bd95f22b3caea31d
 cloud	GET	/isos	ISOs	list_isos	no	yes	no	none	c4f4cdc275f0bc2342840fe54c9ac630bbbe2f66646b00b19ee2f2aa94ef7f73
 cloud	GET	/isos/{id}	ISOs	get_iso	no	no	no	none	535c356fb0d75cf581ca8d4327fc9ec57a82f3bf56fcc83fcce1300470be1176
-cloud	GET	/load_balancer_types	Load Balancer Types	list_load_balancer_types	no	yes	no	none	7f5752398330e51c54875253528a973b6fdb471e44eaf4147f293170f9a832db
-cloud	GET	/load_balancer_types/{id}	Load Balancer Types	get_load_balancer_type	no	no	no	none	9652744402d4501ca5ffc82e3c5abe6a0ee5b279c1b11d54092f117f36d2c0fd
-cloud	GET	/load_balancers	Load Balancers	list_load_balancers	no	yes	yes	none	192f9131e0855024f24fec4d5601e418350f77adb48931b0f03af9cdda7521c2
-cloud	POST	/load_balancers	Load Balancers	create_load_balancer	no	no	no	none	4efa03038925283bc9a9ab64a2621f39d378096f26180008c5c8d31d2c76a287
+cloud	GET	/load_balancer_types	Load Balancer Types	list_load_balancer_types	no	yes	no	none	71a293a4847f13c1d48277d6d67b3eb5933f93bd0b9c499e8c099bb528edcd01
+cloud	GET	/load_balancer_types/{id}	Load Balancer Types	get_load_balancer_type	no	no	no	none	05dc047586f7a01a6c2b478d146881009e54913934e949ecaf919a7135d14a32
+cloud	GET	/load_balancers	Load Balancers	list_load_balancers	no	yes	yes	none	acc83688ac119a215db6c9a86b3196b8ef6840e1ee81051ca252ed44217e2caf
+cloud	POST	/load_balancers	Load Balancers	create_load_balancer	no	no	no	none	2ae4bb82e5813b8a678ca1a5a6b0e4699750ad77b617141bcda0b1ddfa7ffd0f
 cloud	GET	/load_balancers/actions	Load Balancer Actions	list_load_balancers_actions	no	yes	yes	action-list	035e96717ff3a6706199c038e856e87ce0816db63c5189ad8d3db33e8224ef21
 cloud	GET	/load_balancers/actions/{id}	Load Balancer Actions	get_load_balancers_action	no	no	no	action-get	a27b9d76e778698e3c45a845b68e8227a7f3b4d5d7e93524f1a96f906768390c
 cloud	DELETE	/load_balancers/{id}	Load Balancers	delete_load_balancer	no	no	no	none	982deba8cabd53ef9f4050e4bb53c384cb60a844caaf53b75984ab7d59f79239
-cloud	GET	/load_balancers/{id}	Load Balancers	get_load_balancer	no	no	no	none	32a30bdd99f89b1140d3b76d4dcc990f4b64302caf917828ea037620cc7d21ba
-cloud	PUT	/load_balancers/{id}	Load Balancers	update_load_balancer	no	no	no	none	b5e918f4dc786223a92c9eb427353c743dea9ede5146a0ea4912321f05f8bccd
+cloud	GET	/load_balancers/{id}	Load Balancers	get_load_balancer	no	no	no	none	08702778406dd8b78308d52c23a49d04ebdf721cfff466d386f0ce44e7694b0a
+cloud	PUT	/load_balancers/{id}	Load Balancers	update_load_balancer	no	no	no	none	6c87ffd84478aad3f5f971bb5f104c5657df7fdb14a22a25057ba137cfc2c2a1
 cloud	GET	/load_balancers/{id}/actions	Load Balancer Actions	list_load_balancer_actions	no	yes	yes	action-list	6b4905592b7840b9ccce2b3d13e2aea9de9c998b9b13a0440c30af1d709ac058
 cloud	POST	/load_balancers/{id}/actions/add_service	Load Balancer Actions	add_load_balancer_service	no	no	no	starts-action	81969139f2ea1b15c5ab41dc06db0e2ffb40525901ec8f6d14a29ccad24aacc1
 cloud	POST	/load_balancers/{id}/actions/add_target	Load Balancer Actions	add_load_balancer_target	no	no	no	starts-action	4c3077465bccfb264ca6fe3c0ce6d06a1f3af30ca371904bd48009c350004b6c
@@ -111,15 +111,15 @@ cloud	POST	/primary_ips/{id}/actions/change_dns_ptr	Primary IP Actions	change_pr
 cloud	POST	/primary_ips/{id}/actions/change_protection	Primary IP Actions	change_primary_ip_protection	no	no	no	starts-action	5c4361b0cab8a9dd52f3cb5bb41f726a612cd5d68bb889bb835defbb156a94a1
 cloud	POST	/primary_ips/{id}/actions/unassign	Primary IP Actions	unassign_primary_ip	no	no	no	starts-action	804c7f1cab0f7b6bc522b9b71d977547baa3f88c07bcf85e58bc2ef3db82d1c3
 cloud	GET	/primary_ips/{id}/actions/{action_id}	Primary IP Actions	get_primary_ip_action	yes	no	no	resource-action-get	21245d9fd95f9bf85b0d3dff7ee04e61518a553889fcdb1f4a470390162ea858
-cloud	GET	/server_types	Server Types	list_server_types	no	yes	no	none	383ce3268a04dbaec0f2722f1653a4909bc077084ac390c5ded68ff0f90ccc01
-cloud	GET	/server_types/{id}	Server Types	get_server_type	no	no	no	none	c3c92bd8f40f9b9ad308797b6d6aff164c2cb02ab5e4a09bf21e7cae434810ec
-cloud	GET	/servers	Servers	list_servers	no	yes	yes	none	5a0c3b30086e5cdf98734cd54a3083b8ac3fda53b23dd2de0ad79fd607c1fb92
-cloud	POST	/servers	Servers	create_server	no	no	no	none	0941bbd967d43ba74980dc632565615b7c8e22311c2f5d41b0db62adbb268075
+cloud	GET	/server_types	Server Types	list_server_types	no	yes	no	none	bf982f472f78f0cf9c47639d7ecb49f3c6219e64d9e3d3fc2df046e82105183f
+cloud	GET	/server_types/{id}	Server Types	get_server_type	no	no	no	none	37e3ef3a8ce32deb152fba004eaced95c8a6dcc90b206a4bd0b2e5dfd923f549
+cloud	GET	/servers	Servers	list_servers	no	yes	yes	none	8d5787f2b0cb32b3a38b06e8dfe785872cc45b40ae08677e062b70ffa69f5ac3
+cloud	POST	/servers	Servers	create_server	no	no	no	none	bf6a4b6262de2c9d59f5f673d7cc31d5ef8cc57aa8a9ed95d73247593119af0e
 cloud	GET	/servers/actions	Server Actions	list_servers_actions	no	yes	yes	action-list	d79d4fafb371e62548cb67501e707bed3cc23df6f2966c260fcf978a9cdd10f7
 cloud	GET	/servers/actions/{id}	Server Actions	get_servers_action	no	no	no	action-get	cbbf906f1dfb9bcde52ac7b1612becfefd0bc63823dd17d9736cc2c6fd527177
 cloud	DELETE	/servers/{id}	Servers	delete_server	no	no	no	none	e67b1d6a658fd9996cdf7b8592f9b3a3852d08b940582a8382f9f69a9cff1075
-cloud	GET	/servers/{id}	Servers	get_server	no	no	no	none	e90a6139325d443824018c5c61f2eeeac7f1cb5c1131dfa369398011ce33837c
-cloud	PUT	/servers/{id}	Servers	update_server	no	no	no	none	22c18429bd58657a8492190c99e0d73db33ccf78ff29d247b652f19027462b95
+cloud	GET	/servers/{id}	Servers	get_server	no	no	no	none	345fd43c20a1136f5158c807cea5930ccd008082905f75fb3169b77dcba935eb
+cloud	PUT	/servers/{id}	Servers	update_server	no	no	no	none	13c918821418977f5af4dfec0e51a972103ff376870fcfeccf5715aa3095e75d
 cloud	GET	/servers/{id}/actions	Server Actions	list_server_actions	no	yes	yes	action-list	96ae873abe82fdd632ec80316f8c2e4121c9087f25bd27e6e08d801ea83810a0
 cloud	POST	/servers/{id}/actions/add_to_placement_group	Server Actions	add_server_to_placement_group	no	no	no	starts-action	d0d9d86e9e04b4e80e96d19968270c06f678830cf55e729ec0b2884509b81440
 cloud	POST	/servers/{id}/actions/attach_iso	Server Actions	attach_server_iso	no	no	no	starts-action	ce0d3cfa87fdd0c0bc2613819f0fa54d18ce7ca3b91c48b324923c3beb38833f
@@ -128,7 +128,7 @@ cloud	POST	/servers/{id}/actions/change_alias_ips	Server Actions	change_server_a
 cloud	POST	/servers/{id}/actions/change_dns_ptr	Server Actions	change_server_dns_ptr	no	no	no	starts-action	9c6afdfb517eb301e7661cac4e80b328b0a6f771d1db6e06545eec8e7c57f0b7
 cloud	POST	/servers/{id}/actions/change_protection	Server Actions	change_server_protection	no	no	no	starts-action	79cde9e0b144f56c520f7f4977c49c79608c8a75cb894fc4f90aa73ac1b4fff4
 cloud	POST	/servers/{id}/actions/change_type	Server Actions	change_server_type	no	no	no	starts-action	b3132574502c127385c743230e9bd07eedd11abfe9c5abeba1a98811cf01b9b9
-cloud	POST	/servers/{id}/actions/create_image	Server Actions	create_server_image	no	no	no	starts-action	a94c9da98738996d43bfd25eccf5920140e7af66e421a4844dd9e4f087cde560
+cloud	POST	/servers/{id}/actions/create_image	Server Actions	create_server_image	no	no	no	starts-action	2ccdec74f2aa49f48514e7585d4b1dde7a21dd9da4810577519bb6a3b1023a50
 cloud	POST	/servers/{id}/actions/detach_from_network	Server Actions	detach_server_from_network	no	no	no	starts-action	f671d4adfc789add462ac4fa68cd66f0f07f220754c6153415f74fc47d8f99bd
 cloud	POST	/servers/{id}/actions/detach_iso	Server Actions	detach_server_iso	no	no	no	starts-action	0c626e52531f026304016fd9b31dc188cbe1a5e01050481d426b79ef548701e1
 cloud	POST	/servers/{id}/actions/disable_backup	Server Actions	disable_server_backup	no	no	no	starts-action	719da24f53e342eae0ad4cfa3e95b9ab0d15ddd89b3874b7bf5809b0deb777a6
@@ -151,15 +151,15 @@ cloud	POST	/ssh_keys	SSH Keys	create_ssh_key	no	no	no	none	781f19bbbb874c2d35b9d
 cloud	DELETE	/ssh_keys/{id}	SSH Keys	delete_ssh_key	no	no	no	none	20b066a8d0792581a79e7e3acd5fbb0216285e5e4d6018299a5cb4bdd9fbfb42
 cloud	GET	/ssh_keys/{id}	SSH Keys	get_ssh_key	no	no	no	none	6ccc0cdc7f5e99cb89fd6913a3a13c5e2a3213decd01587eb7c7ea326e6732fc
 cloud	PUT	/ssh_keys/{id}	SSH Keys	update_ssh_key	no	no	no	none	761175d62ddb51c90a78d19daa45b9e0ac3f535cca532802114d79fc196603d7
-cloud	GET	/volumes	Volumes	list_volumes	no	yes	yes	none	513aee50cc55709bc22365cea7f0d56140e254ff7e33714d22f60c341e65367f
-cloud	POST	/volumes	Volumes	create_volume	no	no	no	none	1dd4eebf2fe0f60bf2a7228c69d30fb2e7b2e3f51cfa42b07478d43ecf98a97e
+cloud	GET	/volumes	Volumes	list_volumes	no	yes	yes	none	c975c5861adab7ef506d8b81e8130d009375ccf36eb5fe8fe8bc0b6112d930b5
+cloud	POST	/volumes	Volumes	create_volume	no	no	no	none	42aa6c663377a91acc40ffe9e25c82780e28b3ce74b65fead501d228a8933205
 cloud	GET	/volumes/actions	Volume Actions	list_volumes_actions	no	yes	yes	action-list	c97e467df6cf4e26659f1c6d570c738ce3381c814e64290b6aad7bb4cc4e91f3
 cloud	GET	/volumes/actions/{id}	Volume Actions	get_volumes_action	no	no	no	action-get	7fe8cdf2505603be7f8003e6dc50db33cb6a0958f497754160b4ff5d7059d9ff
 cloud	DELETE	/volumes/{id}	Volumes	delete_volume	no	no	no	none	3d3c0d16e2bb1156c960ec4652707c9e762da172a4203c98da8bda8c627015a9
-cloud	GET	/volumes/{id}	Volumes	get_volume	no	no	no	none	4dad4c86633a588cc0af0ce01e257181c793d4492c24df546c24c766f06d5ecf
-cloud	PUT	/volumes/{id}	Volumes	update_volume	no	no	no	none	ebdb7052c78cca07d89060dfb3c92721670be722e08f65fb63237b201a1a9d7e
+cloud	GET	/volumes/{id}	Volumes	get_volume	no	no	no	none	0eb2fdd173ccf761485e24d39b514a37fd63531ffff4ff1152bde3c6c1ceb358
+cloud	PUT	/volumes/{id}	Volumes	update_volume	no	no	no	none	d9081451d1ac863482c237bf06eeb66c4914df99a020284bf6479e4943936ff1
 cloud	GET	/volumes/{id}/actions	Volume Actions	list_volume_actions	no	yes	yes	action-list	cf3fb6dbff530ed7ebb8af98a387dcb5cb7143abcee0a300665fce4150f9e674
-cloud	POST	/volumes/{id}/actions/attach	Volume Actions	attach_volume	no	no	no	starts-action	cd023e8433ecf02936abb34d2571d8da0664ba23cb3f701ebef5c8c5ff99aeeb
+cloud	POST	/volumes/{id}/actions/attach	Volume Actions	attach_volume	no	no	no	starts-action	c15ac36bb0bb168f92b96f2baafae03b380ff0289191cf302a78608f1e95b682
 cloud	POST	/volumes/{id}/actions/change_protection	Volume Actions	change_volume_protection	no	no	no	starts-action	9da1f0282932e73a739701c465a38011f0e026ff79f9b81e580d41a7629f61c9
 cloud	POST	/volumes/{id}/actions/detach	Volume Actions	detach_volume	no	no	no	starts-action	bbfd19481b57d0b1bac6b42b35829f7da9dab9444f13ebe1a236c167ccd08a46
 cloud	POST	/volumes/{id}/actions/resize	Volume Actions	resize_volume	no	no	no	starts-action	6f834650476eb18be2b189c80af9548ec9a523ff37a51351560c21fec7971ac4

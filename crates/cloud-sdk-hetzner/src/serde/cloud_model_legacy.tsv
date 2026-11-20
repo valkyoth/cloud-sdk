@@ -1,0 +1,6 @@
+image	deprecated	no	null|string	-	-	-	-	-	-	date-time	-	-
+load_balancer	load_balancer_type/deprecated	no	null|string	-	-	-	-	-	-	date-time	-	-
+load_balancer_type	deprecated	no	null|string	-	-	-	-	-	-	date-time	-	-
+server	image/deprecated	no	null|string	-	-	-	-	-	-	date-time	-	-
+server	server_type/deprecated	no	boolean	-	-	-	-	-	-	-	-	-
+server_type	deprecated	no	boolean	-	-	-	-	-	-	-	-	-

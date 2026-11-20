@@ -7,6 +7,15 @@ added to the default provider graph.
 
 ## Authority And Execution
 
+In 1.1.2, the additional invitation listing and update workflows use
+`personal::invitations::InvitationPermit`. Exactly one crate or invitee filter
+is required. The pinned controller supports seek but not numbered pages.
+Treat returned next-page strings as untrusted metadata; never dispatch a
+returned URL with credentials. Mutations consume a separate permit bound to
+the opaque invitation ID and decision. Neither the old crate ID nor an email
+invitation token is interchangeable with this ID. A mismatched success response
+is an error, not permission to replay a possibly completed change.
+
 `PersonalRequest` has action-specific constructors and immutable private data.
 `confirm` consumes that exact request and borrows one API credential into a
 non-cloneable permit. Execution takes only the permit, not another request or

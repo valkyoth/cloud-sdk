@@ -205,6 +205,7 @@ impl RobotIpTrafficUpdate {
 }
 
 /// Updates traffic-warning settings for one canonical address.
+/// Hetzner schedules removal of this endpoint on January 12, 2027.
 pub struct RobotIpUpdateRequest {
     pub(super) address: RobotIpAddress,
     pub(super) update: RobotIpTrafficUpdate,

@@ -17,10 +17,23 @@ model!(/// A category including optional, bounded parent and child collections.
     Category { id: String, category: String, slug: String, description: String,
         created_at: Timestamp, crates_cnt: u32, parent_categories: Option<Vec<Category>>,
         subcategories: Option<Vec<Category>> });
-model!(/// One keyword record. IDs are opaque response text, not numeric IDs.
-    Keyword { id: String, keyword: String, created_at: Timestamp, crates_cnt: u32 });
-model!(/// Complete slug catalog entry.
-    CategorySlug { id: String, slug: String, description: String });
+model!(
+    /// One keyword record. IDs are opaque response text, not numeric IDs.
+    Keyword {
+        id: String,
+        keyword: String,
+        created_at: Timestamp,
+        crates_cnt: u32
+    }
+);
+model!(
+    /// Complete slug catalog entry.
+    CategorySlug {
+        id: String,
+        slug: String,
+        description: String
+    }
+);
 model!(/// Public deployment information. CDN/banner values are untrusted data:
     /// never use them to choose credential destinations or render raw HTML.
     SiteMetadata { deployed_sha: String, commit: String, cdn_base: String,

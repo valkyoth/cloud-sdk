@@ -2,7 +2,7 @@
 set -eu
 
 cloud_url="https://docs.hetzner.cloud/cloud.spec.json"
-cloud_sha256="0f7f538a1d760d2e09a34a33ab411a9e29b52102721a2c4986aaf51cdb188c5d"
+cloud_sha256="3f90e2a03d37da90cde0b14744419bde101bb20829d0d870c0c3b95c5b3d1225"
 hetzner_url="https://docs.hetzner.cloud/hetzner.spec.json"
 hetzner_sha256="3afa18f135b62f4c6703a855fe0c5d5f5769f9bac8451a09819acc6a637cb688"
 

@@ -29,7 +29,7 @@ def main() -> None:
     )
     with tempfile.TemporaryDirectory() as temporary:
         path = Path(temporary) / "README.md"
-        stale_source = source.replace("| 1.1.1 |", "| 1.1.0 |")
+        stale_source = source.replace("| 1.1.2 |", "| 1.1.1 |")
         assert stale_source != source
         path.write_text(stale_source, encoding="utf-8")
         stale = run(path)
@@ -47,7 +47,7 @@ def main() -> None:
         assert overstated.returncode == 1, overstated
 
         robot_client = (
-            "Robot client | Complete typed contracts for all 89 active Robot "
+            "Robot client | Complete typed contracts for all 89 supported Robot "
             "operations; 45 read-only routes execute directly and every state "
             "change remains permit-gated"
         )
@@ -60,7 +60,7 @@ def main() -> None:
 
         metadata = (
             "Server Metadata | Complete strict contracts for all seven canonical "
-            "credential-free link-local reads | 1.1.1"
+            "credential-free link-local reads | 1.1.2"
         )
         path.write_text(
             source.replace(metadata, "Server Metadata | Planned | v0.98"),

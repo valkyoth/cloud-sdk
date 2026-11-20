@@ -332,7 +332,8 @@ reference documents 105 operation headings. `v0.42.0` source-locks the wire
 protocol and includes credential-free read, form-mutation, error, quota,
 maintenance, and empty-body fixtures. `v0.74.0` source-locks the complete
 inventory: 89 active operations and 16 deprecated Robot Storage Box operations
-that are explicitly excluded.
+that are explicitly excluded. In the November 2026 revision, two supported
+traffic-warning updates are marked deprecated, leaving 87 active operations.
 
 `v0.75.0` implements the shared bounded Robot form codec used by later active
 POST operations. This is protocol support, not endpoint coverage: no active

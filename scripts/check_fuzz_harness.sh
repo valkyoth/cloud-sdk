@@ -2,7 +2,7 @@
 set -eu
 
 mode="${1:---metadata}"
-toolchain="nightly-2026-10-22"
+toolchain="nightly-2026-11-20"
 cargo_fuzz_version="0.13.2"
 targets="$(python3 scripts/check_fuzz_inventory.py)"
 

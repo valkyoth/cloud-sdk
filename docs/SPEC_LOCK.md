@@ -1,12 +1,17 @@
 # Hetzner API Source Lock
 
-Status: current source lock reviewed for the unreleased `1.1.1` candidate.
+Status: current source lock reviewed for the unreleased `1.1.2` candidate.
 
-Retrieved: 2026-10-22
+Retrieved: 2026-11-20
 Reference page: <https://docs.hetzner.cloud/reference/cloud>
 Changelog page: <https://docs.hetzner.cloud/changelog>
 
 ## Locked Specs
+
+Volume creation and attachment now send a typed server `assignee` object, not
+the retiring `server` field. Responses include a nullable assignee. Six paths
+to legacy `deprecated` fields are gone from the derived schema; old responses
+are still checked if those fields are present. The Console spec did not change.
 
 ### Reviewed Live Drift (2026-10-22)
 
@@ -80,7 +85,7 @@ Commit 8's pentest range; it is not publication authorization.
 
 | API | URL | OpenAPI | Title | Spec Version | Paths | Operations | SHA-256 | Last-Modified | ETag | Content-Length |
 | --- | --- | --- | --- | --- | ---: | ---: | --- | --- | --- | ---: |
-| `cloud` | <https://docs.hetzner.cloud/cloud.spec.json> | `3.1.2` | `Hetzner Cloud API` | `1.0.0` | 152 | 190 | `0f7f538a1d760d2e09a34a33ab411a9e29b52102721a2c4986aaf51cdb188c5d` | not recorded | not recorded | 3508428 |
+| `cloud` | <https://docs.hetzner.cloud/cloud.spec.json> | `3.1.2` | `Hetzner Cloud API` | `1.0.0` | 152 | 190 | `3f90e2a03d37da90cde0b14744419bde101bb20829d0d870c0c3b95c5b3d1225` | not recorded | not recorded | 3532416 |
 | `hetzner` | <https://docs.hetzner.cloud/hetzner.spec.json> | `3.1.2` | `Hetzner API` | `1.0.0` | 23 | 32 | `3afa18f135b62f4c6703a855fe0c5d5f5769f9bac8451a09819acc6a637cb688` | `Tue, 08 Sep 2026 10:31:03 GMT` | `W/"7ed90-1a080923f95"` | 519568 |
 
 Total source-locked operations: 222 (`cloud`: 190, `hetzner`: 32).

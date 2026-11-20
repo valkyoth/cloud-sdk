@@ -191,7 +191,7 @@ class SourceLockTests(unittest.TestCase):
         operation_data = (ROOT / "docs/CRATESIO_API_SCOPE.tsv").read_bytes()
         cargo_data = (ROOT / "docs/CRATESIO_CARGO_COMPATIBILITY.tsv").read_bytes()
         validate_artifact_digests(lock, operation_data, cargo_data)
-        operations = validate_tsv(operation_data, TSV_COLUMNS, 51)
+        operations = validate_tsv(operation_data, TSV_COLUMNS, 53)
         cargo = validate_tsv(cargo_data, CARGO_COLUMNS, 8)
         self.assertEqual(sum(row["stability"] == "stable-cargo" for row in operations), 7)
         self.assertEqual(sum(row["classification"] == "superseded" for row in cargo), 7)

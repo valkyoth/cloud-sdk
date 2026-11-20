@@ -21,11 +21,11 @@ LOCK_DOCUMENT = ROOT / "docs" / "HETZNER_CHANGELOG_LOCK.md"
 SOURCE_URL = "https://docs.hetzner.cloud/changelog/feed.rss"
 SELF_URL = "https://docs.hetzner.cloud/changelog/rss"
 PINNED_SEMANTIC_SHA256 = (
-    "6f2da2458e3cd4cb3bad55c086c9934243bc1f28dc5b3c929fc52234da8099e8"
+    "16598af75bd97e263065fad901b4ab085e0257d8483e7a509fa67c1b033fde7d"
 )
 PINNED_LATEST_GUID = (
     "https://docs.hetzner.cloud/changelog#"
-    "2026-10-15-server-subnet-type-deprecation"
+    "2026-11-12-fedora-43-image-is-deprecated"
 )
 MAX_SOURCE_BYTES = 8 * 1024 * 1024
 CONNECT_TIMEOUT_SECONDS = 10

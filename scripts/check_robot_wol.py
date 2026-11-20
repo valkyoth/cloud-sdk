@@ -10,9 +10,9 @@ from typing import Any
 
 ROOT = Path(__file__).resolve().parents[1]
 LOCK = ROOT / "tests/fixtures/robot-wol/v0.84.0.json"
-LOCK_SHA256 = "8bdd74948e05e8a3e539e7929d8d30a77e7562d9f31f4cec79cb32b405044f01"
+LOCK_SHA256 = "e502a175d2691f67afd52724ab0a08165a2f7226c998c9b74342a2c2e5677eeb"
 MAX_LOCK_BYTES = 12 * 1024
-SOURCE_SHA256 = "4b396790acc449f47b2b3b893f8eff759c0c25196dc38b1e5e92a12c9704771a"
+SOURCE_SHA256 = "9f19edaa1a90d5987fe8e58d0cb3868fc64cbed8177aa0fdcbbe012dbc058018"
 WOL_SOURCE = ROOT / "crates/cloud-sdk-hetzner/src/robot/wol"
 
 
@@ -86,7 +86,7 @@ def validate_contract(value: dict[str, Any]) -> None:
     require(
         value.get("source")
         == {
-            "retrieved": "2026-08-13",
+            "retrieved": "2026-11-20",
             "url": "https://robot.hetzner.com/doc/webservice/en.html",
             "sha256": SOURCE_SHA256,
         },

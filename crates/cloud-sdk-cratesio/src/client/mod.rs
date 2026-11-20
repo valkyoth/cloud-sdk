@@ -13,7 +13,6 @@ mod asynchronous;
 #[cfg(feature = "blocking")]
 mod blocking;
 mod buffers;
-#[cfg(feature = "async")]
 pub(crate) mod prepared;
 #[cfg(feature = "blocking")]
 mod publish;

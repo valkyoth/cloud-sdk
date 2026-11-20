@@ -38,9 +38,9 @@ def expected() -> dict[str, Any]:
     return {
         "schema_version": 1,
         "source": {
-            "retrieved": "2026-08-13",
+            "retrieved": "2026-11-20",
             "url": "https://robot.hetzner.com/doc/webservice/en.html",
-            "sha256": "4b396790acc449f47b2b3b893f8eff759c0c25196dc38b1e5e92a12c9704771a",
+            "sha256": "9f19edaa1a90d5987fe8e58d0cb3868fc64cbed8177aa0fdcbbe012dbc058018",
         },
         "inventory": "tests/fixtures/robot-api/v0.74.0.json",
         "operation": {

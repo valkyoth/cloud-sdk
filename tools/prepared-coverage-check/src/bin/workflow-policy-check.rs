@@ -24,11 +24,11 @@ const ALLOWED_RUN_COMMANDS: [&str; 18] = [
     "rustup toolchain install \"$RUST_VERSION\" --profile minimal",
     "scripts/check_rust_version_matrix.sh \"$RUST_VERSION\"",
     "scripts/check_packaged_feature_graphs.sh\ncargo doc --locked --workspace --all-features --no-deps",
-    "rustup toolchain install nightly-2026-10-22 --profile minimal",
+    "rustup toolchain install nightly-2026-11-20 --profile minimal",
     "cargo install --locked cargo-fuzz --version 0.13.2",
     "scripts/check_fuzz_harness.sh --build\nscripts/check_fuzz_harness.sh --smoke",
     "rustup show",
-    "cargo install --locked cargo-deny --version 0.20.2\ncargo install --locked cargo-audit --version 0.22.2",
+    "cargo install --locked cargo-deny --version 0.22.0\ncargo install --locked cargo-audit --version 0.23.0",
     "cargo install --locked cargo-sbom --version 0.10.0",
     "scripts/checks.sh",
     r#"cargo deny check

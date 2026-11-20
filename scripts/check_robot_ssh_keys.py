@@ -15,7 +15,7 @@ FIXTURE = ROOT / "tests/fixtures/robot-ssh-keys/v0.88.0.json"
 API_LOCK = ROOT / "tests/fixtures/robot-api/v0.74.0.json"
 FUZZ_HARNESS = ROOT / "scripts/check_fuzz_harness.sh"
 MAX_BYTES = 64 * 1024
-FIXTURE_SHA256 = "913a447077962f5d1993ff21af7f4699cc4be0b2472d6fbc4bd6c37fb793db4e"
+FIXTURE_SHA256 = "c97e2cbdfa1c9526d8b6283e17f57b87daf76eef8cf9c79df66d67d349b0fb23"
 
 
 def fail(message: str) -> None:

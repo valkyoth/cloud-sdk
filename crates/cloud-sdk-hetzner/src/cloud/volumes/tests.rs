@@ -139,6 +139,45 @@ fn storage_ip_volume_size_and_placement_are_validated() {
 }
 
 #[test]
+fn volume_create_and_attach_encode_only_the_current_server_assignee() {
+    use crate::prepared::BodyWire;
+    let (Some(server), Some(size), Ok(name)) = (
+        VolumeId::new(42),
+        VolumeSizeGb::new(10),
+        VolumeName::new("data"),
+    ) else {
+        unreachable!("volume fixture")
+    };
+    let create = VolumeCreateRequest::new(
+        size,
+        name,
+        VolumeCreatePlacement::Server {
+            server,
+            automount: false,
+        },
+    );
+    let mut out = [0; 128];
+    let len = create
+        .write_body(&mut out)
+        .unwrap_or_else(|_| unreachable!("create body"));
+    assert_eq!(
+        out.get(..len),
+        Some(
+            br#"{"automount":false,"assignee":{"type":"server","id":42},"name":"data","size":10}"#
+                .as_slice()
+        )
+    );
+    let attach = VolumeAttachRequest::new(server, true);
+    let len = attach
+        .write_body(&mut out)
+        .unwrap_or_else(|_| unreachable!("attach body"));
+    assert_eq!(
+        out.get(..len),
+        Some(br#"{"automount":true,"assignee":{"type":"server","id":42}}"#.as_slice())
+    );
+}
+
+#[test]
 fn storage_ip_volume_action_markers_preserve_required_fields() {
     let server = VolumeId::new(42);
     assert!(server.is_some(), "fixture server ID must validate");

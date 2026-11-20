@@ -14,7 +14,7 @@ def main():
     schema = {"type": "object", "required": ["ok"], "properties": {"ok": {"type": "boolean"}}}
     for name, (method, path) in PATHS.items():
         op = {"operationId": name, "responses": {"200": {"content": {"application/json": {"schema": schema}}}}}
-        if name in ("update_user", "handle_crate_owner_invitation"):
+        if name in ("update_user", "handle_crate_owner_invitation", "update_crate_owner_invitation"):
             op["requestBody"] = {"content": {"application/json": {"schema": schema}}}
         document["paths"].setdefault(path, {})[method] = op
     original = copy.deepcopy(document)
@@ -49,7 +49,7 @@ def main():
                 op["operationId"] = "wrong"
             elif mutation == "schema":
                 op["responses"]["200"]["content"]["application/json"]["schema"]["oneOf"] = []
-            elif name in ("update_user", "handle_crate_owner_invitation"):
+            elif name in ("update_user", "handle_crate_owner_invitation", "update_crate_owner_invitation"):
                 del op["requestBody"]
             else:
                 op["requestBody"] = {}

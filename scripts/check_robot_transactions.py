@@ -79,7 +79,7 @@ def validate(
     source = fixture.get("source", {})
     if source.get("url") != "https://robot.hetzner.com/doc/webservice/en.html":
         fail("official source URL changed")
-    if source.get("sha256") != "4b396790acc449f47b2b3b893f8eff759c0c25196dc38b1e5e92a12c9704771a":
+    if source.get("sha256") != "9f19edaa1a90d5987fe8e58d0cb3868fc64cbed8177aa0fdcbbe012dbc058018":
         fail("official source digest changed without review")
     validate_examples(source.get("examples"))
     expected = [

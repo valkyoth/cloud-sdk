@@ -19,13 +19,20 @@ in `v0.93.0`; all 89 active operations are exposed through the typed Robot
 client in `v0.94.0`; and `v0.95.0` adds separately sealed read-only live
 evidence for only `GET /server`.
 
-Retrieved: 2026-08-14
+Retrieved: 2026-11-20
+
+Compared with the previous digest-verified HTML, the traffic-warning updates
+(`POST /ip/{ip}` and `POST /subnet/{net-ip}`) and their warning/threshold
+fields are deprecated for removal on January 12, 2027. The SDK retains the
+typed calls until removal; do not build new automation around them. The read
+operations themselves are not deprecated. There are 87 active routes, two
+supported retiring routes, and 16 excluded legacy Storage Box routes.
 
 Official source:
 <https://robot.hetzner.com/doc/webservice/en.html>
 
 SHA-256:
-`4b396790acc449f47b2b3b893f8eff759c0c25196dc38b1e5e92a12c9704771a`
+`9f19edaa1a90d5987fe8e58d0cb3868fc64cbed8177aa0fdcbbe012dbc058018`
 
 ## Locked Protocol
 

@@ -1,6 +1,6 @@
 # crates.io Source Lock
 
-Status: the full provider was published in `1.1.0`. The current `1.1.1`
+Status: the full provider was published in `1.1.0`. The current `1.1.2`
 maintenance candidate refreshes reviewed upstream evidence and requires pentest
 and GitHub acceptance before publication. Earlier checkpoint records below
 describe their historical scope, not outstanding implementation work.
@@ -22,14 +22,14 @@ reviewed Cargo overlap is
 
 ## Reviewed Sources
 
-The observation, refreshed on 2026-10-22, binds six official HTTPS representations:
+The observation, refreshed on 2026-11-20, binds six official HTTPS representations:
 
 | Evidence | Exact source | Bound |
 | --- | --- | --- |
 | Public API | `https://crates.io/api/openapi.json` | 1 MiB |
 | Stable Cargo contract | `https://doc.rust-lang.org/cargo/reference/registry-web-api.html` | 512 KiB |
 | Deployed access policy | `https://crates.io/data-access` | 128 KiB |
-| OpenAPI implementation | `rust-lang/crates.io` `src/openapi.rs` at `9ae7f769cea32f38ebc2ea9ec2ce455b47641511` | 128 KiB |
+| OpenAPI implementation | `rust-lang/crates.io` `src/openapi.rs` at `e37aa705b096b0f64b8ad5c0312d8e8fc8637315` | 128 KiB |
 | Policy implementation | `rust-lang/crates.io` `svelte/src/routes/data-access/+page.svelte` at the same commit | 128 KiB |
 | Current policy observation | the same file on the official `rust-lang/crates.io` `main` branch | 128 KiB |
 
@@ -58,9 +58,9 @@ never treated as accepted evidence merely because it was fetched successfully.
 
 ## Finite Scope
 
-The locked OpenAPI 3.1 document contains exactly 40 paths and 51 public
+The locked OpenAPI 3.1 document contains exactly 42 paths and 53 public
 operations. Every operation is classified `included`; no private,
-undocumented, or browser-only route is inferred. The two operations marked
+undocumented, or browser-only route is inferred. The three operations marked
 deprecated by the public document remain explicit included rows so their
 status cannot disappear silently.
 
@@ -200,7 +200,7 @@ Cargo and deployed policy bytes changed; the current policy source only
 changes frontend import paths from `$lib` to `#lib`. Rate limits, identifying
 user-agent rules and preferred alternative data sources are unchanged.
 The pinned controller/source commit remains historical evidence at
-`9ae7f769cea32f38ebc2ea9ec2ce455b47641511`, not a claim to audit every backend
+`e37aa705b096b0f64b8ad5c0312d8e8fc8637315`, not a claim to audit every backend
 commit. Live semantic and exact-source checks pass against the refreshed locks.
 
 ## Reviewed Drift 2026-09-15
@@ -219,7 +219,7 @@ current/pinned Svelte source remain identical: identifying user agent, one
 request per second, and preferred sparse index/static/RSS/dump sources are
 unchanged. All five related lock/observation/inventory artifacts were rebuilt
 in a staged candidate and reviewed together; no admission rule was loosened.
-The reviewed implementation source commit remains `9ae7f769cea32f38ebc2ea9ec2ce455b47641511`.
+The reviewed implementation source commit remains `e37aa705b096b0f64b8ad5c0312d8e8fc8637315`.
 
 Version-list, README, author and dependency controller byte digests are now
 also checked by the request-policy fetch gate. This captures seek-only

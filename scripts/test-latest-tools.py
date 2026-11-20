@@ -19,7 +19,7 @@ def fake_environment(directory: Path, *, stale: bool = False) -> tuple[dict[str,
     log = directory / "cargo.log"
     rustc = binary / "rustc"
     rustc.write_text(
-        "#!/bin/sh\nprintf '%s\\n' 'rustc 1.99.1 (test 2026-09-01)'\n",
+        "#!/bin/sh\nprintf '%s\\n' 'rustc 1.100.0 (test 2026-09-01)'\n",
         encoding="ascii",
     )
     rustc.chmod(0o755)
@@ -29,13 +29,13 @@ def fake_environment(directory: Path, *, stale: bool = False) -> tuple[dict[str,
 set -eu
 printf '%s\n' "$*" >> "$TOOL_TEST_LOG"
 case "$*" in
-'deny --version') echo 'cargo-deny 0.20.2' ;;
-'audit --version') echo 'cargo-audit-audit 0.22.2' ;;
+'deny --version') echo 'cargo-deny 0.22.0' ;;
+'audit --version') echo 'cargo-audit-audit 0.23.0' ;;
 'sbom --version') echo 'cargo-sbom 0.10.0' ;;
 'fuzz --version') echo 'cargo-fuzz 0.13.2' ;;
 'search --registry crates-io --limit 1 cargo-deny')
-    printf 'cargo-deny = "%s"\n' "${STALE_DENY_VERSION:-0.20.2}" ;;
-'search --registry crates-io --limit 1 cargo-audit') echo 'cargo-audit = "0.22.2"' ;;
+    printf 'cargo-deny = "%s"\n' "${STALE_DENY_VERSION:-0.22.0}" ;;
+'search --registry crates-io --limit 1 cargo-audit') echo 'cargo-audit = "0.23.0"' ;;
 'search --registry crates-io --limit 1 cargo-sbom') echo 'cargo-sbom = "0.10.0"' ;;
 'search --registry crates-io --limit 1 cargo-fuzz') echo 'cargo-fuzz = "0.13.2"' ;;
 *) echo "unexpected cargo arguments: $*" >&2; exit 64 ;;
@@ -48,7 +48,7 @@ esac
     environment["PATH"] = f"{binary}:{environment['PATH']}"
     environment["TOOL_TEST_LOG"] = str(log)
     if stale:
-        environment["STALE_DENY_VERSION"] = "0.20.3"
+        environment["STALE_DENY_VERSION"] = "0.22.1"
     return environment, log
 
 
@@ -78,7 +78,7 @@ def test_fetch_rejects_a_newer_release() -> None:
         environment, _ = fake_environment(Path(temporary), stale=True)
         result = run("--fetch", environment)
         assert result.returncode == 1, result
-        assert "reports cargo-deny 0.20.3; expected 0.20.2" in result.stderr
+        assert "reports cargo-deny 0.22.1; expected 0.22.0" in result.stderr
 
 
 def test_local_only_never_searches_the_registry() -> None:
