@@ -50,7 +50,7 @@ macro_rules! mode {
                     } else {
                         DiscoveryClient::production(self.executor, self.identity, self.maximum)
                     }.map_err(DiscoveryExecutionError::Model)?;
-                    runner::$run(&client, CatalogToken(request, token), guard.parts()).await
+                    runner::$run(&client, CatalogToken(request, token), guard.parts(), &mut [0; crate::query::MAX_TARGET_BYTES]).await
                 }
             }
         }

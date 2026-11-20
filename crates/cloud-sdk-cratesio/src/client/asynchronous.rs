@@ -100,7 +100,13 @@ macro_rules! execute_kind {
             DiscoveryClient::production($registry.executor, $registry.identity, $registry.maximum)
         }
         .map_err(DiscoveryExecutionError::Model)?;
-        runner::$execute(&client, $request, $buffers).await
+        runner::$execute(
+            &client,
+            $request,
+            $buffers,
+            &mut [0; crate::query::MAX_TARGET_BYTES],
+        )
+        .await
     }};
 }
 implementation!(

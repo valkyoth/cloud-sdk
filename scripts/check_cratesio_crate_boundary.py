@@ -203,7 +203,7 @@ def validate(root: Path) -> None:
     expected_sources = {
         "lib.rs",
         *(f"client/{name}.rs" for name in ("mod", "blocking", "buffers", "tests")),
-        *(f"client/{name}.rs" for name in ("prepared", "asynchronous", "asynchronous/runner", "asynchronous/catalog", "asynchronous/tests", "asynchronous/tests/lifecycle", "asynchronous/tests/operations", "asynchronous/tests/catalog", "asynchronous/tests/secret_paths")),
+        *(f"client/{name}.rs" for name in ("prepared", "asynchronous", "asynchronous/runner", "asynchronous/catalog", "asynchronous/tests", "asynchronous/tests/lifecycle", "asynchronous/tests/operations", "asynchronous/tests/catalog", "asynchronous/tests/secret_paths", "asynchronous/tests/target_cleanup")),
         "client/asynchronous/tests/coverage.rs",
         "client/asynchronous/tests/coverage_routes.rs",
         "client/asynchronous/tests/cargo.rs",

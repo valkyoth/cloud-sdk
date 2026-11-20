@@ -17,6 +17,7 @@ mod lifecycle;
 mod operations;
 mod publish;
 mod secret_paths;
+mod target_cleanup;
 
 pub(crate) const UA: &str = "unified-tests/1 (tests@example.org)";
 pub(crate) fn identity() -> IdentifyingUserAgent<'static> {
@@ -35,6 +36,7 @@ pub(crate) struct Fixture<'a> {
     pub encoding: Option<&'a [u8]>,
     pub pending: bool,
     pub fail: bool,
+    pub unwind: bool,
     pub changed: AtomicBool,
     pub calls: AtomicUsize,
 }
@@ -59,6 +61,7 @@ impl<'a> Fixture<'a> {
             encoding: None,
             pending: false,
             fail: false,
+            unwind: false,
             changed: AtomicBool::new(false),
             calls: AtomicUsize::new(0),
         }
@@ -97,6 +100,7 @@ impl<'a> Fixture<'a> {
             (!self.payload.is_empty()).then_some("application/json")
         );
         assert!(policy.admits_header("retry-after"));
+        assert!(!self.unwind, "fixture transport unwind");
     }
     fn stage(&self, mut output: AsyncResponseStaging<'_, '_>) -> Result<ResponseCompletion, ()> {
         output

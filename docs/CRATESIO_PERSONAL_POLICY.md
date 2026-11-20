@@ -16,6 +16,11 @@ the opaque invitation ID and decision. Neither the old crate ID nor an email
 invitation token is interchangeable with this ID. A mismatched success response
 is an error, not permission to replay a possibly completed change.
 
+The blocking and async registry clients wipe the entire invitation request-target
+buffer on drop, including on transport failure, unwind, or in-flight cancellation.
+This does not erase the caller's original cursor. Callers using `write_target`
+directly are responsible for clearing their own output buffer.
+
 `PersonalRequest` has action-specific constructors and immutable private data.
 `confirm` consumes that exact request and borrows one API credential into a
 non-cloneable permit. Execution takes only the permit, not another request or

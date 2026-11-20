@@ -18,48 +18,63 @@ impl BlockingRegistryOperation for InvitationPermit<'_> {
         c: &RegistryClient<'_, T>,
         buffers: RegistryBuffers<'_>,
     ) -> Result<Self::Response, DiscoveryExecutionError<T::Error>> {
-        use super::prepared::Permit;
-        use crate::discovery::{
-            DiscoveryClient, DiscoveryError as Error, DiscoveryExecutionError as Failure,
-        };
-        use cloud_sdk::transport::{MediaType, RequestHeader, RequestHeaders, ResponseBuffer};
-        let mut guard = super::buffers::Guard::new(buffers);
-        let buffers = guard.parts();
-        let client = if c.staging {
-            DiscoveryClient::staging(c.executor, c.identity, c.maximum)
-        } else {
-            DiscoveryClient::production(c.executor, c.identity, c.maximum)
-        }
-        .map_err(Failure::Model)?;
-        client.verify().map_err(Failure::Model)?;
-        if Permit::origin(&self).endpoint() != client.endpoint {
-            return Err(Failure::Model(Error::Binding));
-        }
-        let mut target = [0; crate::query::MAX_TARGET_BYTES];
-        let mut secret = cloud_sdk_sanitization::SecretBuffer::new(buffers.credential);
-        let p = self
-            .prepare(c.executor, &mut target, &mut secret, buffers.body, 0)
-            .map_err(Failure::Model)?;
-        let mut response = ResponseBuffer::new(buffers.response, c.maximum, buffers.headers);
-        let headers = [
-            RequestHeader::accept(MediaType::JSON),
-            RequestHeader::new("accept-encoding", "identity")
-                .map_err(|_| Failure::Model(Error::Value))?,
-            RequestHeader::new("content-type", "application/json")
-                .map_err(|_| Failure::Model(Error::Value))?,
-        ];
-        let n = if p.body.is_empty() { 2 } else { 3 };
-        let headers = RequestHeaders::new(headers.get(..n).ok_or(Failure::Model(Error::Limit))?)
-            .map_err(|_| Failure::Model(Error::Value))?;
-        let wire = TransportRequest::new(p.material.method(), p.material.target())
-            .with_headers(headers)
-            .with_body(p.body);
-        let policy = client.policy().map_err(Failure::Model)?;
-        let mut attempt = client.gate.begin().map_err(Failure::Schedule)?;
-        dispatch(c.executor, p.material, wire, policy, response.writer())
-            .map_err(Failure::Transport)?;
-        self.finish(&client, response, &mut attempt)
+        run_invitation(self, c, buffers, &mut [0; crate::query::MAX_TARGET_BYTES])
     }
+}
+
+pub(super) fn run_invitation<T: BlockingAuthorizedRawHttpExecutor + BoundUserAgent + ?Sized>(
+    permit: InvitationPermit<'_>,
+    c: &RegistryClient<'_, T>,
+    buffers: RegistryBuffers<'_>,
+    target_storage: &mut [u8; crate::query::MAX_TARGET_BYTES],
+) -> Result<crate::discovery::DiscoveryValue, DiscoveryExecutionError<T::Error>> {
+    use super::prepared::Permit;
+    use crate::discovery::{
+        DiscoveryClient, DiscoveryError as Error, DiscoveryExecutionError as Failure,
+    };
+    use cloud_sdk::transport::{MediaType, RequestHeader, RequestHeaders, ResponseBuffer};
+    let mut guard = super::buffers::Guard::new(buffers);
+    let buffers = guard.parts();
+    let client = if c.staging {
+        DiscoveryClient::staging(c.executor, c.identity, c.maximum)
+    } else {
+        DiscoveryClient::production(c.executor, c.identity, c.maximum)
+    }
+    .map_err(Failure::Model)?;
+    client.verify().map_err(Failure::Model)?;
+    if Permit::origin(&permit).endpoint() != client.endpoint {
+        return Err(Failure::Model(Error::Binding));
+    }
+    let mut target = cloud_sdk_sanitization::SecretBuffer::new(target_storage);
+    let mut secret = cloud_sdk_sanitization::SecretBuffer::new(buffers.credential);
+    let p = permit
+        .prepare(
+            c.executor,
+            target.as_mut_slice(),
+            &mut secret,
+            buffers.body,
+            0,
+        )
+        .map_err(Failure::Model)?;
+    let mut response = ResponseBuffer::new(buffers.response, c.maximum, buffers.headers);
+    let headers = [
+        RequestHeader::accept(MediaType::JSON),
+        RequestHeader::new("accept-encoding", "identity")
+            .map_err(|_| Failure::Model(Error::Value))?,
+        RequestHeader::new("content-type", "application/json")
+            .map_err(|_| Failure::Model(Error::Value))?,
+    ];
+    let n = if p.body.is_empty() { 2 } else { 3 };
+    let headers = RequestHeaders::new(headers.get(..n).ok_or(Failure::Model(Error::Limit))?)
+        .map_err(|_| Failure::Model(Error::Value))?;
+    let wire = TransportRequest::new(p.material.method(), p.material.target())
+        .with_headers(headers)
+        .with_body(p.body);
+    let policy = client.policy().map_err(Failure::Model)?;
+    let mut attempt = client.gate.begin().map_err(Failure::Schedule)?;
+    dispatch(c.executor, p.material, wire, policy, response.writer())
+        .map_err(Failure::Transport)?;
+    permit.finish(&client, response, &mut attempt)
 }
 
 impl sealed::Operation for crate::accounts::cargo::CargoOwnersRequest<'_> {}

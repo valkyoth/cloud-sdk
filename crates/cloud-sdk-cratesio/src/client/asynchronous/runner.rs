@@ -10,6 +10,7 @@ macro_rules! runner {
     ($run:ident, $transport:ident, $drive:ident, $authorized:ident $(, $bound:ident, $sync:ident)?) => {
         pub(super) async fn $run<T: $transport + BoundUserAgent $(+ $sync)? + ?Sized, R: Permit $(+ $bound)?>(
             client: &DiscoveryClient<'_, T>, permit: R, buffers: RegistryBuffers<'_>,
+            target_storage: &mut [u8; MAX_TARGET_BYTES],
         ) -> Result<R::Response, Failure<T::Error>> {
             // The public wrapper owns a four-region guard before creating its
             // future. These inner guards protect material during suspension.
@@ -20,8 +21,8 @@ macro_rules! runner {
             if permit.origin().endpoint() != client.endpoint {
                 return Err(Failure::Model(Error::Binding));
             }
-            let mut target = [0; MAX_TARGET_BYTES];
-            let prepared = permit.prepare(client.executor, &mut target, &mut secret, body.as_mut_slice(),
+            let mut target = SecretBuffer::new(target_storage);
+            let prepared = permit.prepare(client.executor, target.as_mut_slice(), &mut secret, body.as_mut_slice(),
                 client.response_time_seconds().map_err(Failure::Model)?).map_err(Failure::Model)?;
             let headers = [
                 RequestHeader::accept(MediaType::JSON),
