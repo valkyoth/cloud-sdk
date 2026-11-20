@@ -1,7 +1,7 @@
 # cloud-sdk 1.1.2
 
-Maintenance candidate against `v1.1.1`, ready for pentest. Publication remains
-disabled pending review.
+Maintenance release against `v1.1.1`. The [pentest and remediation retest](../security/pentest/v1.1.2.md)
+closed the invitation target-buffer finding with no outstanding findings.
 
 All six packages target 1.1.2. Rust 1.100.0 is the development compiler and
 joins the CI compatibility matrix. The minimum supported compiler is Rust 1.92.
