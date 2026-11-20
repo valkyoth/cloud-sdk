@@ -1,6 +1,9 @@
 #![no_std]
 #![doc = include_str!("../README.md")]
 
+// The core SDK is part of the adapter's dependency contract even without a transport.
+use cloud_sdk as _;
+
 #[cfg(all(
     any(
         feature = "async-rustls",
