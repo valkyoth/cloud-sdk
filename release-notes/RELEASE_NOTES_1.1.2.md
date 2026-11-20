@@ -1,5 +1,9 @@
 # cloud-sdk 1.1.2
 
+Security-Review: PASS
+Pentest: PASS
+Publication: PENDING
+
 Maintenance release against `v1.1.1`. The [pentest and remediation retest](../security/pentest/v1.1.2.md)
 closed the invitation target-buffer finding with no outstanding findings.
 
