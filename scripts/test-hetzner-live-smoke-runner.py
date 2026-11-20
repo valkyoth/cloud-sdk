@@ -3,12 +3,14 @@
 
 from __future__ import annotations
 
+import errno
 import importlib.util
 import os
 from pathlib import Path
 import shutil
 import stat
 import tempfile
+from unittest.mock import patch
 
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -104,8 +106,20 @@ def test_ownership(runner) -> None:
         else:
             raise AssertionError("user-owned artifact was accepted")
 
+        # Isolate the leaf check from the intentionally untrusted temp directory.
+        link = artifact.with_name("linked")
+        link.symlink_to(artifact)
+        with patch.object(runner, "validate_root_owned_directories"):
+            try:
+                descriptor = runner.open_root_owned_file(link, 0o555)
+            except OSError as error:
+                assert error.errno == errno.ELOOP
+            else:
+                os.close(descriptor)
+                raise AssertionError("symlink was followed")
+
     trusted = Path("/usr/bin/true")
-    metadata = trusted.stat()
+    metadata = trusted.lstat()
     expected_trusted = (
         has_trusted_directory_chain(trusted)
         and stat.S_ISREG(metadata.st_mode)
@@ -117,6 +131,8 @@ def test_ownership(runner) -> None:
         descriptor = runner.open_root_owned_file(trusted, stat.S_IMODE(metadata.st_mode))
     except runner.RunnerError:
         assert not expected_trusted
+    except OSError as error:
+        assert error.errno == errno.ELOOP and stat.S_ISLNK(metadata.st_mode)
     else:
         assert expected_trusted
         os.close(descriptor)

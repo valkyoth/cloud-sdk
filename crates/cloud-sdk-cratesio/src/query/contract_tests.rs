@@ -62,7 +62,8 @@ fn every_parameter_kind_obeys_the_independent_operation_matrix() {
             assert_eq!(
                 Query::new(*operation, &[input]).is_ok(),
                 keys.split(' ').any(|key| key == input.key()),
-                "{operation:?}, {input:?}"
+                "query contract mismatch for {operation:?}, parameter {}",
+                input.key()
             );
         }
     }
